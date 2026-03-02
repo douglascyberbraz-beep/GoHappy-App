@@ -41,7 +41,25 @@ window.KindrProfile = {
                     </div>
                 </div>
 
-                <div class="profile-actions" style="margin-top: 30px;">
+                <div class="profile-section premium-glass" style="padding: 15px; border-radius: 20px; margin-bottom: 20px;">
+                    <h3 style="font-size: 14px; color: var(--primary-navy); margin-bottom: 12px;">📌 Más</h3>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                        <button class="profile-quick-btn" data-goto="memories" style="background:#f5f5f5; border:none; padding:12px 8px; border-radius:14px; cursor:pointer; text-align:center;">
+                            <span style="display:block; font-size:1.3rem;">📖</span>
+                            <span style="font-size:11px; font-weight:600; color:var(--primary-navy);">Memories</span>
+                        </button>
+                        <button class="profile-quick-btn" data-goto="news" style="background:#f5f5f5; border:none; padding:12px 8px; border-radius:14px; cursor:pointer; text-align:center;">
+                            <span style="display:block; font-size:1.3rem;">✨</span>
+                            <span style="font-size:11px; font-weight:600; color:var(--primary-navy);">Noticias</span>
+                        </button>
+                        <button class="profile-quick-btn" data-goto="events" style="background:#f5f5f5; border:none; padding:12px 8px; border-radius:14px; cursor:pointer; text-align:center;">
+                            <span style="display:block; font-size:1.3rem;">🎈</span>
+                            <span style="font-size:11px; font-weight:600; color:var(--primary-navy);">Eventos</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="profile-actions" style="margin-top: 10px;">
                     <button id="install-pwa-btn" class="btn-primary full-width" style="display:none; margin-bottom: 10px;">📲 Instalar App</button>
                     <button id="terms-link" class="btn-text full-width" style="margin-bottom: 10px; color: var(--primary-blue);">📜 Términos y Condiciones</button>
                     <button id="logout-btn" class="btn-outline full-width">Cerrar Sesión</button>
@@ -75,6 +93,13 @@ window.KindrProfile = {
                     btn.innerText = 'Copiar Enlace';
                     btn.classList.remove('success');
                 }, 2000);
+            });
+        });
+
+        // Quick navigation buttons
+        container.querySelectorAll('.profile-quick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                window.KindrApp.loadPage(btn.dataset.goto);
             });
         });
 

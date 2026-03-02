@@ -135,6 +135,15 @@ function loadPage(pageName) {
             case 'legal':
                 window.KindrLegal.render(container);
                 break;
+            case 'quests':
+                window.KindrQuestsPage.render(container);
+                break;
+            case 'safe':
+                window.KindrSafePage.render(container);
+                break;
+            case 'memories':
+                window.KindrMemories.render(container);
+                break;
         }
         setTimeout(() => container.classList.remove('page-enter'), 600);
     }

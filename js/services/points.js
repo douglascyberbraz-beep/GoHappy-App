@@ -5,7 +5,9 @@ window.KindrPoints = {
         REVIEW: 20,
         PHOTO_VIDEO: 30,
         COMMENT: 5,
-        REFERRAL: 100
+        REFERRAL: 100,
+        QUEST_COMPLETE: 100,
+        QUEST_PHOTO: 30
     },
 
     LEVELS: [
