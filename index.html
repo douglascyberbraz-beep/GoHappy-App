@@ -25,6 +25,22 @@
 </head>
 
 <body>
+    <div id="debug-error"
+        style="position:fixed; top:0; left:0; width:100%; background:red; color:white; z-index:10000; font-family:monospace; font-size:12px; padding:10px; display:none; white-space:pre-wrap; max-height: 50vh; overflow: auto;">
+    </div>
+    <script>
+        window.onerror = function (msg, url, lineNo, columnNo, error) {
+            const errDiv = document.getElementById('debug-error');
+            errDiv.style.display = 'block';
+            errDiv.textContent += '\n' + msg + ' (' + url + ':' + lineNo + ':' + columnNo + ')';
+            return false;
+        };
+        window.onunhandledrejection = function (event) {
+            const errDiv = document.getElementById('debug-error');
+            errDiv.style.display = 'block';
+            errDiv.textContent += '\nUnhandled Promise Rejection: ' + event.reason;
+        };
+    </script>
     <div id="app">
         <!-- Splash Screen -->
         <div id="splash-screen" class="splash-screen">
@@ -86,7 +102,6 @@
     <!-- Login/Register Modal -->
     <div id="auth-modal" class="modal hidden">
         <!-- Auth content -->
-    </div>
     </div>
 
     <!-- Leaflet JS -->
