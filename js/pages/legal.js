@@ -79,8 +79,14 @@ window.KindrLegal = {
         `;
 
         document.getElementById('legal-back').addEventListener('click', () => {
-            // Go back to the previous page (profile or current)
-            window.KindrApp.loadPage('profile');
+            const user = window.KindrAuth.checkAuth();
+            if (user) {
+                window.KindrApp.loadPage('profile');
+            } else {
+                // If not logged in, they likely came from the Auth Modal
+                // Re-render auth modal effectively by reloading or calling the check
+                window.location.reload();
+            }
         });
     }
 };
