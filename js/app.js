@@ -95,6 +95,17 @@ function setupNavigation() {
     });
 }
 
+function updateNavStyles(pageName) {
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(nav => {
+        if (nav.dataset.page === pageName) {
+            nav.classList.add('active');
+        } else {
+            nav.classList.remove('active');
+        }
+    });
+}
+
 function loadPage(pageName) {
     appState.currentPage = pageName;
     const container = document.getElementById('main-content');
@@ -105,18 +116,10 @@ function loadPage(pageName) {
     mapViewport.style.display = 'none';
     container.innerHTML = ''; // Clear other pages content
 
-    function updateNavStyles(pageName) {
-        const navItems = document.querySelectorAll('.nav-item');
-        navItems.forEach(nav => {
-            if (nav.dataset.page === pageName) {
-                nav.classList.add('active');
-            } else {
-                nav.classList.remove('active');
-            }
-        });
-    }
+    // Special style for nav items
+    updateNavStyles(pageName);
 
-    function loadPage(pageName) {
+    if (pageName === 'map') {
         window.KindrMap.render(mapViewport);
     } else {
         container.classList.remove('hidden');
