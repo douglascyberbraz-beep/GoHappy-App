@@ -13,16 +13,19 @@ window.KindrData = {
         } catch (e) {
             console.warn("Firestore getLocations fallback:", e);
         }
-        // Fallback estático
+        // Fallback estático ENRIQUECIDO
         return [
             { id: 101, name: "Campo Grande", type: "park", lat: 41.6444, lng: -4.7303, rating: 4.8, reviews: 245, image: "https://images.unsplash.com/photo-1596431718100-33671233075c?auto=format&fit=crop&w=400" },
-            { id: 102, name: "Museo de la Ciencia", type: "culture", lat: 41.6385, lng: -4.7431, rating: 4.6, reviews: 189, image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400" },
+            { id: 102, name: "Museo de la Ciencia", type: "museum", lat: 41.6385, lng: -4.7431, rating: 4.6, reviews: 189, image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400" },
             { id: 103, name: "Parque Ribera de Castilla", type: "park", lat: 41.6661, lng: -4.7171, rating: 4.3, reviews: 92 },
+            { id: 301, name: "Escuela Infantil Municipal 'Fantasía'", type: "school", lat: 41.6580, lng: -4.7250, rating: 4.9, reviews: 42 },
+            { id: 302, name: "CEIP Miguel de Cervantes", type: "school", lat: 41.6410, lng: -4.7180, rating: 4.7, reviews: 156 },
+            { id: 401, name: "Teatro Calderón (Sesión Infantil)", type: "theater", lat: 41.6545, lng: -4.7265, rating: 4.8, reviews: 310 },
+            { id: 402, name: "Cines Broadway (Kids)", type: "cinema", lat: 41.6480, lng: -4.7320, rating: 4.5, reviews: 88 },
+            { id: 501, name: "Zona Infantil Plaza Mayor", type: "kidzone", lat: 41.6525, lng: -4.7285, rating: 4.6, reviews: 520 },
+            { id: 502, name: "Ludoteca 'El Recreo'", type: "kidzone", lat: 41.6595, lng: -4.7380, rating: 4.7, reviews: 75 },
             { id: 104, name: "Pizza y Come (Kid Friendly)", type: "food", lat: 41.6525, lng: -4.7280, rating: 4.5, reviews: 56 },
-            { id: 105, name: "Ludoteca Arco Iris", type: "culture", lat: 41.6492, lng: -4.7350, rating: 4.7, reviews: 34 },
-            { id: 106, name: "Cantina del Sol", type: "food", lat: 41.6550, lng: -4.7250, rating: 4.2, reviews: 120 },
-            { id: 201, name: "Catedral de Burgos", lat: 42.3408, lng: -3.7042, type: "culture", rating: 4.9, reviews: 8500, image: "https://images.unsplash.com/photo-1559339352-11d035aa65de" },
-            { id: 202, name: "Museo de la Evolución Humana", lat: 42.3392, lng: -3.6972, type: "museum", rating: 4.8, reviews: 1850, image: "" }
+            { id: 105, name: "Ludoteca Arco Iris", type: "kidzone", lat: 41.6492, lng: -4.7350, rating: 4.7, reviews: 34 }
         ];
     },
 

@@ -56,12 +56,22 @@ window.KindrProfile = {
                     </div>
                 </div>
 
-                <div class="profile-section premium-glass" style="padding: 15px; border-radius: 20px; margin-bottom: 20px;">
-                    <h3 style="font-size: 14px; color: var(--primary-navy); margin-bottom: 12px;">📌 Más</h3>
-                    <div>
-                        <button class="profile-quick-btn" data-goto="memories" style="background:#f5f5f5; border:none; padding:12px 15px; border-radius:14px; cursor:pointer; text-align:center; width: 100%; display: flex; align-items: center; gap: 15px;">
+                <div class="profile-section premium-glass" style="padding: 20px; border-radius: 20px; margin-bottom: 20px;">
+                    <h3 style="font-size: 14px; color: var(--primary-navy); margin-bottom: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px;">🚀 Acciones Rápidas</h3>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button class="profile-quick-btn" id="share-app-btn" style="background:#e3f2fd; border:none; padding:15px; border-radius:14px; cursor:pointer; text-align:left; width: 100%; display: flex; align-items: center; gap: 15px;">
+                            <span style="font-size:1.3rem;">📲</span>
+                            <div style="display:flex; flex-direction:column;">
+                                <span style="font-size:14px; font-weight:700; color:var(--primary-navy);">Compartir KINDR</span>
+                                <span style="font-size:11px; color:#5d8aa8;">Invita a otras familias</span>
+                            </div>
+                        </button>
+                        <button class="profile-quick-btn" data-goto="memories" style="background:#f5f5f5; border:none; padding:15px; border-radius:14px; cursor:pointer; text-align:left; width: 100%; display: flex; align-items: center; gap: 15px;">
                             <span style="font-size:1.3rem;">📖</span>
-                            <span style="font-size:14px; font-weight:600; color:var(--primary-navy);">Mis Recuerdos (Memories)</span>
+                            <div style="display:flex; flex-direction:column;">
+                                <span style="font-size:14px; font-weight:700; color:var(--primary-navy);">Mis Recuerdos</span>
+                                <span style="font-size:11px; color:#888;">Tus aventuras guardadas</span>
+                            </div>
                         </button>
                     </div>
                 </div>
@@ -103,8 +113,30 @@ window.KindrProfile = {
             });
         });
 
+        // Native Share Logic
+        const shareBtn = document.getElementById('share-app-btn');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', async () => {
+                const shareData = {
+                    title: 'Únete a KINDR',
+                    text: `¡Hola! Me encanta esta app para hacer planes en familia. Usa mi código de invitación: ${user.referralCode}`,
+                    url: `https://kindr.app/join?ref=${user.referralCode}`
+                };
+
+                if (navigator.share) {
+                    try {
+                        await navigator.share(shareData);
+                    } catch (err) { console.log('Share failed:', err); }
+                } else {
+                    // Fallback to clipboard
+                    navigator.clipboard.writeText(shareData.url);
+                    alert("Enlace de invitación copiado al portapapeles.");
+                }
+            });
+        }
+
         // Quick navigation buttons
-        container.querySelectorAll('.profile-quick-btn').forEach(btn => {
+        container.querySelectorAll('.profile-quick-btn[data-goto]').forEach(btn => {
             btn.addEventListener('click', () => {
                 window.KindrApp.loadPage(btn.dataset.goto);
             });

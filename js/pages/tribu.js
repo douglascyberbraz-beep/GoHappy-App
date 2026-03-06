@@ -5,17 +5,9 @@ window.KindrTribu = {
 
     render: async (container) => {
         container.innerHTML = `
-            <div class="page-header sticky-header" style="flex-direction: column; align-items: stretch; gap: 15px; padding-bottom: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2 id="tribu-title">🏘️ Tribu</h2>
-                    <button class="btn-icon-pulse" id="tribu-action-btn">➕</button>
-                </div>
-                
-                <div class="tab-scroller" style="margin-top: 5px; margin-bottom: 5px;">
-                    <button class="tab-btn active" data-tab="comunidad">Comunidad</button>
-                    <button class="tab-btn" data-tab="eventos">Eventos</button>
-                    <button class="tab-btn" data-tab="noticias">Noticias</button>
-                </div>
+            <div class="page-header sticky-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px;">
+                <h2 id="tribu-title">🏘️ La Tribu</h2>
+                <button class="btn-icon-pulse" id="tribu-action-btn">➕</button>
             </div>
             
             <div id="tribu-content" class="content-list stagger-group" style="padding-bottom: 100px; width: 100%; display: flex; flex-direction: column; align-items: center;">
@@ -38,40 +30,9 @@ window.KindrTribu = {
 
         const contentContainer = document.getElementById('tribu-content');
         const actionBtn = document.getElementById('tribu-action-btn');
-        const titleEl = document.getElementById('tribu-title');
 
-        const switchTab = async (tabId) => {
-            window.KindrTribu.activeTab = tabId;
-
-            // Update UI tabs
-            container.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.tab === tabId);
-            });
-
-            contentContainer.innerHTML = '<div class="center-text p-20"><div class="typing-dots"><span></span><span></span><span></span></div></div>';
-
-            if (tabId === 'comunidad') {
-                titleEl.innerText = '🏘️ Comunidad';
-                actionBtn.style.display = 'block';
-                await window.KindrTribu.loadComunidad(contentContainer);
-            } else if (tabId === 'eventos') {
-                titleEl.innerText = '🎭 Eventos';
-                actionBtn.style.display = 'none';
-                await window.KindrTribu.loadEventos(contentContainer);
-            } else if (tabId === 'noticias') {
-                titleEl.innerText = '🗞️ Noticias';
-                actionBtn.style.display = 'none';
-                await window.KindrTribu.loadNoticias(contentContainer);
-            }
-        };
-
-        // Tab click events
-        container.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-        });
-
-        // Initialize with default tab
-        await switchTab(window.KindrTribu.activeTab);
+        // Direct load community
+        await window.KindrTribu.loadComunidad(contentContainer);
 
         // Modal Logic (only for Comunidad)
         const modal = document.getElementById('post-modal');

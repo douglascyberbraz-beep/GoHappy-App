@@ -146,45 +146,58 @@ window.KindrQuests = {
         }
     },
 
-    // Misiones por defecto / demo
+    // Misiones por defecto / demo - RICA EN CONTENIDO
     _getDefaultQuests: () => [
         {
-            id: 'demo-1',
-            title: 'Exploradores del Parque Oculto',
-            description: 'Descubre 2 parques que aún no has visitado en tu zona y comparte tu experiencia.',
+            id: 'q-parque-1',
+            title: 'Rey de los Columpios',
+            description: 'Visita 3 parques diferentes en tu barrio y dinos cuál tiene los mejores columpios.',
             type: 'EXPLORE',
-            objectives: ['Visita un parque nuevo', 'Escribe una reseña', 'Sube una foto'],
+            category: 'Parques',
+            objectives: ['Encuentra un parque nuevo', 'Prueba los columpios', 'Deja una reseña con foto'],
             points: 150,
-            timeLimit: '7 días',
+            progress: 0,
+            totalSteps: 3,
             difficulty: 'fácil',
+            status: 'active'
+        },
+        {
+            id: 'q-cultura-1',
+            title: 'Pequeños Críticos de Arte',
+            description: 'Lleva a los peques a un museo o teatro local y comparte su reacción.',
+            type: 'ADVENTURE',
+            category: 'Cultura',
+            objectives: ['Visita un museo o teatro', 'Saca una foto creativa', 'Comenta qué les gustó más'],
+            points: 200,
             progress: 1,
             totalSteps: 3,
-            status: 'active'
-        },
-        {
-            id: 'demo-2',
-            title: 'Fotógrafo Familiar',
-            description: 'Captura los mejores momentos en familia en 3 sitios diferentes de tu ciudad.',
-            type: 'PHOTO',
-            objectives: ['Foto en un parque', 'Foto en un museo o centro cultural', 'Foto en un restaurante'],
-            points: 120,
-            timeLimit: '5 días',
-            difficulty: 'fácil',
-            progress: 0,
-            totalSteps: 3,
-            status: 'active'
-        },
-        {
-            id: 'demo-3',
-            title: 'Embajador Kindr',
-            description: 'Invita a otra familia a KINDR y completad juntos una misión.',
-            type: 'SOCIAL',
-            objectives: ['Comparte tu código de referido', 'Tu amigo se registra', 'Completad una misión juntos'],
-            points: 250,
-            timeLimit: '14 días',
             difficulty: 'media',
+            status: 'active'
+        },
+        {
+            id: 'q-gastro-1',
+            title: 'Cena sin Dramas',
+            description: 'Descubre un restaurante con zona infantil donde se coma bien.',
+            type: 'GASTRO',
+            category: 'Restaurantes',
+            objectives: ['Reserva en sitio kid-friendly', 'Foto del menú infantil', 'Valora la limpieza y seguridad'],
+            points: 120,
             progress: 0,
             totalSteps: 3,
+            difficulty: 'fácil',
+            status: 'active'
+        },
+        {
+            id: 'q-social-1',
+            title: 'Líder de la Tribu',
+            description: 'Participa activamente en la comunidad ayudando a otros padres.',
+            type: 'SOCIAL',
+            category: 'Comunidad',
+            objectives: ['Publica un consejo útil', 'Recibe 5 likes', 'Responde a una duda'],
+            points: 300,
+            progress: 0,
+            totalSteps: 3,
+            difficulty: 'difícil',
             status: 'active'
         }
     ]

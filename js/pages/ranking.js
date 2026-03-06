@@ -18,7 +18,10 @@ window.KindrRanking = {
 
         const formatName = (name) => {
             const parts = name.split(' ');
-            if (parts.length > 1) return `${parts[0]} ${parts[parts.length - 1][0]}.`;
+            if (parts.length > 1) {
+                // Return "I. Surname" as requested (P. Gomez)
+                return `${parts[0][0]}. ${parts[parts.length - 1]}`;
+            }
             return name;
         };
 
@@ -29,16 +32,33 @@ window.KindrRanking = {
             list.innerHTML = '';
             sorted.forEach((site, index) => {
                 const card = document.createElement('div');
-                card.className = `ranking-card rank-${index + 1}`;
+                card.className = `ranking-card rank-${index + 1} entry-anim`;
+                card.style.cursor = 'pointer';
                 let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `<span class="rank-num">#${index + 1}</span>`;
                 card.innerHTML = `
-                    <div class="rank-position">${medal}</div>
-                    <div class="rank-info">
-                        <h3>${site.name}</h3>
-                        <span class="rank-badge">${site.type || 'Lugar'}</span>
+                    <div class="rank-position" style="font-size: 1.5rem; min-width: 40px; display: flex; justify-content: center;">${medal}</div>
+                    <div class="rank-info" style="flex: 1; padding: 0 10px;">
+                        <h3 style="margin: 0; font-size: 1rem; color: var(--primary-navy);">${site.name}</h3>
+                        <span class="rank-badge" style="font-size: 0.75rem; color: #888;">${site.type || 'Lugar'}</span>
                     </div>
-                    <div class="rank-score">⭐ ${site.rating || '?'}</div>
+                    <div class="rank-score" style="font-weight: 800; color: #FBC02D;">⭐ ${site.rating || '?'}</div>
                 `;
+
+                // Clicking triggers map navigation
+                card.onclick = () => {
+                    // Navigate to Map
+                    window.KindrApp.loadPage('tribu'); // Note: The user might expect the map tab? 
+                    // Actually we need to make sure the app loads the MAP page and sets the view
+                    window.KindrApp.navigate('map');
+                    setTimeout(() => {
+                        if (window.KindrMap && window.KindrMap.instance) {
+                            window.KindrMap.instance.flyTo([site.lat, site.lng], 16);
+                            // Open popup after fly
+                            const m = window.KindrMap.markers.find(m => m.data.id === site.id);
+                            if (m) m.instance.openPopup();
+                        }
+                    }, 500);
+                };
                 list.appendChild(card);
             });
         };

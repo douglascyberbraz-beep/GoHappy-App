@@ -135,7 +135,7 @@ async function loadPage(pageName) {
             const renderers = {
                 'tribu': window.KindrTribu,
                 'ranking': window.KindrRanking,
-                'chat': window.KindrChat,
+                'news_events': window.KindrNewsEvents,
                 'profile': window.KindrProfile,
                 'legal': window.KindrLegal,
                 'quests': window.KindrQuestsPage,
@@ -162,7 +162,12 @@ async function loadPage(pageName) {
 
 window.KindrApp = {
     currentPage: appState.currentPage,
-    loadPage: loadPage
+    loadPage: loadPage,
+    navigate: (page) => {
+        const navItem = document.querySelector(`.nav-item[data-page="${page}"]`);
+        if (navItem) navItem.click();
+        else loadPage(page);
+    }
 };
 
 // PWA Install Prompt

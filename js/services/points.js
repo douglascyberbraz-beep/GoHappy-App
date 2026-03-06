@@ -2,18 +2,21 @@ window.KindrPoints = {
     // Configuración de la tabla de puntos
     REWARDS: {
         REGISTER: 50,
-        REVIEW: 20,
-        PHOTO_VIDEO: 30,
-        COMMENT: 5,
-        REFERRAL: 100,
-        QUEST_COMPLETE: 100,
-        QUEST_PHOTO: 30
+        REVIEW: 30,         // Increased
+        PHOTO_VIDEO: 50,    // Increased for value
+        COMMENT: 10,        // Increased
+        REFERRAL: 150,      // Increased
+        QUEST_COMPLETE: 200, // Increased
+        QUEST_PHOTO: 50,
+        DAILY_LOGIN: 5
     },
 
     LEVELS: [
-        { min: 0, name: "Explorador", icon: "🌱" },
-        { min: 201, name: "Guía Tribu", icon: "🌿" },
-        { min: 501, name: "Maestro Kindr", icon: "🌳" }
+        { min: 0, name: "Explorador Novato", icon: "🌱" },
+        { min: 150, name: "Explorador Activo", icon: "🌿" },
+        { min: 500, name: "Guía de la Tribu", icon: "🌳" },
+        { min: 1200, name: "Maestro Kindr", icon: "⭐" },
+        { min: 2500, name: "Leyenda Kindr", icon: "👑" }
     ],
 
     // Obtener información de nivel basada en puntos

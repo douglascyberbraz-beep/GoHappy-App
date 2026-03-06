@@ -88,8 +88,9 @@ window.KindrMap = {
             <div class="map-filters">
                 <div class="filter-chip active" data-type="all">Todos</div>
                 <div class="filter-chip" data-type="park">Parques 🌳</div>
-                <div class="filter-chip" data-type="culture">Cultura 🎭</div>
-                <div class="filter-chip" data-type="museum">Museos 🖼️</div>
+                <div class="filter-chip" data-type="school">Escuelas 🎓</div>
+                <div class="filter-chip" data-type="theater">Cine/Teatro 🎭</div>
+                <div class="filter-chip" data-type="kidzone">Ludotecas 🏰</div>
                 <div class="filter-chip" data-type="food">Comida 🍏</div>
             </div>
         `;
@@ -130,41 +131,40 @@ window.KindrMap = {
             className: 'custom-div-icon',
             html: `
                 <div class="kindr-marker">
-                    <div class="kindr-marker-pin">
-                        <img src="assets/logo.png" style="width: 100%; height: 100%; object-fit: contain;">
+                    <div class="kindr-marker-pin" style="background-color: var(--primary-blue); border: 2.5px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                        <img src="assets/logo_white.png" style="width: 80%; height: 80%; object-fit: contain;">
                     </div>
-                    <div class="kindr-marker-shadow"></div>
                 </div>
             `,
-            iconSize: [45, 45],
-            iconAnchor: [22, 45],
-            popupAnchor: [0, -40]
+            iconSize: [40, 40],
+            iconAnchor: [20, 40],
+            popupAnchor: [0, -35]
         });
 
         const popupContent = `
-            <div class="popup-premium">
-                ${loc.image ? `<img src="${loc.image}" class="popup-img">` : `<div class="popup-img" style="background:var(--primary-blue)"></div>`}
-                <div class="popup-body">
-                    <h3>${loc.name}</h3>
-                    <div class="popup-meta">
-                        <span class="popup-rating">⭐ ${loc.rating || 0}</span>
-                        <span>${loc.reviews || 0} reviews</span>
+            <div class="popup-premium" style="min-width: 220px;">
+                ${loc.image ? `<img src="${loc.image}" class="popup-img" style="border-radius: 12px 12px 0 0; width: 100%; height: 110px; object-fit: cover;">` : `<div class="popup-img" style="background: linear-gradient(135deg, var(--primary-blue), #4cc9f0); height: 80px; border-radius: 12px 12px 0 0; display:flex; align-items:center; justify-content:center; color:white; font-size:2rem;">📍</div>`}
+                <div class="popup-body" style="padding: 15px;">
+                    <h3 style="margin: 0 0 5px 0; font-size: 1.1rem; font-weight: 800; color: var(--primary-navy);">${loc.name}</h3>
+                    <div class="popup-meta" style="display: flex; gap: 10px; font-size: 0.8rem; color: #666; margin-bottom: 12px;">
+                        <span class="popup-rating" style="background: #FFF9C4; color: #FBC02D; padding: 2px 6px; border-radius: 6px; font-weight: 700;">⭐ ${loc.rating || 0}</span>
+                        <span>${loc.reviews || 0} reseñas</span>
                     </div>
-                    <div class="reviews-list-compact">
-                        <p class="review-text">"¡Excelente sitio para los peques!"</p>
+                    
+                    <div class="popup-actions" style="display: flex; flex-direction: column; gap: 8px;">
+                        <button class="btn-primary small full-width" style="padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 700;" onclick="window.KindrMap.showAddSiteModal(${loc.lat}, ${loc.lng}, '${loc.name.replace(/'/g, "\\'")}')">
+                            ✍️ Escribir Reseña
+                        </button>
+                        <button class="btn-secondary small full-width" style="background: #f0f4f8; color: var(--primary-navy); border: none; padding: 10px; border-radius: 10px; font-size: 11px; font-weight: 700;" onclick="window.KindrMap.openExternal('${loc.name.replace(/'/g, "\\'")}', ${loc.lat}, ${loc.lng})">
+                            🚙 Cómo llegar
+                        </button>
                     </div>
-                    <button class="btn-primary small full-width" onclick="window.KindrMap.showAddSiteModal(${loc.lat}, ${loc.lng}, '${loc.name}')">
-                        ✍️ Añadir Reseña
-                    </button>
-                    <button class="btn-external-maps mt-10" onclick="window.KindrMap.openExternal('${loc.name}', ${loc.lat}, ${loc.lng})">
-                        🚙 Abrir en Google Maps
-                    </button>
                 </div>
             </div>
         `;
 
         const marker = L.marker([loc.lat, loc.lng], { icon: kindrIcon }).addTo(window.KindrMap.instance);
-        marker.bindPopup(popupContent);
+        marker.bindPopup(popupContent, { maxWidth: 300, className: 'premium-popup-wrap' });
         return marker;
     },
 

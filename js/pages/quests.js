@@ -61,42 +61,44 @@ window.KindrQuestsPage = {
                 const card = document.createElement('div');
                 card.className = `quest-card premium-shadow entry-anim ${isComplete ? 'quest-done' : ''}`;
                 card.innerHTML = `
-                    <div class="quest-card-header" style="border-left: 4px solid ${typeInfo.color};">
-                        <div class="quest-type-badge" style="background: ${typeInfo.color}15; color: ${typeInfo.color};">
-                            ${typeInfo.icon} ${typeInfo.label}
+                    <div class="quest-card-header" style="border-left: 4px solid ${typeInfo.color}; display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fafafa;">
+                        <div class="quest-type-badge" style="background: ${typeInfo.color}15; color: ${typeInfo.color}; padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 11px;">
+                            ${typeInfo.icon} ${quest.category || typeInfo.label}
                         </div>
-                        <div class="quest-meta">
-                            <span class="quest-difficulty" style="color: ${diffColor};">● ${quest.difficulty || 'media'}</span>
-                            <span class="quest-time">⏱️ ${quest.timeLimit}</span>
+                        <div class="quest-meta" style="font-size: 11px; color: #888; display: flex; gap: 10px;">
+                            <span class="quest-difficulty" style="color: ${diffColor}; font-weight: 600;">● ${quest.difficulty || 'media'}</span>
+                            <span class="quest-points" style="font-weight: 800; color: var(--primary-navy);">🏅 ${quest.points} pts</span>
                         </div>
                     </div>
-                    <div class="quest-card-body">
-                        <h3 class="quest-title">${quest.title}</h3>
-                        <p class="quest-desc">${quest.description}</p>
+                    <div class="quest-card-body" style="padding: 16px;">
+                        <h3 class="quest-title" style="margin: 0 0 8px 0; font-size: 1.1rem; color: var(--primary-navy);">${quest.title}</h3>
+                        <p class="quest-desc" style="font-size: 13px; color: #666; line-height: 1.4; margin-bottom: 12px;">${quest.description}</p>
                         
-                        <div class="quest-objectives">
+                        <div class="quest-objectives" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
                             ${(quest.objectives || []).map((obj, i) => `
-                                <div class="quest-obj ${i < progress ? 'obj-done' : ''}">
-                                    <span class="obj-check">${i < progress ? '✅' : '⬜'}</span>
+                                <div class="quest-obj ${i < progress ? 'obj-done' : ''}" style="display: flex; align-items: center; gap: 10px; font-size: 13px; ${i < progress ? 'opacity: 0.6; text-decoration: line-through;' : ''}">
+                                    <span class="obj-check" style="font-size: 16px;">${i < progress ? '✅' : '⬜'}</span>
                                     <span>${obj}</span>
                                 </div>
                             `).join('')}
                         </div>
 
-                        <div class="quest-progress-wrap">
-                            <div class="quest-progress-bar">
-                                <div class="quest-progress-fill" style="width: ${pct}%; background: ${typeInfo.color};"></div>
+                        <div class="quest-progress-wrap" style="display: flex; align-items: center; gap: 12px;">
+                            <div class="quest-progress-bar" style="flex: 1; height: 10px; background: #eee; border-radius: 10px; overflow: hidden;">
+                                <div class="quest-progress-fill" style="width: ${pct}%; height: 100%; background: linear-gradient(90deg, ${typeInfo.color}, ${typeInfo.color}aa); transition: width 0.5s ease;"></div>
                             </div>
-                            <span class="quest-pct">${pct}%</span>
+                            <span class="quest-pct" style="font-size: 12px; font-weight: 800; color: var(--primary-navy); min-width: 35px;">${pct}%</span>
                         </div>
 
-                        <div class="quest-footer">
-                            <span class="quest-reward">🏅 ${quest.points} pts</span>
-                            ${isComplete
-                        ? '<span class="quest-badge-done">✨ Completada</span>'
-                        : `<button class="btn-quest-action" data-quest="${quest.id}">Avanzar ➤</button>`
-                    }
-                        </div>
+                        ${!isComplete ? `
+                            <button class="btn-quest-action" data-quest="${quest.id}" style="margin-top: 15px; width: 100%; background: var(--primary-navy); color: white; border: none; padding: 10px; border-radius: 12px; font-weight: 700; cursor: pointer;">
+                                Avanzar Misión ➤
+                            </button>
+                        ` : `
+                            <div style="margin-top: 15px; text-align: center; color: #27AE60; font-weight: 800; font-size: 14px;">
+                                ✨ ¡Misión Completada!
+                            </div>
+                        `}
                     </div>
                 `;
                 list.appendChild(card);
