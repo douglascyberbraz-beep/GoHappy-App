@@ -139,21 +139,22 @@ body {
     cursor: pointer;
     color: var(--text-light);
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    min-width: 42px;
-    flex-shrink: 0;
+    min-width: 40px;
+    flex-shrink: 1;
     position: relative;
+    padding: 2px 0;
 }
 
 .nav-item .icon {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     margin-bottom: 2px;
 }
 
 .nav-item .label {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.2px;
 }
 
 .nav-item.active {
@@ -175,16 +176,20 @@ body {
 .map-orb {
     background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark));
     color: var(--white);
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    margin-top: -30px;
+    margin-top: -25px;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4);
-    border: 4px solid var(--white);
+    border: 3px solid var(--white);
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.map-orb .icon {
+    font-size: 1.3rem !important;
 }
 
 .map-orb:hover {
