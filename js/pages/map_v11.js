@@ -45,12 +45,11 @@ window.KidoaMap = {
                     preferCanvas: true
                 }).setView([41.6520, -4.7286], 15); // Default to Valladolid Center
 
-                // Standard Navigator Look - Clean, Bright, and Brand-friendly
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-                    subdomains: 'abcd',
+                // Standard Google Maps Look 
+                L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
                     maxZoom: 20,
-                    className: 'kidoa-map-tiles nav-brand-mode'
+                    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                    className: 'kidoa-map-tiles google-nav-mode'
                 }).addTo(map);
 
                 window.KidoaMap.instance = map;

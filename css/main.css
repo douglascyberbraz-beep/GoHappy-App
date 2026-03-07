@@ -310,18 +310,17 @@ body {
     z-index: -1;
 }
 
-/* Clean Navigator Glass UI for Map */
 .map-search-container {
     display: flex;
     flex-direction: row;
-    gap: 15px;
+    gap: 10px;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
-    margin: 20px 15px !important;
+    margin: 15px 10px !important;
     padding: 0 !important;
     position: absolute;
-    top: 10px;
+    top: 5px;
     left: 0;
     right: 0;
     z-index: 1000;
@@ -335,7 +334,13 @@ body {
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    padding-bottom: 5px;
+    padding: 5px 15px 15px 15px;
+    /* Added horizontal padding to prevent cut off */
+    width: 100%;
+    position: absolute;
+    top: 75px;
+    left: 0;
+    z-index: 999;
 }
 
 .map-filters::-webkit-scrollbar {
@@ -360,10 +365,10 @@ body {
     color: white !important;
 }
 
-/* Branded Map Layer - Waze-style */
-.kidoa-map-tiles {
-    filter: brightness(1.08) contrast(1.1) saturate(1.5) sepia(0.05);
-    opacity: 1;
+/* Branded Map Layer - Google-style */
+.kidoa-map-tiles.google-nav-mode {
+    filter: saturate(1.15) contrast(1.02);
+    /* Slight pop to Google's standard colors */
 }
 
 /* Ensure common Leaflet elements stay crisp */
@@ -1921,8 +1926,9 @@ body {
 
 /* Clean Navigator Mode GPS Styles */
 .navigator-view .leaflet-pane.leaflet-map-pane {
-    transform: perspective(1000px) rotateX(45deg) scale(1.3) !important;
-    transform-origin: center calc(100% - 150px);
+    transform: perspective(1000px) rotateX(45deg) scale(1.4) !important;
+    transform-origin: center calc(100% - 100px);
+    /* Lowered pivot so horizon is higher */
     transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
