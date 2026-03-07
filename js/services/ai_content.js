@@ -41,20 +41,25 @@ window.KidoaAI = {
     },
 
     getTodayActivities: async (coordinates = "41.6520, -4.7286") => {
-        const prompt = `Actúa como un planificador de ocio familiar experto. Ubicación del usuario: ${coordinates}.
+        const prompt = `Actúa como un planificador de ocio familiar experto y creativo. Ubicación del usuario: ${coordinates}.
         Tu misión es generar el hub "TODAY" (¿Qué hacer hoy?).
         1. Identifica la CIUDAD y PROVINCIA de estas coordenadas.
-        2. Busca 4-5 actividades REALES y VARIADAS para HOY mismo en un radio de 1 hora de viaje.
-        3. Incluye: talleres, museos, parques temáticos, cine, teatro infantil o eventos al aire libre.
+        2. Genera 4-5 actividades para HOY mismo. 
+        3. IMPORTANTE: No te limites solo a eventos oficiales. CREA PLANES basados en la geografía local:
+           - "Picnic familiar en el Parque [Nombre]" (detallando qué llevar y mejor zona).
+           - "Ruta de exploración de estatuas/fuentes por el centro".
+           - "Tarde de juegos tradicionales en la Plaza [Nombre]".
+           - "Visita al mirador de [Nombre] para ver el atardecer".
+           - Además de museos, cine o talleres si los hay.
         4. Para cada actividad, necesito: 
-           - Título atractivo.
-           - Resumen breve.
-           - Horarios específicos para HOY.
-           - Ubicación exacta (nombre del sitio).
-           - Coordenadas (lat, lng).
-           - Precio (o "Gratis").
-           - Enlace de compra/info si aplica.
-           - Edad recomendada.
+           - Título MUY ATRACTIVO y EMOCIONANTE.
+           - Resumen breve inspirador.
+           - Horarios específicos sugeridos para HOY.
+           - Ubicación exacta (nombre del sitio real).
+           - Coordenadas REALES (lat, lng) para el punto de encuentro.
+           - Precio (o "Gratis" / "Bajo coste").
+           - Enlace de interés si existe (o vacío).
+           - Edad recomendada clara.
         5. Formato JSON estricto: [ { "title": "", "summary": "", "time": "", "location": "", "lat": NUM, "lng": NUM, "price": "", "link": "", "age": "" } ]`;
 
         return await window.KidoaAI._callGemini(prompt);
