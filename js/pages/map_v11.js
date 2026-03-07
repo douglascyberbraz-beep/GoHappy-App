@@ -29,7 +29,7 @@ window.KidoaMap = {
                 style: 'https://demotiles.maplibre.org/style.json',
                 center: [-4.7286, 41.6520],
                 zoom: 15,
-                pitch: 45,
+                pitch: 45, // Back to morning pitch
                 bearing: 0,
                 antialias: true
             });
@@ -102,7 +102,7 @@ window.KidoaMap = {
         container.appendChild(compassBtn);
 
         compassBtn.onclick = () => {
-            window.KidoaMap.instance.easeTo({ bearing: 0, pitch: 60, duration: 1000 });
+            window.KidoaMap.instance.easeTo({ bearing: 0, pitch: 45, duration: 1000 });
         };
 
         const input = document.getElementById('map-search-input');
@@ -113,7 +113,7 @@ window.KidoaMap = {
         document.getElementById('locate-me-btn').addEventListener('click', () => {
             if (window.KidoaMap.userMarker) {
                 const lngLat = window.KidoaMap.userMarker.getLngLat();
-                window.KidoaMap.instance.flyTo({ center: lngLat, zoom: 18, pitch: 65, speed: 1.2, curve: 1.4 });
+                window.KidoaMap.instance.flyTo({ center: lngLat, zoom: 18, pitch: 45, speed: 1.2 });
             } else {
                 window.KidoaMap.locateUser();
             }
@@ -130,7 +130,7 @@ window.KidoaMap = {
     },
 
     loadMarkers: async () => {
-        let coords = window.KidoaMap.lastKnownCoords;
+        let coords = window.lastKnownCoords || "41.6520, -4.7286";
         const locations = await window.KidoaData.getLocations(coords);
         window.KidoaMap.clearMarkers();
 
@@ -221,11 +221,10 @@ window.KidoaMap = {
         navigator.geolocation.watchPosition((pos) => {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
-            window.KidoaMap.lastKnownCoords = `${lat}, ${lng}`;
+            window.lastKnownCoords = `${lat}, ${lng}`; // Use global standard
             window.KidoaMap.updateUserIcon(lat, lng);
             if (pos.coords.heading !== null) {
                 window.KidoaMap.instance.easeTo({ bearing: pos.coords.heading, duration: 1000 });
-                window.KidoaMap.updateUserHeading(pos.coords.heading);
             }
         }, null, { enableHighAccuracy: true });
     },
@@ -233,17 +232,7 @@ window.KidoaMap = {
     updateUserIcon: (lat, lng) => {
         if (!window.KidoaMap.userMarker) {
             const el = document.createElement('div');
-            el.className = 'user-gps-arrow-wrap';
-            el.innerHTML = `
-                <div class="user-gps-arrow" style="
-                    width: 30px; height: 30px; 
-                    background: var(--primary-blue); 
-                    clip-path: polygon(50% 0%, 0% 100%, 50% 75%, 100% 100%);
-                    box-shadow: 0 0 15px var(--primary-blue);
-                    border: 2px solid white;
-                    transition: transform 0.3s ease;
-                "></div>
-            `;
+            el.innerHTML = `<div class="user-marker-3d" style="font-size: 2.5rem; filter: drop-shadow(0 0 10px rgba(76,201,240,0.8)); cursor: pointer;">👨‍👩‍👧‍👦</div>`;
             window.KidoaMap.userMarker = new maplibregl.Marker({ element: el })
                 .setLngLat([lng, lat])
                 .addTo(window.KidoaMap.instance);
