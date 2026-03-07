@@ -28,12 +28,12 @@ window.KidoaMap = {
                 container: container,
                 style: 'https://demotiles.maplibre.org/style.json',
                 center: [-4.7286, 41.6520],
-                zoom: 18.5, // Navegador GPS muy cercano
-                pitch: 80, // Perspectiva profunda estilo GPS
+                zoom: 16,
+                pitch: 0, // Mapa clásico plano
                 bearing: 0,
                 antialias: true,
-                pitchWithRotate: true,
-                maxPitch: 85
+                pitchWithRotate: false,
+                maxPitch: 60
             });
 
             window.KidoaMap.instance.on('load', async () => {
@@ -56,25 +56,6 @@ window.KidoaMap = {
                 window.KidoaMap.injectUI(container);
                 await window.KidoaMap.loadMarkers();
                 window.KidoaMap.startGPSWatch();
-
-                // 🪄 GPS Idle Animation Loop (Haz tu magia)
-                let lastTime = 0;
-                let isUserInteracting = false;
-
-                window.KidoaMap.instance.on('mousedown', () => isUserInteracting = true);
-                window.KidoaMap.instance.on('touchstart', () => isUserInteracting = true);
-                window.KidoaMap.instance.on('mouseup', () => { setTimeout(() => isUserInteracting = false, 3000) });
-                window.KidoaMap.instance.on('touchend', () => { setTimeout(() => isUserInteracting = false, 3000) });
-
-                const animateMap = (timestamp) => {
-                    if (!isUserInteracting && window.KidoaMap.instance) {
-                        const bearing = window.KidoaMap.instance.getBearing();
-                        // Slowly pan the camera around like a GPS waiting for movement
-                        window.KidoaMap.instance.rotateTo((bearing + 0.05) % 360, { duration: 0 });
-                    }
-                    requestAnimationFrame(animateMap);
-                };
-                requestAnimationFrame(animateMap);
             });
 
             window.KidoaMap.instance.on('dblclick', (e) => {
@@ -90,18 +71,7 @@ window.KidoaMap = {
     injectUI: (container) => {
         if (document.querySelector('.map-search-container')) return;
 
-        // Waze 3D Horizon Sky & Niebla
         container.style.position = 'relative';
-        const sky = document.createElement('div');
-        sky.style.position = 'absolute';
-        sky.style.top = '0';
-        sky.style.left = '0';
-        sky.style.width = '100%';
-        sky.style.height = '200px';
-        sky.style.background = 'linear-gradient(to bottom, rgba(135,206,235,1) 0%, rgba(255,255,255,0.7) 40%, rgba(255,255,255,0) 100%)';
-        sky.style.pointerEvents = 'none';
-        sky.style.zIndex = '1';
-        container.appendChild(sky);
 
         const overlay = document.createElement('div');
         overlay.className = 'map-search-container';
@@ -128,7 +98,17 @@ window.KidoaMap = {
         locateBtn.innerHTML = '🎯';
         container.appendChild(locateBtn);
 
-        // Brújula eliminada a petición del usuario.
+        const compassBtn = document.createElement('button');
+        compassBtn.id = 'map-compass';
+        compassBtn.className = 'fab-btn';
+        compassBtn.style.bottom = '160px';
+        compassBtn.style.right = '20px';
+        compassBtn.innerHTML = '🧭';
+        container.appendChild(compassBtn);
+
+        compassBtn.onclick = () => {
+            window.KidoaMap.instance.easeTo({ bearing: 0, pitch: 0, duration: 1000 });
+        };
 
         const input = document.getElementById('map-search-input');
         input.addEventListener('keypress', (e) => {
@@ -138,7 +118,7 @@ window.KidoaMap = {
         document.getElementById('locate-me-btn').addEventListener('click', () => {
             if (window.KidoaMap.userMarker) {
                 const lngLat = window.KidoaMap.userMarker.getLngLat();
-                window.KidoaMap.instance.flyTo({ center: lngLat, zoom: 17, pitch: 60, speed: 1.2 });
+                window.KidoaMap.instance.flyTo({ center: lngLat, zoom: 16, pitch: 0, speed: 1.2 });
             } else {
                 window.KidoaMap.locateUser();
             }
@@ -224,7 +204,7 @@ window.KidoaMap = {
             if (results && results.length > 0) {
                 window.KidoaMap.clearMarkers();
                 results.forEach(loc => window.KidoaMap.createMarker(loc));
-                window.KidoaMap.instance.flyTo({ center: [results[0].lng, results[0].lat], zoom: 15, pitch: 45, speed: 1.0 });
+                window.KidoaMap.instance.flyTo({ center: [results[0].lng, results[0].lat], zoom: 16, pitch: 0, speed: 1.0 });
             } else {
                 // geocoding fallback
                 const resp = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1`);
@@ -243,6 +223,10 @@ window.KidoaMap = {
 
     startGPSWatch: () => {
         if (!navigator.geolocation) return;
+
+        let lastLat = null;
+        let lastLng = null;
+
         navigator.geolocation.watchPosition((pos) => {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
@@ -253,13 +237,28 @@ window.KidoaMap = {
                 window.dispatchEvent(new CustomEvent('kidoa-location-sync', { detail: newCoords }));
             }
 
+            let heading = pos.coords.heading;
+
+            // Calculate heading from movement if device doesn't provide compass heading
+            if (heading === null && lastLat !== null && lastLng !== null) {
+                if (Math.abs(lat - lastLat) > 0.00001 || Math.abs(lng - lastLng) > 0.00001) {
+                    const deltaLng = (lng - lastLng) * Math.cos(lastLat * Math.PI / 180);
+                    const deltaLat = lat - lastLat;
+                    heading = (Math.atan2(deltaLng, deltaLat) * 180 / Math.PI + 360) % 360;
+                }
+            }
+
+            lastLat = lat;
+            lastLng = lng;
+
             window.KidoaMap.updateUserIcon(lat, lng);
+
             window.KidoaMap.instance.easeTo({
                 center: [lng, lat],
-                bearing: pos.coords.heading !== null ? pos.coords.heading : window.KidoaMap.instance.getBearing(),
-                pitch: 72,
-                zoom: 17.5,
-                duration: 1200
+                bearing: 0, // Mantenemos el Norte arriba en modo clásico a menos que se rote manualmente
+                pitch: 0,
+                zoom: 16,
+                duration: 1000
             });
         }, null, { enableHighAccuracy: true });
     },
@@ -310,7 +309,7 @@ window.KidoaMap = {
         navigator.geolocation.getCurrentPosition((pos) => {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
-            window.KidoaMap.instance.flyTo({ center: [lng, lat], zoom: 17, pitch: 60 });
+            window.KidoaMap.instance.flyTo({ center: [lng, lat], zoom: 16, pitch: 0 });
             window.KidoaMap.updateUserIcon(lat, lng);
         });
     },

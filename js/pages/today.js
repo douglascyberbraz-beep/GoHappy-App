@@ -108,8 +108,8 @@ window.KidoaToday = {
                         if (window.KidoaMap && window.KidoaMap.instance) {
                             window.KidoaMap.instance.flyTo({
                                 center: [act.lng || -4.7286, act.lat || 41.6520],
-                                zoom: 18,
-                                pitch: 60,
+                                zoom: 16,
+                                pitch: 0,
                                 speed: 1.5
                             });
                         }
