@@ -206,9 +206,11 @@ window.KidoaAuth = {
             <div class="auth-container slide-up-anim">
                 <div class="auth-card premium-glass">
                     <div class="auth-header">
-                        <img src="assets/kidoa-premium-final.png" alt="Kidoa" style="height: 44px; margin-bottom: 20px;">
-                        <h3>Bienvenido a KIDOA</h3>
-                        <p>Inicia sesión para compartir con tu tribu</p>
+                        <div class="premium-logo-wrap" style="background: rgba(67, 97, 238, 0.05); padding: 25px; border-radius: 24px; display: inline-block; margin-bottom: 25px; border: 1px solid rgba(67, 97, 238, 0.1);">
+                            <img src="assets/logo.png" alt="Kidoa" style="height: 80px; width: auto; object-fit: contain;">
+                        </div>
+                        <h2 style="color:var(--primary-navy); font-size: 1.8rem; font-weight: 800; margin-bottom: 8px;">Bienvenido a KIDOA</h2>
+                        <p style="color: #64748b; font-size: 0.95rem;">Explora,comparte y crece con tu tribu</p>
                     </div>
                     
                     <div id="auth-form">

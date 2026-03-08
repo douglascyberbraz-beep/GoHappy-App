@@ -26,10 +26,10 @@ window.KidoaMap = {
         try {
             window.KidoaMap.instance = new maplibregl.Map({
                 container: container,
-                style: 'https://tiles.openfreemap.org/styles/liberty', // Clean, premium vector style
+                style: 'https://tiles.openfreemap.org/styles/liberty',
                 center: [-4.7286, 41.6520],
-                zoom: 17.5,
-                pitch: 70, // Stronger GPS Tilt
+                zoom: 17,
+                pitch: 60, // Tilted but 2D-Clean
                 bearing: 0,
                 antialias: true,
                 hash: false
@@ -38,31 +38,7 @@ window.KidoaMap = {
             window.KidoaMap.instance.on('load', async () => {
                 window.KidoaMap.isInitialized = true;
 
-                // Add 3D Buildings
-                window.KidoaMap.instance.addLayer({
-                    'id': '3d-buildings',
-                    'source': 'openmaptiles',
-                    'source-layer': 'building',
-                    'type': 'fill-extrusion',
-                    'minzoom': 15,
-                    'paint': {
-                        'fill-extrusion-color': '#e2e8f0',
-                        'fill-extrusion-height': ['get', 'render_height'],
-                        'fill-extrusion-base': ['get', 'render_min_height'],
-                        'fill-extrusion-opacity': 0.8
-                    }
-                });
-
-                // Add Sky for Bird's Eye feel
-                window.KidoaMap.instance.setSky({
-                    "sky-color": "#191ada",
-                    "sky-horizon-blend": 0.5,
-                    "horizon-color": "#ffffff",
-                    "horizon-fog-blend": 0.5,
-                    "fog-color": "#ffffff",
-                    "fog-ground-blend": 0.5
-                });
-
+                // Simple Clean Setup - No confusing extrusions
                 window.KidoaMap.injectUI(container);
                 await window.KidoaMap.loadMarkers();
                 window.KidoaMap.startGPSWatch();
