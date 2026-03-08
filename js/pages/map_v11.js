@@ -26,31 +26,41 @@ window.KidoaMap = {
         try {
             window.KidoaMap.instance = new maplibregl.Map({
                 container: container,
-                style: 'https://demotiles.maplibre.org/style.json',
+                style: 'https://tiles.openfreemap.org/styles/liberty', // Clean, premium vector style
                 center: [-4.7286, 41.6520],
-                zoom: 17,
-                pitch: 60, // Perspectiva GPS Waze-Dinamica
+                zoom: 17.5,
+                pitch: 70, // Stronger GPS Tilt
                 bearing: 0,
                 antialias: true,
-                pitchWithRotate: true,
-                maxPitch: 85
+                hash: false
             });
 
             window.KidoaMap.instance.on('load', async () => {
                 window.KidoaMap.isInitialized = true;
 
-                // Add Google Raster Layer
-                window.KidoaMap.instance.addSource('google-tiles', {
-                    'type': 'raster',
-                    'tiles': ['https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'],
-                    'tileSize': 256
-                });
+                // Add 3D Buildings
                 window.KidoaMap.instance.addLayer({
-                    'id': 'google-layer',
-                    'type': 'raster',
-                    'source': 'google-tiles',
-                    'minzoom': 0,
-                    'maxzoom': 22
+                    'id': '3d-buildings',
+                    'source': 'openmaptiles',
+                    'source-layer': 'building',
+                    'type': 'fill-extrusion',
+                    'minzoom': 15,
+                    'paint': {
+                        'fill-extrusion-color': '#e2e8f0',
+                        'fill-extrusion-height': ['get', 'render_height'],
+                        'fill-extrusion-base': ['get', 'render_min_height'],
+                        'fill-extrusion-opacity': 0.8
+                    }
+                });
+
+                // Add Sky for Bird's Eye feel
+                window.KidoaMap.instance.setSky({
+                    "sky-color": "#191ada",
+                    "sky-horizon-blend": 0.5,
+                    "horizon-color": "#ffffff",
+                    "horizon-fog-blend": 0.5,
+                    "fog-color": "#ffffff",
+                    "fog-ground-blend": 0.5
                 });
 
                 window.KidoaMap.injectUI(container);
@@ -141,7 +151,7 @@ window.KidoaMap = {
         el.innerHTML = `
             <div class="kidoa-marker-3d">
                 <div class="kidoa-marker-pin" style="background: ${isHighRated ? 'linear-gradient(135deg, var(--accent-pink), #ff758c)' : 'linear-gradient(135deg, var(--primary-blue), #4cc9f0)'};">
-                    <img src="assets/logo_white.png" style="width: 70%; height: 70%; object-fit: contain;">
+                    <img src="assets/logo.png" style="width: 130%; height: 130%; object-fit: contain; filter: brightness(100) grayscale(1);">
                 </div>
             </div>
         `;

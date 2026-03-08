@@ -16,7 +16,7 @@
     <link href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css' rel='stylesheet' />
 
     <!-- App CSS -->
-    <link rel="stylesheet" href="css/main.css?v=1.2.6">
+    <link rel="stylesheet" href="css/main.css?v=1.2.7">
 
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
@@ -129,8 +129,8 @@
                     setTimeout(() => window.location.reload(true), 500);
                 };
 
-                navigator.serviceWorker.register('sw.js?v=1.2.6').then(reg => {
-                    console.log('Service Worker v1.2.6 registrado');
+                navigator.serviceWorker.register('sw.js?v=1.2.7').then(reg => {
+                    console.log('Service Worker v1.2.7 registrado');
 
                     // Detect updates and reload
                     reg.addEventListener('updatefound', () => {
