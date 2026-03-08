@@ -206,11 +206,11 @@ window.KidoaAuth = {
             <div class="auth-container slide-up-anim">
                 <div class="auth-card premium-glass">
                     <div class="auth-header">
-                        <div class="premium-logo-wrap" style="margin-bottom: 30px;">
-                            <img src="assets/logo.png" alt="Kidoa" style="height: 90px; width: auto; object-fit: contain;">
+                        <div class="premium-logo-wrap" style="margin-bottom: 35px; transform: scale(1.1); transition: all 0.5s ease;">
+                            <img src="assets/logo.png" alt="Kidoa" style="height: 110px; width: auto; object-fit: contain; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));">
                         </div>
-                        <h2 style="color:var(--primary-navy); font-size: 1.8rem; font-weight: 800; margin-bottom: 8px;">Bienvenido a KIDOA</h2>
-                        <p style="color: #64748b; font-size: 0.95rem;">Explora,comparte y crece con tu tribu</p>
+                        <h2 style="color:var(--primary-navy); font-size: 1.9rem; font-weight: 900; margin-bottom: 8px; letter-spacing: -0.5px;">Bienvenido a KIDOA</h2>
+                        <p style="color: #64748b; font-size: 1rem; font-weight: 500;">Explora, comparte y crece con tu tribu</p>
                     </div>
                     
                     <div id="auth-form">
@@ -245,8 +245,10 @@ window.KidoaAuth = {
                             </button>
                         </div>
 
-                        <div style="text-align: center; margin-top: 10px;">
-                            <button id="do-guest" class="btn-text" style="font-weight: 700; color: #64748b; font-size: 0.9rem; text-decoration: underline;">O entra como invitado</button>
+                        <div style="text-align: center; margin-top: 15px;">
+                            <button id="do-guest" class="btn-text" style="font-weight: 800; color: var(--primary-navy); font-size: 0.95rem; text-decoration: none; padding: 12px 24px; border-radius: 50px; background: rgba(0,44,119,0.05); border: 1px solid rgba(0,44,119,0.1); width: 100%; transition: all 0.3s ease;">
+                                🚀 Explorar como invitado
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -40,29 +40,70 @@ window.KidoaAI = {
         return await window.KidoaAI._callGemini(prompt);
     },
 
-    getTodayActivities: async (coordinates = "41.6520, -4.7286") => {
+    getTodayActivities: async (coordinates = "41.6520, -4.7286", preferences = null) => {
+        let prefsContext = "";
+        if (preferences) {
+            prefsContext = `
+            CONTEXTO DE LA FAMILIA:
+            - Miembros: ${preferences.adults} adultos y ${preferences.kids} niños (edades: ${preferences.ages}).
+            - Preferencia: ${preferences.environment} (${preferences.environment === 'Indoor' ? 'Sitios cerrados/resguardados' : preferences.environment === 'Outdoor' ? 'Al aire libre' : 'Ambos'}).
+            - Presupuesto: ${preferences.budget === 'Free' ? 'Solo planes gratuitos' : 'Cualquier presupuesto'}.
+            - Distancia: ${preferences.distance === 'Walking' ? 'Cerca, para ir andando' : preferences.distance === 'ShortDrive' ? 'A poca distancia en coche' : 'Cualquier distancia'}.
+            `;
+        }
+
         const prompt = `Actúa como un planificador de ocio familiar experto y creativo. Ubicación del usuario: ${coordinates}.
-        Tu misión es generar el hub "TODAY" (¿Qué hacer hoy?).
+        ${prefsContext}
+        Tu misión es generar el hub "TODAY" (¿Qué hacer hoy?) totalmente personalizado.
         1. Identifica la CIUDAD y PROVINCIA de estas coordenadas.
-        2. Genera 4-5 actividades para HOY mismo. 
-        3. IMPORTANTE: No te limites solo a eventos oficiales. CREA PLANES basados en la geografía local:
+        2. Genera 3-4 actividades para HOY mismo que encajen con el contexto familiar arriba descrito.
+        3. IMPORTANTE: Sé muy específico con el clima. Si es invierno o llueve, prioriza ${preferences?.environment === 'Outdoor' ? 'sitios con encanto pero protegidos' : 'interiores'}. 
+        4. No te limites solo a eventos oficiales. CREA PLANES basados en la geografía local:
            - "Picnic familiar en el Parque [Nombre]" (detallando qué llevar y mejor zona).
            - "Ruta de exploración de estatuas/fuentes por el centro".
            - "Tarde de juegos tradicionales en la Plaza [Nombre]".
-           - "Visita al mirador de [Nombre] para ver el atardecer".
-           - Además de museos, cine o talleres si los hay.
-        4. Para cada actividad, necesito: 
+           - Museos, cine o talleres REALES de la zona.
+        5. Para cada actividad, necesito: 
            - Título MUY ATRACTIVO y EMOCIONANTE.
-           - Resumen breve inspirador.
-           - Horarios específicos sugeridos para HOY.
+           - Resumen breve inspirador que explique POR QUÉ es ideal para niños de esas edades.
+           - Horarios sugeridos para HOY.
            - Ubicación exacta (nombre del sitio real).
-           - Coordenadas REALES (lat, lng) para el punto de encuentro.
-           - Precio (o "Gratis" / "Bajo coste").
-           - Enlace de interés si existe (o vacío).
-           - Edad recomendada clara.
-        5. Formato JSON estricto: [ { "title": "", "summary": "", "time": "", "location": "", "lat": NUM, "lng": NUM, "price": "", "link": "", "age": "" } ]`;
+           - Coordenadas REALES (lat, lng).
+           - Precio detallado (ej: "Gratis", "12€/adulto, 5€/niño", "Desde 10€").
+           - Enlace oficial para comprar entradas o ver info (si existe, si no, vacío).
+           - Edad recomendada específica.
+           - DURACIÓN estimada (ej: "2 horas", "Toda la tarde").
+           - CONSEJO CLAVE (ej: "Llevad calzado cómodo", "Reservad antes de ir").
+        6. Formato JSON estricto: [ { "title": "", "summary": "", "time": "", "location": "", "lat": NUM, "lng": NUM, "price": "", "link": "", "age": "", "duration": "", "tip": "" } ]`;
 
         return await window.KidoaAI._callGemini(prompt);
+    },
+
+    // Check usage limits for free users
+    checkTodayLimit: () => {
+        const user = window.KidoaAuth.checkAuth();
+        const isPremium = user && (user.level === 'Oro' || user.level === 'Premium' || user.isPremium);
+        if (isPremium) return { canRequest: true };
+
+        const today = new Date().toDateString();
+        const usage = JSON.parse(localStorage.getItem('kidoa_today_usage') || '{}');
+
+        if (usage.date !== today) {
+            usage.date = today;
+            usage.count = 0;
+        }
+
+        if (usage.count >= 3) {
+            return { canRequest: false, limit: 3 };
+        }
+
+        return { canRequest: true, usage };
+    },
+
+    incrementTodayUsage: () => {
+        const usage = JSON.parse(localStorage.getItem('kidoa_today_usage') || '{}');
+        usage.count = (usage.count || 0) + 1;
+        localStorage.setItem('kidoa_today_usage', JSON.stringify(usage));
     },
 
     // Generador Dinámico de Mapa (Basado en Coordenadas)

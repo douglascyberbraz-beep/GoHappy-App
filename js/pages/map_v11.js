@@ -38,19 +38,33 @@ window.KidoaMap = {
             window.KidoaMap.instance.on('load', async () => {
                 window.KidoaMap.isInitialized = true;
 
-                // Simple Clean Setup - No confusing extrusions
-                window.KidoaMap.instance.setPaintProperty('water', 'fill-color', '#002C77');
-                window.KidoaMap.instance.setPaintProperty('landuse-natural', 'fill-color', '#E0F7FA');
-                window.KidoaMap.instance.setPaintProperty('land', 'fill-color', '#F8FAFC');
+                // Waze-Style / Clean 2D-Tilted Setup
+                // Remove 3D building extrusions if any (liberty style usually doesn't have them but we ensure they are flat)
+                const layers = window.KidoaMap.instance.getStyle().layers;
+                layers.forEach(layer => {
+                    if (layer.type === 'fill-extrusion') {
+                        window.KidoaMap.instance.removeLayer(layer.id);
+                    }
+                });
 
-                // Add a subtle blue glow to roads for premium feel
+                // Customize palette for vibrancy
+                window.KidoaMap.instance.setPaintProperty('water', 'fill-color', '#4CC9F0'); // Brighter water
+                window.KidoaMap.instance.setPaintProperty('landuse-natural', 'fill-color', '#C8E6C9'); // Lush green for nature
+                window.KidoaMap.instance.setPaintProperty('landuse-park', 'fill-color', '#A5D6A7'); // Distinctive park green
+                window.KidoaMap.instance.setPaintProperty('land', 'fill-color', '#F1F5F9'); // Clean light gray-blue land
+
+                // Thicker, cleaner roads
                 if (window.KidoaMap.instance.getLayer('road-primary')) {
                     window.KidoaMap.instance.setPaintProperty('road-primary', 'line-color', '#ffffff');
+                    window.KidoaMap.instance.setPaintProperty('road-primary', 'line-width', 4);
                 }
 
                 window.KidoaMap.injectUI(container);
                 await window.KidoaMap.loadMarkers();
                 window.KidoaMap.startGPSWatch();
+
+                // Auto-highlight parks near the initial view
+                window.KidoaMap.highlightParksOnLoad();
             });
 
             window.KidoaMap.instance.on('dblclick', (e) => {
@@ -240,10 +254,11 @@ window.KidoaMap = {
 
             window.KidoaMap.instance.easeTo({
                 center: [lng, lat],
-                bearing: heading || window.KidoaMap.instance.getBearing(), // Auto-rotación Waze si nos movemos
-                pitch: 60,
-                zoom: 18,
-                duration: 1200
+                bearing: heading || window.KidoaMap.instance.getBearing(),
+                pitch: 65, // Increased tilt for Waze feel
+                zoom: 17.5,
+                duration: 1500,
+                easing: (t) => t * (2 - t) // Smooth deceleration
             });
         }, null, { enableHighAccuracy: true });
     },
@@ -345,5 +360,23 @@ window.KidoaMap = {
             alert("¡Gracias! Has ganado 100 puntos y ayudado a la comunidad. ✨");
             modal.remove();
         };
+    },
+
+    highlightParksOnLoad: async () => {
+        const coords = window.lastKnownCoords || "41.6520, -4.7286";
+        try {
+            // Use Gemini to find real local parks/playgrounds if they aren't in fixed data
+            const query = "parques infantiles y áreas de juego";
+            const parks = await window.KidoaData.searchLocations(query, coords);
+            if (parks && parks.length > 0) {
+                parks.forEach(park => {
+                    // Force type to 'park' for consistent coloring
+                    park.type = 'park';
+                    window.KidoaMap.createMarker(park);
+                });
+            }
+        } catch (e) {
+            console.warn("Auto-park highlight failed:", e);
+        }
     }
 };

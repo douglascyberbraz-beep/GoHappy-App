@@ -130,10 +130,10 @@ window.KidoaData = {
         }
     },
 
-    getTodayActivities: async (coords) => {
+    getTodayActivities: async (coords, preferences = null) => {
         try {
             if (window.GEMINI_KEY && !window.GEMINI_KEY.includes('PEGAR_AQUI')) {
-                return await window.KidoaAI.getTodayActivities(coords);
+                return await window.KidoaAI.getTodayActivities(coords, preferences);
             }
         } catch (e) {
             console.warn("AI getTodayActivities fallback:", e);
