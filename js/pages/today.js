@@ -38,13 +38,17 @@ window.KidoaToday = {
             }
 
             console.log("TODAY: Fetching for", coords, preferences);
+            content.innerHTML = '<div class="center-text p-40"><div class="typing-dots"><span></span><span></span><span></span></div><p style="margin-top:15px; color:var(--text-light);">KIDOA IA está analizando planes reales cerca de ti...</p></div>';
+
             try {
                 const activities = await window.KidoaAI.getTodayActivities(coords, preferences);
                 window.KidoaAI.incrementTodayUsage();
                 renderActivities(activities);
             } catch (err) {
                 console.error("TODAY Load Error:", err);
-                content.innerHTML = '<div class="center-text p-40">Error al cargar planes. Reintenta pronto.</div>';
+                // Fallback direct to mock if AI fails hard
+                const mock = window.KidoaAI._getMockData('today');
+                renderActivities(mock);
             }
         };
 
@@ -113,11 +117,28 @@ window.KidoaToday = {
 
                 const actionBtn = document.getElementById(`action-btn-${idx}`);
                 if (actionBtn) {
-                    actionBtn.onclick = () => {
+                    actionBtn.onclick = async () => {
                         if (act.link && act.link !== "") {
                             window.open(act.link, '_blank');
                         } else {
-                            if (window.KidoaPoints) window.KidoaPoints.addPoints('QUEST');
+                            // Add points
+                            if (window.KidoaPoints) await window.KidoaPoints.addPoints('QUEST');
+                            
+                            // Save to Activity (Firestore)
+                            const user = window.KidoaAuth.checkAuth();
+                            if (user && !user.isGuest) {
+                                try {
+                                    await window.KidoaDB.collection('activity').add({
+                                        userId: user.uid,
+                                        type: 'visit',
+                                        title: act.title,
+                                        description: `Plan familiar en ${act.location}`,
+                                        points: 50,
+                                        timestamp: new Date()
+                                    });
+                                } catch (e) { console.warn("Error saving activity:", e); }
+                            }
+
                             alert(`¡Plan familiar aceptado! ✨\n\nHas marcado "${act.title}" como tu plan para hoy.\n\n¡Disfrutad mucho en familia! (+50 pts)`);
                             actionBtn.innerText = "¡Plan guardado! ✅";
                             actionBtn.style.background = "#27AE60";

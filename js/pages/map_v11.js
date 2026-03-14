@@ -342,24 +342,25 @@ window.KidoaMap = {
         const modal = document.createElement('div');
         modal.className = 'modal';
         modal.innerHTML = `
-                < div class="auth-container slide-up-anim" >
-                    <div class="auth-card premium-glass" style="max-height: 85vh; overflow-y: auto;">
-                        <h3 style="color:var(--primary-navy);">${name ? `Reseñar ${name}` : 'Añadir Lugar 📍'}</h3>
-                        <p style="font-size:12px; color:#666; margin-bottom:15px;">Suma puntos y ayuda a otras familias.</p>
+            <div class="auth-container slide-up-anim">
+                <div class="auth-card premium-glass" style="max-height: 85vh; overflow-y: auto;">
+                    <h3 style="color:var(--primary-navy);">${name ? `Reseñar ${name}` : 'Añadir Lugar 📍'}</h3>
+                    <p style="font-size:12px; color:#666; margin-bottom:15px;">Suma puntos y ayuda a otras familias.</p>
 
-                        ${name ? '' : '<input type="text" id="new-site-name" placeholder="Nombre (Ej: Parque Sol)..." class="review-input">'}
+                    ${name ? '' : '<input type="text" id="new-site-name" placeholder="Nombre (Ej: Parque Sol)..." class="review-input">'}
 
-                        <div class="star-rating" style="font-size: 2rem; margin: 10px 0;">
-                            <span class="star" data-val="1">★</span><span class="star" data-val="2">★</span><span class="star" data-val="3">★</span><span class="star" data-val="4">★</span><span class="star" data-val="5">★</span>
-                        </div>
-
-                        <textarea id="review-text" class="review-input" placeholder="¿Qué tal el sitio? (Misión, limpieza, sombra...)" style="height:80px;"></textarea>
-
-                        <button id="post-review-btn" class="btn-primary full-width">Publicar en Kidoa</button>
-                        <button class="btn-text full-width" style="margin-top:10px;" onclick="this.closest('.modal').remove()">Cancelar</button>
+                    <div class="star-rating" style="font-size: 2rem; margin: 10px 0;">
+                        <span class="star" data-val="1">★</span><span class="star" data-val="2">★</span><span class="star" data-val="3">★</span><span class="star" data-val="4">★</span><span class="star" data-val="5">★</span>
                     </div>
-            </div >
-                `;
+
+                    <textarea id="review-text" class="review-input" placeholder="¿Qué tal el sitio? (Misión, limpieza, sombra...)" style="height:80px;"></textarea>
+
+                    <button id="post-review-btn" class="btn-primary full-width">Publicar en Kidoa</button>
+                    <button class="btn-text full-width" style="margin-top:10px;" onclick="this.closest('.modal').remove()">Cancelar</button>
+                </div>
+            </div>
+        `;
+
         document.body.appendChild(modal);
 
         let rating = 0;
@@ -370,14 +371,36 @@ window.KidoaMap = {
             };
         });
 
-        document.getElementById('post-review-btn').onclick = () => {
+        document.getElementById('post-review-btn').onclick = async () => {
             const finalName = name || document.getElementById('new-site-name').value;
+            const reviewText = document.getElementById('review-text').value;
             if (!finalName || rating === 0) return alert("Completa el nombre y la nota.");
 
-            window.KidoaPoints.addPoints('REVIEW');
-            window.KidoaMap.createMarker({ name: finalName, lat, lng, rating, type: 'new' });
-            alert("¡Gracias! Has ganado 100 puntos y ayudado a la comunidad. ✨");
-            modal.remove();
+            try {
+                // Save to Firestore
+                await window.KidoaDB.collection('reviews').add({
+                    userId: user.uid,
+                    userName: user.nickname,
+                    siteName: finalName,
+                    rating: parseInt(rating),
+                    text: reviewText,
+                    lat: lat,
+                    lng: lng,
+                    createdAt: new Date()
+                });
+
+                // Add points
+                await window.KidoaPoints.addPoints('REVIEW');
+                
+                // Visual feedback on map
+                window.KidoaMap.createMarker({ name: finalName, lat, lng, rating, type: 'new' });
+                
+                alert("¡Gracias! Tu reseña ha sido publicada. Has ganado 100 puntos y ayudado a la comunidad. ✨");
+                modal.remove();
+            } catch (e) {
+                console.error("Error saving review:", e);
+                alert("Hubo un error al guardar tu reseña. Por favor, intenta de nuevo.");
+            }
         };
     },
 

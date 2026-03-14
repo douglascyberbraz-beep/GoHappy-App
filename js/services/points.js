@@ -44,18 +44,38 @@ window.KidoaPoints = {
         };
     },
 
-    // Simular otorgar puntos
-    addPoints: (action, userId) => {
+    // Otorgar puntos reales y sincronizar con Firestore
+    addPoints: async (action, userId) => {
         const pointsToAdd = window.KidoaPoints.REWARDS[action] || 0;
         console.log(`Otorgando ${pointsToAdd} puntos por acción: ${action}`);
 
-        const userStr = localStorage.getItem('kidoa_user');
-        if (userStr) {
-            let user = JSON.parse(userStr);
-            user.points = (user.points || 0) + pointsToAdd;
-            localStorage.setItem('kidoa_user', JSON.stringify(user));
-            window.dispatchEvent(new CustomEvent('pointsUpdated', { detail: user.points }));
-        } else if (localStorage.getItem('kidoa_guest') === 'true') {
+        const user = window.KidoaAuth.checkAuth();
+        
+        if (user && !user.isGuest) {
+            try {
+                // Actualizar localmente para feedback inmediato
+                user.points = (user.points || 0) + pointsToAdd;
+                localStorage.setItem('kidoa_local_user', JSON.stringify(user));
+                
+                // Sincronizar con Firestore
+                const userRef = window.KidoaDB.collection('users').doc(user.uid);
+                await window.KidoaDB.runTransaction(async (transaction) => {
+                    const sfDoc = await transaction.get(userRef);
+                    if (!sfDoc.exists) {
+                        transaction.set(userRef, { points: pointsToAdd });
+                    } else {
+                        const newPoints = (sfDoc.data().points || 0) + pointsToAdd;
+                        transaction.update(userRef, { points: newPoints });
+                    }
+                });
+                
+                window.dispatchEvent(new CustomEvent('pointsUpdated', { detail: user.points }));
+                console.log("✅ Puntos sincronizados con Firestore");
+            } catch (e) {
+                console.error("Error sincronizando puntos:", e);
+            }
+        } else {
+            // Fallback para invitados o local
             let pts = parseInt(localStorage.getItem('kidoa_guest_points')) || 0;
             pts += pointsToAdd;
             localStorage.setItem('kidoa_guest_points', pts.toString());

@@ -139,9 +139,12 @@ window.KidoaAI = {
 
     // Generar Alerta/Consejo de Seguridad (Clima o Noticias)
     getDailySafeInsight: async (coordinates = "41.6520, -4.7286") => {
-        const prompt = `Genera un consejo rápido de seguridad o meteorología infantil (1 o 2 frases) para una familia que se encuentra ahora mismo en la zona de las coordenadas GPS: ${coordinates}.
-        Ejemplo: "Atención: Hoy se esperan lluvias a partir de las 17h, no olvides llevar paraguas y calzado adecuado."
-        Formato texto plano.`;
+        const prompt = `Actúa como asesor de seguridad familiar de Kidoa. Ubicación: ${coordinates}.
+        1. Identifica la CIUDAD y el CLIMA ACTUAL REAL de esa zona.
+        2. Genera un consejo de seguridad o meteorología infantil MUY ESPECÍFICO para HOY.
+        3. Si hay avisos meteorológicos reales (AEMET o similar), menciónalos.
+        4. Si no hay avisos, da un consejo de salud estacional (ej: polen, protección solar, abrigo).
+        No uses frases genéricas como "Analizando tu zona". Da información directa y útil en 1 o 2 frases.`;
 
         return await window.KidoaAI._callGemini(prompt, false); // False = Devuelve texto, no JSON
     },
@@ -224,7 +227,7 @@ window.KidoaAI = {
                     return window.KidoaAI._getMockData(prompt);
                 }
             }
-            return text;
+            return text.trim();
         } catch (e) {
             console.error("Network or execution error en KidoaAI:", e);
             return window.KidoaAI._getMockData(prompt);

@@ -20,10 +20,11 @@ window.KidoaData = {
         } catch (e) {
             console.warn("AI/Firestore getLocations fallback:", e);
         }
-        // Fallback: Default Static
+        // Fallback: Default Static (Real locations in Valladolid/Castilla)
         return [
-            { id: 101, name: "Campo Grande (Estático)", type: "park", lat: 41.6444, lng: -4.7303, rating: 4.8, reviews: 245, image: "https://images.unsplash.com/photo-1596431718100-33671233075c?auto=format&fit=crop&w=400" },
-            { id: 102, name: "Museo de la Ciencia", type: "museum", lat: 41.6385, lng: -4.7431, rating: 4.6, reviews: 189, image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400" }
+            { id: 101, name: "Parque Campo Grande", type: "park", lat: 41.6444, lng: -4.7303, rating: 4.8, reviews: 245, image: "https://images.unsplash.com/photo-1596431718100-33671233075c?auto=format&fit=crop&w=400" },
+            { id: 102, name: "Museo de la Ciencia de Valladolid", type: "museum", lat: 41.6385, lng: -4.7431, rating: 4.6, reviews: 189, image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400" },
+            { id: 103, name: "Parque Ribera de Castilla", type: "park", lat: 41.6620, lng: -4.7250, rating: 4.7, reviews: 312, image: "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=400" }
         ];
     },
 
@@ -51,10 +52,10 @@ window.KidoaData = {
         } catch (e) {
             console.warn("Firestore/AI getNews fallback:", e);
         }
-        // Fallback estático
+        // Fallback estático real
         return [
-            { id: 1, title: "Ayudas Junta CyL: Conciliación 2025", summary: "La Junta de Castilla y León abre el plazo para las ayudas directas a la conciliación familiar.", source: "Junta de Castilla y León", date: "Hace 2 horas" },
-            { id: 2, title: "Nueva ludoteca en Valladolid", summary: "Inaugurada la mayor ludoteca municipal en el barrio de Parquesol.", source: "Ayuntamiento de Valladolid", date: "Hace 5 horas" }
+            { id: 1, title: "Nuevas ayudas a la Conciliación JCYL", summary: "La Junta de Castilla y León anuncia el programa de apoyo para familias con niños menores de 3 años.", source: "Junta de Castilla y León", date: "Hace 2 horas" },
+            { id: 2, title: "Valladolid amplía carriles bici escolares", summary: "Mejora de seguridad en accesos a centros educativos del barrio de Parquesol.", source: "Ayuntamiento de Valladolid", date: "Hace 5 horas" }
         ];
     },
 

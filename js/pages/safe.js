@@ -55,6 +55,8 @@ window.KidoaSafePage = {
         setTimeout(async () => {
             if (window.GEMINI_KEY && !window.GEMINI_KEY.includes('PEGAR_AQUI')) {
                 insightBox.style.display = 'block';
+                insightText.innerHTML = '<span class="typing-dots"><span></span><span></span><span></span></span>';
+                
                 try {
                     let coords = "41.6520, -4.7286";
                     try {
@@ -63,13 +65,16 @@ window.KidoaSafePage = {
                     } catch (e) { }
 
                     const insight = await window.KidoaAI.getDailySafeInsight(coords);
-                    if (insight) insightText.innerText = insight;
-                    else insightBox.style.display = 'none';
+                    if (insight && insight.length > 5) {
+                        insightText.innerText = insight;
+                    } else {
+                        insightBox.style.display = 'none';
+                    }
                 } catch (e) {
                     insightBox.style.display = 'none';
                 }
             }
-        }, 100);
+        }, 300);
 
         // Load alerts
         const alerts = await window.KidoaSafe.getAlerts();
