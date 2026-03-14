@@ -1,0 +1,21 @@
+{
+  "name": "Kidoa",
+  "short_name": "Kidoa",
+  "description": "Explora, juega y crece en familia con KIDOA IA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#002C77",
+  "icons": [
+    {
+      "src": "/assets/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

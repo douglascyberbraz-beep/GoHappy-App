@@ -1,0 +1,6 @@
+{
+  "appId": "com.kidoa.app",
+  "appName": "Kidoa",
+  "webDir": "out",
+  "bundledWebRuntime": false
+}

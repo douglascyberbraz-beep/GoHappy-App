@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    /* Premium "Kidoa" Palette */
+    --primary-navy: #002C77;
+    --primary-blue: #4CC9F0;
+    --primary-dark: #001A4A;
+    --secondary-blue: #E0F7FA;
+    --accent-pink: #F72585;
+    --accent-yellow: #FFD60A;
+    --accent-gray: #F8FAFC;
+    --text-dark: #0F172A;
+    --text-main: #334155;
+    --text-light: #64748B;
+    --white: #ffffff;
+
+    /* Shadows & Glass */
+    --shadow-soft: 0 8px 20px rgba(0, 44, 119, 0.05);
+    --shadow-medium: 0 12px 28px rgba(0, 44, 119, 0.08);
+    --shadow-premium: 0 24px 50px rgba(0, 44, 119, 0.15);
+    --glass: rgba(255, 255, 255, 0.75);
+    --premium-glass-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.8) 100%);
+
+    --nav-height: 85px;
+    --border-radius: 24px;
+}
+
+body {
+    @apply antialiased text-slate-900;
+    background: linear-gradient(135deg, #E0F7FA 0%, #F0F3FA 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Animations from original main.css */
+@keyframes logoEntrance {
+    0% { transform: scale(0); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes magical-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+
+@keyframes magical-glow {
+    0%, 100% { filter: drop-shadow(0 0 5px rgba(67, 97, 238, 0.3)); }
+    50% { filter: drop-shadow(0 0 20px rgba(67, 97, 238, 0.7)); }
+}
+
+.premium-glass {
+    background: var(--premium-glass-bg) !important;
+    backdrop-filter: blur(25px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: var(--shadow-medium);
+}
