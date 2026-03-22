@@ -15,7 +15,7 @@
     "@capacitor/ios": "latest",
     "@capacitor/splash-screen": "latest",
     "@capacitor/status-bar": "latest",
-    "@googlemaps/js-api-loader": "^2.0.2",
+    "@googlemaps/js-api-loader": "^1.16.10",
     "firebase": "latest",
     "framer-motion": "latest",
     "lucide-react": "latest",
