@@ -48,10 +48,10 @@ export default function AppMain() {
         exit: { opacity: 0, scale: 1.02 }
     };
 
-    if (loading) return null;
-
     const [targetDetails, setTargetDetails] = useState<any>(null);
     const [targetCoords, setTargetCoords] = useState<string | null>(null);
+
+    if (loading) return null;
 
     const navigateToMap = (coords: string, details?: any) => {
         setTargetDetails(details);
