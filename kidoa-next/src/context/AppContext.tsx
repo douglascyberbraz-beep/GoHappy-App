@@ -30,19 +30,33 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const playSound = (type: 'click' | 'start' | 'success' | 'boop' | 'error') => {
+  const [audioPool, setAudioPool] = useState<Record<string, HTMLAudioElement>>({});
+
+  useEffect(() => {
     const sounds = {
       click: 'https://cdn.pixabay.com/audio/2022/03/15/audio_73268c2f16.mp3',
       start: 'https://cdn.pixabay.com/audio/2021/08/04/audio_985536554b.mp3',
       success: 'https://cdn.pixabay.com/audio/2022/03/24/audio_349d7936a7.mp3',
       boop: 'https://cdn.pixabay.com/audio/2022/03/10/audio_f69168b449.mp3',
-      error: 'https://cdn.pixabay.com/audio/2022/03/10/audio_c8c8a1b6a1.mp3'
+      error: 'https://cdn.pixabay.com/audio/2022/01/18/audio_606f71d5b4.mp3'
     };
+    
+    const pool: Record<string, HTMLAudioElement> = {};
+    Object.entries(sounds).forEach(([key, url]) => {
+      const audio = new Audio(url);
+      audio.preload = 'auto';
+      audio.volume = 0.15;
+      pool[key] = audio;
+    });
+    setAudioPool(pool);
+  }, []);
+
+  const playSound = (type: 'click' | 'start' | 'success' | 'boop' | 'error') => {
     try {
-      if (sounds[type]) {
-         const audio = new Audio(sounds[type]);
-         audio.volume = 0.15;
-         audio.play().catch(() => {});
+      const audio = audioPool[type];
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
       }
     } catch(e) {}
   };

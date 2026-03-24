@@ -26,9 +26,9 @@ export class LocationService {
         });
     }
 
-    static watchPosition(callback: (coords: string) => void) {
+    static async watchPosition(callback: (coords: string) => void): Promise<string | number> {
         if (Capacitor.isNativePlatform()) {
-            return Geolocation.watchPosition({
+            return await Geolocation.watchPosition({
                 enableHighAccuracy: true,
                 timeout: 5000
             }, (pos) => {
@@ -39,11 +39,18 @@ export class LocationService {
         }
         
         // Browser watch
-        const id = navigator.geolocation.watchPosition(
+        return navigator.geolocation.watchPosition(
             (pos) => callback(`${pos.coords.latitude}, ${pos.coords.longitude}`),
             null,
             { enableHighAccuracy: true }
         );
-        return Promise.resolve(id);
+    }
+
+    static async clearWatch(id: string | number) {
+        if (Capacitor.isNativePlatform()) {
+            await Geolocation.clearWatch({ id: id as string });
+        } else {
+            navigator.geolocation.clearWatch(id as number);
+        }
     }
 }

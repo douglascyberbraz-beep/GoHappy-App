@@ -66,6 +66,7 @@ export class AuthService {
     static async guestLogin() {
         // Firebase anonymous auth
         const res = await signInAnonymously(auth);
+        await this.createUserProfileIfMissing(res.user, "Explorador Invitado");
         return res.user;
     }
 

@@ -36,10 +36,19 @@ export default function AppMain() {
             }
         }
 
-        const watchId = LocationService.watchPosition((newCoords) => {
-            setCoords(newCoords);
-        });
-        return () => {};
+        let watchId: string | number;
+        
+        const startWatching = async () => {
+            watchId = await LocationService.watchPosition((newCoords) => {
+                setCoords(newCoords);
+            });
+        };
+        
+        startWatching();
+        
+        return () => {
+            if (watchId !== undefined) LocationService.clearWatch(watchId);
+        };
     }, []);
 
     const pageVariants = {
@@ -70,22 +79,30 @@ export default function AppMain() {
                         key="content"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="h-full pt-4"
+                        className="h-full relative"
                     >
-                        <header className="px-8 pb-4 flex justify-between items-center bg-white/50 backdrop-blur-md">
-                            <div className="flex items-center gap-2">
-                                <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-blue-500/20">🚀</div>
-                                <h1 className="text-2xl font-black text-blue-900 tracking-tighter">KIDOA</h1>
+                        <header className="absolute top-0 left-0 right-0 px-8 py-6 flex justify-between items-end z-[2000] pointer-events-none">
+                            <div className="flex items-center gap-3 pointer-events-auto">
+                                <motion.div 
+                                    whileTap={{ scale: 0.9 }}
+                                    className="w-12 h-12 bg-blue-600 rounded-[18px] flex items-center justify-center text-2xl shadow-xl shadow-blue-500/40 border border-blue-400/50 text-white"
+                                >
+                                    🚀
+                                </motion.div>
+                                <h1 className="text-2xl font-black text-blue-900 tracking-tighter drop-shadow-sm">KIDOA</h1>
                             </div>
-                            <div className="flex gap-2">
-                                <div className="bg-white/80 px-4 py-2 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-2">
-                                    <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Nivel {user?.level || 1}</span>
-                                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                                </div>
+                            <div className="flex gap-2 pointer-events-auto">
+                                <motion.div 
+                                    whileHover={{ y: -2 }}
+                                    className="bg-white/70 backdrop-blur-xl px-6 py-2.5 rounded-[20px] shadow-lg border border-white/50 flex items-center gap-3"
+                                >
+                                    <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em]">Lvl {user?.level || 1}</span>
+                                    <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_10px_#10b981] animate-pulse" />
+                                </motion.div>
                             </div>
                         </header>
 
-                        <div className="h-full">
+                        <div className="h-full pt-24 overflow-hidden">
                             {currentPage === "map" && <MapPage lastKnownCoords={coords} targetCoords={targetCoords} targetDetails={targetDetails} />}
                             {currentPage === "today" && <TodayPage lastKnownCoords={coords} onNavigateToMap={navigateToMap} />}
                             {currentPage === "tribu" && <TribuPage />}
