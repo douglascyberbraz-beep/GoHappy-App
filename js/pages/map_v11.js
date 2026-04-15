@@ -26,7 +26,7 @@ window.GoHappyMap = {
         try {
             window.GoHappyMap.instance = new maplibregl.Map({
                 container: container,
-                style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+                style: 'https://tiles.openfreemap.org/styles/liberty',
                 center: [-4.7286, 41.6520],
                 zoom: 16.5,
                 pitch: 60, // Night mode 3D
@@ -55,9 +55,9 @@ window.GoHappyMap = {
                 // Remove 3D Buildings - Force them to be flat
                 try {
                     if (window.GoHappyMap.instance.getLayer('building')) {
-                        // 3D night mode buildings
-                        window.GoHappyMap.instance.setPaintProperty('building', 'fill-color', 'rgba(10, 36, 99, 0.4)');
-                        window.GoHappyMap.instance.setPaintProperty('building', 'fill-outline-color', 'rgba(56, 189, 248, 0.5)');
+                        // 3D bright mode buildings
+                        window.GoHappyMap.instance.setPaintProperty('building', 'fill-color', 'rgba(0, 206, 209, 0.25)');
+                        window.GoHappyMap.instance.setPaintProperty('building', 'fill-outline-color', '#4CC9F0');
                         window.GoHappyMap.instance.setPaintProperty('building', 'fill-opacity', 0.8);
                         // Extrude based on heights if available, or force a fake height of 15
                         window.GoHappyMap.instance.setPaintProperty('building', 'fill-extrusion-height', ['coalesce', ['get', 'render_height'], 15]);

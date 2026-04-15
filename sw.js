@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gohappy-cache-v2.0.1';
+const CACHE_NAME = 'gohappy-cache-v2.0.2';
 const TILE_CACHE = 'gohappy-tiles-v1.2.9';
 const ASSETS = [
     './',
@@ -24,7 +24,7 @@ const ASSETS = [
     'js/pages/memories.js',
     'js/pages/legal.js',
     'js/lib/qrcode.min.js',
-    'assets/logo.png',
+    'assets/logo_gohappy.svg',
     'assets/map-marker.png',
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
