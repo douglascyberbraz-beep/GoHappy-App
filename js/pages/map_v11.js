@@ -26,10 +26,10 @@ window.GoHappyMap = {
         try {
             window.GoHappyMap.instance = new maplibregl.Map({
                 container: container,
-                style: 'https://tiles.openfreemap.org/styles/liberty',
+                style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
                 center: [-4.7286, 41.6520],
                 zoom: 16.5,
-                pitch: 0, // Flat 2D view as requested
+                pitch: 60, // Night mode 3D
                 bearing: 0,
                 antialias: true,
                 hash: false
@@ -55,13 +55,13 @@ window.GoHappyMap = {
                 // Remove 3D Buildings - Force them to be flat
                 try {
                     if (window.GoHappyMap.instance.getLayer('building')) {
-                        // If the style has 3D extrusion, we override it to be a simple flat fill
-                        window.GoHappyMap.instance.setPaintProperty('building', 'fill-color', '#E2E8F0');
-                        window.GoHappyMap.instance.setPaintProperty('building', 'fill-outline-color', '#CBD5E1');
+                        // 3D night mode buildings
+                        window.GoHappyMap.instance.setPaintProperty('building', 'fill-color', 'rgba(10, 36, 99, 0.4)');
+                        window.GoHappyMap.instance.setPaintProperty('building', 'fill-outline-color', 'rgba(56, 189, 248, 0.5)');
                         window.GoHappyMap.instance.setPaintProperty('building', 'fill-opacity', 0.8);
-                        
-                        window.GoHappyMap.instance.setPaintProperty('building', 'fill-extrusion-height', 0);
-                        window.GoHappyMap.instance.setPaintProperty('building', 'fill-extrusion-base', 0);
+                        // Extrude based on heights if available, or force a fake height of 15
+                        window.GoHappyMap.instance.setPaintProperty('building', 'fill-extrusion-height', ['coalesce', ['get', 'render_height'], 15]);
+                        window.GoHappyMap.instance.setPaintProperty('building', 'fill-extrusion-base', ['coalesce', ['get', 'render_min_height'], 0]);
                     }
                 } catch (e) {}
 
@@ -267,7 +267,7 @@ window.GoHappyMap = {
             window.GoHappyMap.instance.easeTo({
                 center: [lng, lat],
                 bearing: heading || window.GoHappyMap.instance.getBearing(),
-                pitch: 0, // Flat view
+                pitch: 60, // 3D driving view
                 zoom: 17.5,
                 duration: 1500,
                 easing: (t) => t * (2 - t) // Smooth deceleration
@@ -279,35 +279,13 @@ window.GoHappyMap = {
         if (!window.GoHappyMap.userMarker) {
             const el = document.createElement('div');
             el.innerHTML = `
-                <div class="user-GoHappy-orb" style="
-                    width: 50px; height: 50px;
-                    background: radial-gradient(circle, rgba(76, 201, 240, 0.4) 0%, transparent 70%);
+                <div class="user-GoHappy-orb star-mode" style="
+                    width: 60px; height: 60px;
+                    background: radial-gradient(circle, rgba(0, 206, 209, 0.4) 0%, transparent 60%);
                     display: flex; justify-content: center; align-items: center;
                     border-radius: 50%;
                 ">
-                    <div style="
-                        width: 24px; 
-                        height: 24px; 
-                        background: white;
-                        border-radius: 50%;
-                        display: flex; align-items: center; justify-content: center;
-                        box-shadow: 0 0 15px rgba(76, 201, 240, 0.8), inset 0 0 5px rgba(0,0,0,0.1);
-                        border: 2px solid var(--primary-navy);
-                        position: relative;
-                    ">
-                        <span style="font-size: 14px; filter: none !important;">✨</span>
-                        <!-- Directional Indicator (Subtle) -->
-                        <div style="
-                            position: absolute;
-                            top: -8px;
-                            width: 0; height: 0;
-                            border-left: 6px solid transparent;
-                            border-right: 6px solid transparent;
-                            border-bottom: 10px solid var(--primary-navy);
-                            transform-origin: bottom center;
-                            transform: rotate(${heading}deg) translateY(-2px);
-                        "></div>
-                    </div>
+                    <div style="font-size: 28px; filter: drop-shadow(0 0 10px rgba(0,255,255,0.8));">⭐</div>
                 </div>
             `;
             window.GoHappyMap.userMarker = new maplibregl.Marker({ element: el, pitchAlignment: 'map', rotationAlignment: 'map' })
