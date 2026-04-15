@@ -130,8 +130,8 @@
                     setTimeout(() => window.location.reload(true), 500);
                 };
 
-                navigator.serviceWorker.register('sw.js?v=2.0.2').then(reg => {
-                    console.log('Service Worker v2.0.2 registrado');
+                navigator.serviceWorker.register('sw.js?v=2.0.3').then(reg => {
+                    console.log('Service Worker v2.0.3 registrado');
 
                     // Detect updates and reload
                     reg.addEventListener('updatefound', () => {
