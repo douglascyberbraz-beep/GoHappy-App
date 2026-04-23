@@ -286,7 +286,7 @@ window.GoHappyMap = {
                     display: flex; justify-content: center; align-items: center;
                     border-radius: 50%;
                 ">
-                    <div style="font-size: 28px; filter: drop-shadow(0 0 10px rgba(0,255,255,0.8));">⭐</div>
+                    <div style="font-family: 'Poppins', sans-serif; font-weight: 900; font-size: 28px; background: linear-gradient(135deg, #0B4C8F, #08FEFE); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 4px rgba(11, 76, 143, 0.5));">GO</div>
                 </div>
             `;
             window.GoHappyMap.userMarker = new maplibregl.Marker({ element: el, pitchAlignment: 'map', rotationAlignment: 'map' })

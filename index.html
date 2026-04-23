@@ -16,7 +16,7 @@
     <link href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css' rel='stylesheet' />
 
     <!-- App CSS -->
-    <link rel="stylesheet" href="css/main.css?v=2.0.5">
+    <link rel="stylesheet" href="css/main.css?v=2.0.6">
 
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
@@ -63,7 +63,10 @@
 
         <button class="nav-item active" data-page="map">
             <div class="map-orb">
-                <span class="go-nav-text" style="background: linear-gradient(135deg, var(--primary-cobalt), var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 4px rgba(11, 76, 143, 0.4));">GO</span>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary-cobalt)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="map-icon-svg">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
             </div>
         </button>
 
@@ -131,8 +134,8 @@
                     setTimeout(() => window.location.reload(true), 500);
                 };
 
-                navigator.serviceWorker.register('sw.js?v=2.0.5').then(reg => {
-                    console.log('Service Worker v2.0.5 registrado');
+                navigator.serviceWorker.register('sw.js?v=2.0.6').then(reg => {
+                    console.log('Service Worker v2.0.6 registrado');
 
                     // Detect updates and reload
                     reg.addEventListener('updatefound', () => {
