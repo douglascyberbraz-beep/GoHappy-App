@@ -89,7 +89,7 @@ window.GoHappyNewsEvents = {
                     <h3 style="color: var(--primary-navy); margin: 0 0 10px 0; font-size: 1.1rem; line-height: 1.3;">${item.title}</h3>
                     <p style="font-size: 0.9rem; color: #555; line-height: 1.5; margin-bottom: 15px;">${item.summary}</p>
                     <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f0f0f0; padding-top: 12px;">
-                        <small style="color: #999; font-style: italic;">Fuente: ${item.sourceName}</small>
+                        <small style="color: #999; font-style: italic;">Fuente: ${item.sourceName || item.source || 'GoHappy Local Info'}</small>
                         <a href="${item.link}" target="_blank" class="btn-text" style="color: var(--primary-blue); font-weight: 700; text-decoration: none; font-size: 12px;">Leer noticia completa →</a>
                     </div>
                 `;

@@ -2,18 +2,10 @@
 // Sound System
 window.GoHappySound = {
     play: (type) => {
-        const sounds = {
-            click: 'https://actions.google.com/sounds/v1/water/water_drop.ogg', // Pop/click
-            start: 'https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg', // Magic chime
-            success: 'https://actions.google.com/sounds/v1/cartoon/cartoon_sparkle_magic_twinkle.ogg', // Win/Success
-            boop: 'https://actions.google.com/sounds/v1/water/droplet_reverb.ogg' // Subtle boop
-        };
+        // Sonidos desactivados temporalmente para evitar errores 404
+        // ya que la librería antigua de Google Actions fue retirada.
         try {
-            if (sounds[type]) {
-                const audio = new Audio(sounds[type]);
-                audio.volume = 0.15;
-                audio.play().catch(e => { });
-            }
+            // Future audio implementation here
         } catch (e) { }
     }
 };
