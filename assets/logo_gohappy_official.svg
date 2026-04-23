@@ -3,8 +3,8 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@800&amp;display=swap');
     .logo-text { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 80px; }
-    .cobalt { fill: #0B71FC; }
-    .cyan { fill: #06FEFE; }
+    .cobalt { fill: #0B4C8F; }
+    .cyan { fill: #08FEFE; }
   </style>
   
   <rect width="600" height="200" fill="transparent" />
@@ -16,8 +16,8 @@
   <text x="215" y="130" class="logo-text cyan">Happy</text>
   
   <!-- Wink over the 'o' -->
-  <path d="M165 85 Q175 75 185 85" stroke="#0B71FC" stroke-width="8" fill="none" stroke-linecap="round" />
+  <path d="M165 85 Q175 75 185 85" stroke="#0B4C8F" stroke-width="8" fill="none" stroke-linecap="round" />
   
   <!-- Smile from H to y -->
-  <path d="M225 145 Q290 190 475 145" stroke="#06FEFE" stroke-width="10" fill="none" stroke-linecap="round" />
+  <path d="M225 145 Q290 190 475 145" stroke="#08FEFE" stroke-width="10" fill="none" stroke-linecap="round" />
 </svg>
