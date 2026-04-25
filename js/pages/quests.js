@@ -35,12 +35,22 @@ window.GoHappyQuestsPage = {
         const list = document.getElementById('quests-list');
 
         // Load active quests
-        const quests = await window.GoHappyQuests.getActiveQuests();
+        let quests = [];
+        try {
+            quests = await window.GoHappyQuests.getActiveQuests();
+        } catch (e) {
+            console.error("Critical error rendering quests:", e);
+            quests = window.GoHappyQuests._getDefaultQuests().slice(0, 2);
+        }
 
         // Update stats
-        document.getElementById('q-active').textContent = quests.filter(q => q.status === 'active').length;
-        document.getElementById('q-completed').textContent = quests.filter(q => q.status === 'completed').length;
-        document.getElementById('q-points').textContent = quests.reduce((sum, q) => sum + (q.status === 'completed' ? q.points : 0), 0);
+        const activeCount = (quests || []).filter(q => q.status === 'active').length;
+        const completedCount = (quests || []).filter(q => q.status === 'completed').length;
+        const totalPoints = (quests || []).reduce((sum, q) => sum + (q.status === 'completed' ? q.points : 0), 0);
+
+        document.getElementById('q-active').textContent = activeCount;
+        document.getElementById('q-completed').textContent = completedCount;
+        document.getElementById('q-points').textContent = totalPoints;
 
         // Render quests
         list.innerHTML = '';
@@ -156,9 +166,11 @@ window.GoHappyQuestsPage = {
             if (newQuests && newQuests.length > 0) {
                 list.innerHTML = '<p class="center-text p-20">💾 Guardando misiones en tu perfil...</p>';
 
-                // Save them to Firestore properly
-                for (const q of newQuests) {
-                    await window.GoHappyQuests.saveQuest(q);
+                // Save them to Firestore properly (only if not guest)
+                if (window.GoHappyAuth.checkAuth() && !window.GoHappyAuth.checkAuth().isGuest) {
+                    for (const q of newQuests) {
+                        await window.GoHappyQuests.saveQuest(q);
+                    }
                 }
 
                 // Re-render to show new active quests from Firestore

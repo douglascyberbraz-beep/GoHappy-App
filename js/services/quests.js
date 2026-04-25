@@ -16,48 +16,32 @@ window.GoHappyQuests = {
     // Obtener misiones activas del usuario
     getActiveQuests: async () => {
         const user = window.GoHappyAuth.checkAuth();
-        if (!user) return window.GoHappyQuests._getDefaultQuests().slice(0, 2);
+        const defaults = window.GoHappyQuests._getDefaultQuests().slice(0, 2);
+        
+        if (!user || user.isGuest) return defaults;
 
         try {
             const fetchPromise = window.GoHappyDB.collection('quests')
                 .where('userId', '==', user.uid)
                 .where('status', '==', 'active')
-                .orderBy('createdAt', 'desc')
                 .get();
 
-            // Timeout after 5s to avoid hanging
             const snap = await Promise.race([
                 fetchPromise,
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 4000))
             ]);
 
             let activeQuests = [];
-            if (!snap.empty) {
+            if (snap && !snap.empty) {
                 activeQuests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             }
 
-            // Asegurar que siempre haya 2 misiones comunes (por defecto) activas si es posible
-            const defaultCount = activeQuests.filter(q => q.isDefault).length;
-            if (defaultCount < 2) {
-                const allDefaults = window.GoHappyQuests._getDefaultQuests();
-                // Evitar duplicar las que ya están activas
-                const availableDefaults = allDefaults.filter(d => !activeQuests.find(a => a.templateId === d.id));
-                
-                let needed = 2 - defaultCount;
-                for (let i = 0; i < needed && i < availableDefaults.length; i++) {
-                    const newDef = { ...availableDefaults[i], isDefault: true, templateId: availableDefaults[i].id };
-                    delete newDef.id; // Para que Firebase o saveQuest le asigne uno
-                    const saved = await window.GoHappyQuests.saveQuest(newDef);
-                    if (saved) activeQuests.push(saved);
-                }
-            }
-
+            if (activeQuests.length === 0) return defaults;
             return activeQuests;
         } catch (e) {
-            console.warn("Firestore quests fetch error:", e);
+            console.warn("Firestore fetch fallback:", e);
+            return defaults;
         }
-
-        return window.GoHappyQuests._getDefaultQuests().slice(0, 2);
     },
 
     // Guardar una misión generada por IA en la cuenta del usuario
