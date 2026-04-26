@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gohappy-cache-v2.1.2';
+const CACHE_NAME = 'gohappy-cache-v2.2.0';
 const TILE_CACHE = 'gohappy-tiles-v1.2.9';
 const ASSETS = [
     './',
@@ -25,9 +25,9 @@ const ASSETS = [
     'js/pages/legal.js',
     'js/lib/qrcode.min.js',
     'assets/logo_gohappy_official.svg',
-    'assets/map-marker.png',
-    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+    'assets/logo.png',
+    'https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css',
+    'https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js'
 ];
 
 self.addEventListener('install', (event) => {

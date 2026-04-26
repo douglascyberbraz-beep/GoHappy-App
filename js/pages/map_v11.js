@@ -417,7 +417,7 @@ window.GoHappyMap = {
     showAddSiteModal: (lat, lng, name = "") => {
         const user = window.GoHappyAuth.checkAuth();
         if (!user) {
-            alert("Inicia sesión para contribuir con la Tribu.");
+            window.GoHappyToast.warning('Inicia sesión para contribuir con la Tribu.');
             window.GoHappyAuth.renderAuthModal();
             return;
         }
@@ -466,7 +466,7 @@ window.GoHappyMap = {
         document.getElementById('post-review-btn').onclick = async () => {
             const finalName = name || document.getElementById('new-site-name').value;
             const reviewText = document.getElementById('review-text').value;
-            if (!finalName || rating === 0) return alert("Completa el nombre y la nota.");
+            if (!finalName || rating === 0) return window.GoHappyToast.warning('Completa el nombre y la nota. ⭐');
 
             try {
                 // Save to Firestore
@@ -487,11 +487,11 @@ window.GoHappyMap = {
                 // Visual feedback on map
                 window.GoHappyMap.createMarker({ name: finalName, lat, lng, rating, type: 'new' });
                 
-                alert("¡Gracias! Tu reseña ha sido publicada. Has ganado 100 puntos y ayudado a la comunidad. ✨");
+                window.GoHappyToast.points(`¡Reseña publicada! +100 pts. ¡Gracias por ayudar a la comunidad! ✨`);
                 modal.remove();
             } catch (e) {
                 console.error("Error saving review:", e);
-                alert("Hubo un error al guardar tu reseña. Por favor, intenta de nuevo.");
+                window.GoHappyToast.error('Error al guardar la reseña. Inténtalo de nuevo.');
             }
         };
     },

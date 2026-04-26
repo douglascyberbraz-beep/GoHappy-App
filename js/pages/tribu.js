@@ -53,7 +53,7 @@ window.GoHappyTribu = {
             const user = window.GoHappyAuth.checkAuth();
 
             if (!user) {
-                alert("Identifícate para participar en la Tribu.");
+                window.GoHappyToast.warning('Identifícate para participar en la Tribu.');
                 return;
             }
 
@@ -83,9 +83,9 @@ window.GoHappyTribu = {
 
                     modal.classList.add('hidden');
                     contentInput.value = '';
-                    alert("¡Publicado! Has ganado 5 puntos.");
+                    window.GoHappyToast.points('¡Publicado! Has ganado 5 puntos. 🎉');
                 } catch (e) {
-                    alert("Error al publicar. Inténtalo de nuevo.");
+                    window.GoHappyToast.error('Error al publicar. Inténtalo de nuevo.');
                 } finally {
                     publishBtn.disabled = false;
                     publishBtn.textContent = 'Publicar';

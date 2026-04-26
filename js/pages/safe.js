@@ -159,7 +159,7 @@ window.GoHappySafePage = {
             const desc = document.getElementById('alert-desc').value.trim();
 
             if (!title || !location) {
-                alert("Título y lugar son obligatorios.");
+                window.GoHappyToast.warning('El título y el lugar son obligatorios.');
                 return;
             }
 
@@ -176,10 +176,10 @@ window.GoHappySafePage = {
 
             if (success) {
                 modal.classList.add('hidden');
-                alert("✅ Alerta reportada. ¡Gracias por cuidar a la comunidad! +20 puntos");
+                window.GoHappyToast.points('¡Alerta reportada! +20 pts. ¡Gracias por cuidar a la comunidad!');
                 window.GoHappySafePage.render(container);
             } else {
-                alert("Error al enviar. Inténtalo de nuevo.");
+                window.GoHappyToast.error('Error al enviar. Inténtalo de nuevo.');
             }
 
             submitBtn.disabled = false;

@@ -173,7 +173,7 @@ window.GoHappyToday = {
                                 } catch (e) { console.warn("Error saving activity:", e); }
                             }
 
-                            alert(`¡Plan familiar aceptado! ✨\n\nHas marcado "${act.title}" como tu plan para hoy.\n\n¡Disfrutad mucho en familia! (+50 pts)`);
+                            window.GoHappyToast.points(`¡Plan "${act.title}" guardado! +50 pts 🎉`);
                             actionBtn.innerText = "¡Plan guardado! ✅";
                             actionBtn.style.background = "#27AE60";
                         }

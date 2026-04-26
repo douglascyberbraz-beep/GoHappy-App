@@ -1,13 +1,16 @@
 {
   "name": "GOHAPPY - Family App",
   "short_name": "GoHappy",
-  "description": "Stop Searching. Start Living. La comunidad real para familias modernas.",
+  "description": "Stop Searching. Start Living. La comunidad real para familias modernas. Encuentra planes, quests y alertas de seguridad en tu zona.",
   "start_url": "index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0B71FC",
   "orientation": "portrait",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["lifestyle", "family", "social", "navigation"],
   "icons": [
     {
       "src": "assets/logo.png",
@@ -33,5 +36,37 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "screenshots": [
+    {
+      "src": "assets/screenshot_home.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mapa 3D familiar con misiones activas"
+    },
+    {
+      "src": "assets/screenshot_quests.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Sistema de Quests y gamificación familiar"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Mapa Familiar",
+      "short_name": "Mapa",
+      "description": "Abre el mapa 3D familiar",
+      "url": "index.html?page=map",
+      "icons": [{ "src": "assets/logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Misiones",
+      "short_name": "Quests",
+      "description": "Ver misiones activas",
+      "url": "index.html?page=quests",
+      "icons": [{ "src": "assets/logo.png", "sizes": "192x192" }]
+    }
   ]
-}
+}

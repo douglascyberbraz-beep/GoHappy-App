@@ -1,0 +1,105 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- USERS ----------
+    // Cualquier usuario logueado puede leer perfiles (para ranking).
+    // Solo el propio usuario puede escribir su perfil.
+    match /users/{uid} {
+      allow read: if request.auth != null;
+      allow create: if request.auth.uid == uid;
+      allow update: if request.auth.uid == uid;
+      allow delete: if false; // Nunca eliminar perfiles
+    }
+
+    // ---------- QUESTS ----------
+    // Solo el dueño de la misión puede leer y modificarla.
+    match /quests/{questId} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.userId;
+    }
+
+    // ---------- ACTIVITY (Memories) ----------
+    // Solo el propio usuario puede leer y crear sus actividades.
+    match /activity/{actId} {
+      allow read: if request.auth != null
+                  && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if false;
+    }
+
+    // ---------- ALERTS (Safe) ----------
+    // Cualquier usuario logueado puede leer alertas activas y crear nuevas.
+    // Solo el creador puede modificar la suya.
+    match /alerts/{alertId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth != null
+                    && (request.auth.uid == resource.data.userId
+                        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votes']));
+      allow delete: if request.auth != null
+                    && request.auth.uid == resource.data.userId;
+    }
+
+    // ---------- POSTS (Tribu) ----------
+    // Cualquier logueado puede leer posts. Solo el autor puede crear el suyo.
+    match /posts/{postId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth != null
+                    && (request.auth.uid == resource.data.userId
+                        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']));
+      allow delete: if request.auth != null
+                    && request.auth.uid == resource.data.userId;
+    }
+
+    // ---------- REVIEWS (Mapa) ----------
+    // Cualquier logueado puede leer reseñas. Solo el autor puede crearlas.
+    match /reviews/{reviewId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth != null
+                             && request.auth.uid == resource.data.userId;
+    }
+
+    // ---------- INVITATIONS (Referidos) ----------
+    // Cualquier logueado puede leer códigos para validar. Solo el sistema crea.
+    match /invitations/{code} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if false;
+    }
+
+    // ---------- FAMILIES ----------
+    // Solo miembros de la familia pueden leer y modificar.
+    match /families/{familyId} {
+      allow read: if request.auth != null
+                  && request.auth.uid in resource.data.members;
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.adminUid;
+      allow update: if request.auth != null
+                    && request.auth.uid in resource.data.members;
+      allow delete: if request.auth != null
+                    && request.auth.uid == resource.data.adminUid;
+    }
+
+    // ---------- LOCATIONS / NEWS / EVENTS ----------
+    // Solo lectura pública para usuarios logueados.
+    match /locations/{locId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Generado por AI, no editable directamente
+    }
+
+    // ---------- DENY ALL ELSE ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

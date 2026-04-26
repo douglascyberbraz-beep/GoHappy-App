@@ -1,4 +1,52 @@
-// GoHappy App - Production v1.0.0
+// GoHappy App - Production v2.2.0
+// Toast System (reemplaza alert() para compatibilidad con Google Play TWA)
+window.GoHappyToast = {
+    show: (message, type = 'info', duration = 3500) => {
+        const existing = document.getElementById('gh-toast');
+        if (existing) existing.remove();
+
+        const colors = {
+            success: { bg: 'linear-gradient(135deg, #27AE60, #2ECC71)', icon: '✅' },
+            error:   { bg: 'linear-gradient(135deg, #E74C3C, #C0392B)', icon: '❌' },
+            info:    { bg: 'linear-gradient(135deg, #0B71FC, #0B4C8F)', icon: 'ℹ️' },
+            warning: { bg: 'linear-gradient(135deg, #F39C12, #E67E22)', icon: '⚠️' },
+            points:  { bg: 'linear-gradient(135deg, #8E44AD, #9B59B6)', icon: '⭐' }
+        };
+        const style = colors[type] || colors.info;
+
+        const toast = document.createElement('div');
+        toast.id = 'gh-toast';
+        toast.style.cssText = `
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: ${style.bg}; color: white; padding: 14px 22px;
+            border-radius: 50px; font-size: 14px; font-weight: 700;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.25); z-index: 99999;
+            max-width: 85vw; text-align: center; line-height: 1.4;
+            display: flex; align-items: center; gap: 10px;
+            opacity: 0; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+            backdrop-filter: blur(10px);
+        `;
+        toast.innerHTML = `<span>${style.icon}</span><span>${message}</span>`;
+        document.body.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(-50%) translateY(0)';
+        });
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(20px)';
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    },
+    success: (msg) => window.GoHappyToast.show(msg, 'success'),
+    error:   (msg) => window.GoHappyToast.show(msg, 'error'),
+    info:    (msg) => window.GoHappyToast.show(msg, 'info'),
+    warning: (msg) => window.GoHappyToast.show(msg, 'warning'),
+    points:  (msg) => window.GoHappyToast.show(msg, 'points', 4000)
+};
+
 // Sound System
 window.GoHappySound = {
     play: (type) => {
@@ -131,14 +179,16 @@ async function loadPage(pageName) {
 
             // Map table of renderers to satisfy pageName
             const renderers = {
-                'today': window.GoHappyToday,
-                'ranking': window.GoHappyRanking,
+                'today':       window.GoHappyToday,
+                'ranking':     window.GoHappyRanking,
                 'news_events': window.GoHappyNewsEvents,
-                'profile': window.GoHappyProfile,
-                'legal': window.GoHappyLegal,
-                'quests': window.GoHappyQuestsPage,
-                'safe': window.GoHappySafePage,
-                'memories': window.GoHappyMemories
+                'profile':     window.GoHappyProfile,
+                'legal':       window.GoHappyLegal,
+                'quests':      window.GoHappyQuestsPage,
+                'safe':        window.GoHappySafePage,
+                'memories':    window.GoHappyMemories,
+                'tribu':       window.GoHappyTribu,
+                'chat':        window.GoHappyChat
             };
 
             const renderer = renderers[pageName];

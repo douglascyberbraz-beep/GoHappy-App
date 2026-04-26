@@ -46,7 +46,7 @@
         </div>
     </div>
 
-    <!-- Bottom Navigation with Smooth Centering -->
+    <!-- Bottom Navigation -->
     <nav id="bottom-nav" class="bottom-nav hidden">
         <button class="nav-item" data-page="quests">
             <span class="icon">⚔️</span>
@@ -59,6 +59,10 @@
         <button class="nav-item" data-page="today">
             <span class="icon">✨</span>
             <span class="label">Today</span>
+        </button>
+        <button class="nav-item" data-page="tribu">
+            <span class="icon">🏘️</span>
+            <span class="label">Tribu</span>
         </button>
 
         <button class="nav-item active" data-page="map">
@@ -78,11 +82,16 @@
             <span class="icon">🗞️</span>
             <span class="label">NEWS</span>
         </button>
+        <button class="nav-item" data-page="chat">
+            <span class="icon">🤖</span>
+            <span class="label">IA Chat</span>
+        </button>
         <button class="nav-item" data-page="profile">
             <span class="icon">🍭</span>
             <span class="label">Perfil</span>
         </button>
     </nav>
+
 
 
     <!-- MapLibre GL JS for 3D/Tilt/Rotate -->
@@ -115,6 +124,9 @@
     <script src="js/pages/ranking.js"></script>
     <script src="js/pages/memories.js"></script>
     <script src="js/pages/quests.js"></script>
+
+    <script src="js/pages/tribu.js"></script>
+    <script src="js/pages/chat.js"></script>
 
     <!-- Main initialization LAST -->
     <script src="js/app.js"></script>

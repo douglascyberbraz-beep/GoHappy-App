@@ -1,0 +1,6 @@
+{
+  "name": "GoHappy",
+  "appId": "com.gohappy.app",
+  "webDir": ".",
+  "plugins": {}
+}
