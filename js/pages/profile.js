@@ -86,6 +86,15 @@ window.GoHappyProfile = {
                     </div>
                 </div>
 
+                <!-- SECCIÓN MI FAMILIA -->
+                <div id="family-section" style="margin: 0 20px 20px; padding: 24px; background: white; border-radius: 28px; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                        <h3 style="color:var(--primary-cobalt); font-weight:900; margin:0; font-size:1rem;">👨‍👩‍👧‍👦 Mi Familia</h3>
+                        <div id="family-loading" style="font-size:12px; color:#94a3b8;">Cargando...</div>
+                    </div>
+                    <div id="family-content"></div>
+                </div>
+
                 <div class="account-actions-list">
                     <button id="terms-link" class="action-list-item">
                         <span>📜 Términos y Soporte</span>
@@ -100,6 +109,9 @@ window.GoHappyProfile = {
 
         // Interaction logic
         document.getElementById('logout-btn').onclick = () => window.GoHappyAuth.logout();
+
+        // Cargar datos de familia de forma asíncrona (no bloquea el render)
+        window.GoHappyProfile._loadFamilySection(user);
 
         document.getElementById('copy-ref-link').onclick = (e) => {
             const link = `https://GoHappy.app/invite/${user.referralCode}`;
@@ -198,6 +210,148 @@ window.GoHappyProfile = {
                 });
             }
         }, 300);
+    },
+
+    _loadFamilySection: async (user) => {
+        const loadingEl = document.getElementById('family-loading');
+        const contentEl = document.getElementById('family-content');
+        if (!contentEl) return;
+
+        try {
+            if (!user.familyId) {
+                // Sin familia — mostrar CTA
+                if (loadingEl) loadingEl.style.display = 'none';
+                contentEl.innerHTML = `
+                    <div style="text-align:center; padding:10px 0 5px;">
+                        <div style="font-size:40px; margin-bottom:12px;">🏠</div>
+                        <p style="color:#64748b; font-size:13px; margin-bottom:18px; line-height:1.5;">
+                            Aún no perteneces a ninguna familia.<br>
+                            <strong>¡Crea la tuya o únete con un código!</strong>
+                        </p>
+                        <button id="setup-family-btn" style="
+                            background:linear-gradient(135deg,#0B71FC,#0B4C8F); color:white;
+                            border:none; padding:14px 28px; border-radius:16px;
+                            font-size:14px; font-weight:800; cursor:pointer; width:100%;
+                            box-shadow:0 8px 20px rgba(11,113,252,0.25);
+                        ">
+                            👨‍👩‍👧‍👦 Crear o Unirme a una Familia
+                        </button>
+                    </div>
+                `;
+                document.getElementById('setup-family-btn').onclick = () => {
+                    if (window.GoHappyFamilyOnboarding) window.GoHappyFamilyOnboarding.show();
+                };
+                return;
+            }
+
+            // Con familia — cargar datos
+            const family = await window.GoHappyFamilies.getMyFamily();
+            if (loadingEl) loadingEl.style.display = 'none';
+
+            if (!family) {
+                contentEl.innerHTML = `<p style="color:#94a3b8; font-size:13px; text-align:center;">Error al cargar los datos de la familia.</p>`;
+                return;
+            }
+
+            const esAdmin = user.rol === 'admin';
+            const miembros = family.miembrosData || [];
+
+            contentEl.innerHTML = `
+                <!-- Nombre y código -->
+                <div style="background:linear-gradient(135deg,rgba(11,113,252,0.05),rgba(6,254,254,0.1)); border-radius:20px; padding:18px; margin-bottom:16px; border:1px solid rgba(11,113,252,0.1);">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <div style="font-size:11px; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:4px;">Familia</div>
+                            <div style="font-size:1.2rem; font-weight:900; color:var(--primary-cobalt);">${family.nombre}</div>
+                            <div style="font-size:11px; color:#64748b; margin-top:2px;">${esAdmin ? '👑 Administrador' : '👤 Miembro'}</div>
+                        </div>
+                        ${esAdmin ? `
+                            <div style="text-align:right;">
+                                <div style="font-size:10px; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:6px;">Código de invitación</div>
+                                <div style="font-size:1.5rem; font-weight:900; color:var(--primary-cobalt); letter-spacing:6px; font-family:monospace;">${family.codigoInvitacion}</div>
+                                <button id="copy-family-code" style="margin-top:8px; background:var(--primary-cobalt); color:white; border:none; padding:6px 14px; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;">
+                                    📋 Copiar
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <!-- Miembros -->
+                <div style="margin-bottom:16px;">
+                    <div style="font-size:11px; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:12px;">
+                        Miembros (${miembros.length}/6)
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:12px;">
+                        ${miembros.map(m => `
+                            <div style="display:flex; align-items:center; gap:10px; background:#f8fafc; padding:10px 14px; border-radius:16px; flex:1; min-width:140px;">
+                                <div style="font-size:28px; background:white; border-radius:50%; width:42px; height:42px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+                                    ${m.photo || '👤'}
+                                </div>
+                                <div>
+                                    <div style="font-size:13px; font-weight:800; color:#1e293b;">${m.nickname || 'Miembro'} ${m.uid === user.uid ? '<span style="font-size:10px; color:var(--primary-cobalt);">(tú)</span>' : ''}</div>
+                                    <div style="font-size:11px; color:#64748b;">⭐ ${m.points || 0} pts</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                        ${miembros.length < 6 ? `
+                            <div id="invite-family-slot" style="display:flex; align-items:center; justify-content:center; gap:8px; background:rgba(11,113,252,0.05); padding:10px 14px; border-radius:16px; flex:1; min-width:140px; border:2px dashed rgba(11,113,252,0.2); cursor:pointer;">
+                                <span style="font-size:22px; color:rgba(11,113,252,0.4);">+</span>
+                                <span style="font-size:12px; font-weight:700; color:rgba(11,113,252,0.5);">Invitar</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+
+                ${!esAdmin ? `
+                    <button id="leave-family-btn" style="
+                        width:100%; padding:12px; border-radius:14px; border:2px solid rgba(231,76,60,0.2);
+                        background:rgba(231,76,60,0.05); color:#E74C3C; font-size:13px;
+                        font-weight:700; cursor:pointer; margin-top:4px;
+                    ">🚪 Salir de la familia</button>
+                ` : ''}
+            `;
+
+            // Botón copiar código (solo admin)
+            const copyBtn = document.getElementById('copy-family-code');
+            if (copyBtn) {
+                copyBtn.onclick = () => {
+                    navigator.clipboard.writeText(family.codigoInvitacion).then(() => {
+                        window.GoHappyToast.success(`Código "${family.codigoInvitacion}" copiado`);
+                    });
+                };
+            }
+
+            // Slot invitar abre el onboarding (para que compartan el código)
+            const inviteSlot = document.getElementById('invite-family-slot');
+            if (inviteSlot) {
+                inviteSlot.onclick = () => {
+                    navigator.clipboard.writeText(family.codigoInvitacion).then(() => {
+                        window.GoHappyToast.info(`Comparte el código ${family.codigoInvitacion} con tu familia`);
+                    });
+                };
+            }
+
+            // Botón salir
+            const leaveBtn = document.getElementById('leave-family-btn');
+            if (leaveBtn) {
+                leaveBtn.onclick = async () => {
+                    if (!confirm('¿Seguro que quieres salir de la familia? Perderás el progreso compartido.')) return;
+                    try {
+                        await window.GoHappyFamilies.leaveFamily();
+                        window.GoHappyToast.info('Has salido de la familia.');
+                        window.GoHappyApp.loadPage('profile');
+                    } catch (e) {
+                        window.GoHappyToast.error(e.message || 'Error al salir de la familia.');
+                    }
+                };
+            }
+
+        } catch (e) {
+            console.warn('_loadFamilySection error:', e);
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (contentEl) contentEl.innerHTML = `<p style="color:#94a3b8; font-size:13px; text-align:center;">No se pudo cargar la información familiar.</p>`;
+        }
     }
 };
 

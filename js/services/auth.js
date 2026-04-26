@@ -30,7 +30,9 @@ window.GoHappyAuth = {
                         isGuest: user.isAnonymous,
                         photo: profile.photo || "👤",
                         referralCode: profile.referralCode || "",
-                        familyId: profile.familyId || null
+                        familyId: profile.familyId || null,
+                        familyName: profile.familyName || null,
+                        rol: profile.rol || null
                     };
                     // Persistir localmente para acceso offline
                     localStorage.setItem('GoHappy_local_user', JSON.stringify(window.GoHappyAuth._currentUser));

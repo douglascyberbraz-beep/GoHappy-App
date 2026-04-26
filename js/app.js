@@ -99,9 +99,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } else {
             appState.user = user;
-            // Remove modal if it exists (e.g., after login)
+            // Remove auth modal if it exists
             const modal = document.getElementById('auth-modal');
             if (modal) modal.remove();
+
+            // Comprobar si necesita onboarding familiar
+            // (delay para que el splash termine y la UI esté lista)
+            setTimeout(() => {
+                if (window.GoHappyFamilyOnboarding &&
+                    window.GoHappyFamilyOnboarding.needsOnboarding()) {
+                    window.GoHappyFamilyOnboarding.show();
+                }
+            }, 1800);
         }
     });
 

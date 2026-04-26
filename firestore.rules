@@ -79,15 +79,19 @@ service cloud.firestore {
 
     // ---------- FAMILIES ----------
     // Solo miembros de la familia pueden leer y modificar.
+    // La regla de máximo 6 miembros se valida en el servidor.
     match /families/{familyId} {
       allow read: if request.auth != null
-                  && request.auth.uid in resource.data.members;
+                  && request.auth.uid in resource.data.miembros;
       allow create: if request.auth != null
-                    && request.auth.uid == request.resource.data.adminUid;
+                    && request.auth.uid == request.resource.data.creadoPor
+                    && request.resource.data.miembros.size() == 1
+                    && request.resource.data.miembros[0] == request.auth.uid;
       allow update: if request.auth != null
-                    && request.auth.uid in resource.data.members;
+                    && request.auth.uid in resource.data.miembros
+                    && request.resource.data.miembros.size() <= 6;
       allow delete: if request.auth != null
-                    && request.auth.uid == resource.data.adminUid;
+                    && request.auth.uid == resource.data.creadoPor;
     }
 
     // ---------- LOCATIONS / NEWS / EVENTS ----------
