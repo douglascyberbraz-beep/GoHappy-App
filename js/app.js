@@ -247,3 +247,7 @@ window.addEventListener('pointsUpdated', (e) => {
     }
 });
 
+// Iniciar sistema de notificaciones nativas al arrancar
+if (window.GoHappyNotifications) {
+    window.GoHappyNotifications.init().catch(console.warn);
+}

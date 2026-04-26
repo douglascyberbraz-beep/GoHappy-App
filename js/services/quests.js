@@ -309,6 +309,15 @@ window.GoHappyQuests = {
             }
 
             console.log(`✅ Quest "${questData.titulo}" completada. +${puntos} pts`);
+
+            // --- CAPACITOR HAPTICS (Vibración Nativa) ---
+            if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+                const { Haptics } = window.Capacitor.Plugins;
+                if (Haptics) {
+                    Haptics.notification({ type: 'SUCCESS' });
+                }
+            }
+
             return { ok: true, puntos };
 
         } catch (e) {
