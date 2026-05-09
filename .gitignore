@@ -29,6 +29,7 @@ firebase-adminsdk*.json
 # ─── Build outputs ────────────────────────────────────────────────
 dist/
 build/
+www/
 android/
 ios/
 

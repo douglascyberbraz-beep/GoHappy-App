@@ -1,19 +1,20 @@
 {
   "appId": "com.gohappyfamily.app",
   "appName": "GoHappy Family",
-  "webDir": ".",
-  "bundledWebRuntime": false,
+  "webDir": "www",
   "ios": {
     "contentInset": "always",
     "backgroundColor": "#ffffff",
     "scrollEnabled": false,
-    "allowsLinkPreview": false
+    "allowsLinkPreview": false,
+    "limitsNavigationsToAppBoundDomains": true
   },
   "android": {
     "backgroundColor": "#ffffff",
     "allowMixedContent": false,
     "captureInput": true,
-    "webContentsDebuggingEnabled": false
+    "webContentsDebuggingEnabled": false,
+    "useLegacyBridge": false
   },
   "plugins": {
     "PushNotifications": {
@@ -27,19 +28,30 @@
     "SplashScreen": {
       "launchShowDuration": 2000,
       "launchAutoHide": true,
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#0B4C8F",
       "androidSplashResourceName": "splash",
       "androidScaleType": "CENTER_CROP",
-      "showSpinner": false
+      "showSpinner": false,
+      "splashFullScreen": true,
+      "splashImmersive": true
     },
     "StatusBar": {
       "style": "Light",
-      "backgroundColor": "#00000000"
+      "backgroundColor": "#00000000",
+      "overlaysWebView": true
     },
     "Keyboard": {
       "resize": "body",
       "style": "dark",
       "resizeOnFullScreen": true
+    },
+    "Geolocation": {
+      "permissions": {
+        "ios": {
+          "NSLocationWhenInUseUsageDescription": "GoHappy usa tu ubicación para mostrarte actividades y lugares increíbles para tu familia en tu zona.",
+          "NSLocationAlwaysUsageDescription": "GoHappy usa tu ubicación para enviarte alertas de seguridad en tu área."
+        }
+      }
     }
   }
 }

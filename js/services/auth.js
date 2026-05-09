@@ -142,7 +142,7 @@ window.GoHappyAuth = {
                 referralCode: myReferralCode,
                 referredBy: referralCode.toUpperCase() || null,
                 familyId: null,
-                createdAt: new Date()
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             await window.GoHappyDB.collection('users').doc(user.uid).set(profile);
 
@@ -223,7 +223,7 @@ window.GoHappyAuth = {
                     level: "Explorador Novato",
                     referralCode: 'GH-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
                     familyId: null,
-                    createdAt: new Date()
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
                 await window.GoHappyDB.collection('users').doc(res.user.uid).set(profile);
             }
@@ -245,10 +245,15 @@ window.GoHappyAuth = {
                     uid: res.user.uid,
                     email: res.user.email || "apple-user",
                     nickname: "Explorador Apple",
+                    firstName: "",
+                    lastName: "",
+                    photo: res.user.photoURL || "👤",
                     points: 50,
-                    level: "Semilla",
-                    referralCode: 'KNDR-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
-                    createdAt: new Date()
+                    weeklyPoints: 50,
+                    level: "Explorador Novato",
+                    referralCode: 'GH-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+                    familyId: null,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
                 await window.GoHappyDB.collection('users').doc(res.user.uid).set(profile);
             }
@@ -271,7 +276,7 @@ window.GoHappyAuth = {
                 <div class="auth-card premium-glass" style="max-height: 90vh; overflow-y: auto;">
                     <div class="auth-header">
                         <div class="premium-logo-wrap" style="margin-bottom: 20px; display: flex; justify-content: center;">
-                            <img src="assets/FINAL.png" alt="GoHappy Logo" style="width: 140px; height: auto; mix-blend-mode: multiply;">
+                            <img src="assets/ESLOGAN.png" alt="GoHappy Logo" style="width: 200px; height: auto;">
                         </div>
                         <h2 style="color:var(--primary-cobalt); font-size: 1.8rem; font-weight: 900; margin-bottom: 5px; letter-spacing: -1px;">Bienvenido a la Tribu</h2>
                         <p style="color: #64748b; font-size: 0.95rem; font-weight: 500;">Crea recuerdos inolvidables en familia</p>

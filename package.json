@@ -1,6 +1,6 @@
 {
   "name": "gohappy-app",
-  "version": "2.8.0",
+  "version": "2.9.1",
   "description": "GoHappy Family App - La comunidad real para familias modernas",
   "main": "index.html",
   "scripts": {
@@ -12,14 +12,21 @@
     "open:ios": "npx cap open ios",
     "run:android": "npx cap run android",
     "run:ios": "npx cap run ios",
-    "serve": "node server.js"
+    "serve": "node server.js",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:rules": "firebase deploy --only firestore:rules,firestore:indexes",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy:all": "firebase deploy --only hosting,firestore:rules,firestore:indexes",
+    "build:www": "node scripts/build-www.js",
+    "beta:android": "node scripts/build-www.js && npx cap sync android && npx cap open android",
+    "beta:ios": "node scripts/build-www.js && npx cap sync ios && npx cap open ios"
   },
   "dependencies": {
-    "@capacitor/android": "^5.7.0",
-    "@capacitor/cli": "^5.7.0",
-    "@capacitor/core": "^5.7.0",
-    "@capacitor/haptics": "^5.7.0",
-    "@capacitor/ios": "^5.7.0",
+    "@capacitor/core": "^5.0.0",
+    "@capacitor/cli": "^5.0.0",
+    "@capacitor/android": "^5.0.0",
+    "@capacitor/ios": "^5.0.0",
+    "@capacitor/haptics": "^5.0.0",
     "@capacitor/keyboard": "^5.0.0",
     "@capacitor/local-notifications": "^5.0.0",
     "@capacitor/push-notifications": "^5.0.0",
