@@ -6,6 +6,7 @@ const ASSETS = [
     'index.html',
     'manifest.json',
     'css/main.css',
+    'css/premium.css',
     'js/app.js',
     'js/config.js',
     'js/lib/qrcode.min.js',

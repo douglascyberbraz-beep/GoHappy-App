@@ -1,0 +1,546 @@
+/* =======================================================
+   GoHappy Premium Layer — Brand v3.0
+   Cobalt #0B4C8F · Cyan #17C8D4 · Tu camino a la alegría
+   ======================================================= */
+
+/* ── 1. Brand Tokens ── */
+:root {
+    --primary-cobalt:  #0B4C8F;
+    --primary-dark:    #062B55;
+    --accent-cyan:     #17C8D4;
+    --cyan-soft:       #E0F8FA;
+    --cyan-mid:        #A8EDF2;
+    --brand-gradient:  linear-gradient(135deg, #0B4C8F 0%, #0E7CBE 50%, #17C8D4 100%);
+    --brand-gradient-v: linear-gradient(180deg, #0B4C8F 0%, #17C8D4 100%);
+    --brand-gradient-r: linear-gradient(135deg, #17C8D4 0%, #0B4C8F 100%);
+
+    --accent-pink:     #FF6B6B;
+    --accent-amber:    #FFB830;
+
+    --glass-card:      rgba(255,255,255,0.85);
+    --glass-blur:      blur(28px) saturate(180%);
+    --shadow-brand:    0 20px 50px rgba(11,76,143,0.12);
+    --shadow-lift:     0 30px 70px rgba(11,76,143,0.18);
+    --shadow-nav:      0 -8px 32px rgba(11,76,143,0.08);
+
+    --radius-xl:       28px;
+    --radius-2xl:      40px;
+    --radius-pill:     999px;
+
+    --font-brand:      'Poppins', sans-serif;
+    --nav-height:      82px;
+}
+
+/* ── 2. Base ── */
+body {
+    background: #F4F8FF;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+    background: #F4F8FF;
+    box-shadow: 0 0 60px rgba(11,76,143,0.06);
+}
+
+h1, h2, h3, h4, .brand-font { font-family: var(--font-brand) !important; }
+
+/* ── 3. Splash Screen — Premium ── */
+.splash-screen {
+    background: linear-gradient(160deg, #FFFFFF 0%, #E8F4FF 60%, #D0EEFA 100%) !important;
+}
+
+.splash-logo-img {
+    width: 260px;
+    max-width: 85%;
+    filter: drop-shadow(0 20px 40px rgba(11,76,143,0.18));
+    animation: splashEnter 1.4s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+@keyframes splashEnter {
+    0%  { opacity:0; transform: scale(0.88) translateY(20px); filter: blur(12px) drop-shadow(0 0 0 transparent); }
+    100%{ opacity:1; transform: scale(1)    translateY(0);    filter: blur(0)    drop-shadow(0 20px 40px rgba(11,76,143,0.18)); }
+}
+
+/* Pulse dot loader below logo */
+.splash-screen .logo-container::before {
+    content: '';
+    position: absolute;
+    bottom: -32px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+    animation: splashBar 2s ease-in-out infinite 0.8s;
+}
+
+@keyframes splashBar {
+    0%   { opacity:0; width:30px;  }
+    30%  { opacity:1; width:120px; }
+    70%  { opacity:1; width:120px; }
+    100% { opacity:0; width:30px;  }
+}
+
+/* ── 4. Bottom Navigation — Glass Pill ── */
+.bottom-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 600px;
+    height: var(--nav-height);
+    padding-bottom: env(safe-area-inset-bottom, 12px);
+    padding-top: 0;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-top: 1px solid rgba(255,255,255,0.9);
+    box-shadow: var(--shadow-nav);
+    z-index: 1000;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 6px 4px;
+    border-radius: 18px;
+    min-width: 44px;
+    gap: 2px;
+    color: #94a3b8;
+    transition: color 0.25s ease, transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative;
+}
+
+.nav-item .icon {
+    font-size: 1.3rem;
+    line-height: 1;
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.nav-item .label {
+    font-size: 0.55rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: var(--font-brand);
+}
+
+.nav-item.active {
+    color: var(--primary-cobalt);
+}
+
+.nav-item.active .icon {
+    transform: scale(1.15) translateY(-2px);
+}
+
+/* Active pill indicator */
+.nav-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 3px;
+    border-radius: 0 0 4px 4px;
+    background: var(--brand-gradient);
+}
+
+/* Map Orb — enhanced */
+.map-orb {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: white;
+    margin-top: -28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 10px 30px rgba(11,76,143,0.22),
+        0 4px 8px rgba(11,76,143,0.1),
+        inset 0 1px 3px rgba(255,255,255,0.9);
+    border: 2.5px solid rgba(255,255,255,0.95);
+    transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative;
+}
+
+.map-orb::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: var(--brand-gradient);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.nav-item.active .map-orb {
+    transform: translateY(-6px) scale(1.08);
+    box-shadow:
+        0 16px 40px rgba(11,76,143,0.28),
+        0 6px 12px rgba(11,76,143,0.15);
+}
+
+.nav-item.active .map-orb::after {
+    opacity: 1;
+}
+
+.nav-item:active { transform: scale(0.88); }
+.nav-item[data-page="map"]:active { transform: none; }
+.nav-item[data-page="map"]:active .map-orb { transform: translateY(-6px) scale(0.92); }
+
+/* ── 5. Page Heroes — Brand Gradient ── */
+.today-hero-premium,
+.q-header-premium,
+.ranking-hero-premium,
+.safe-hero,
+.news-hero {
+    background: var(--brand-gradient) !important;
+    background-image: none !important;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Floating brand pattern */
+.today-hero-premium::before,
+.q-header-premium::before,
+.ranking-hero-premium::before,
+.safe-hero::before,
+.news-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 20% 50%, rgba(255,255,255,0.07) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(23,200,212,0.15) 0%, transparent 45%),
+        radial-gradient(circle at 60% 80%, rgba(255,255,255,0.04) 0%, transparent 40%);
+    pointer-events: none;
+}
+
+/* Smile accent wave at bottom of hero */
+.today-hero-premium::after,
+.q-header-premium::after,
+.ranking-hero-premium::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: inherit;
+    border-radius: 0 0 60px 60px;
+}
+
+/* ── 6. Cards — Glass Premium ── */
+.card,
+.plan-card-premium,
+.gamification-card-premium,
+.ai-capsule-card,
+.news-mag-card,
+.action-card-glass {
+    background: var(--glass-card) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    -webkit-backdrop-filter: var(--glass-blur) !important;
+    border: 1px solid rgba(255,255,255,0.9) !important;
+    box-shadow: var(--shadow-brand) !important;
+    border-radius: var(--radius-xl) !important;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease !important;
+}
+
+.card:active,
+.plan-card-premium:active {
+    transform: scale(0.975);
+    box-shadow: 0 8px 20px rgba(11,76,143,0.08) !important;
+}
+
+/* Quest cards */
+.quest-card-smart {
+    background: white !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: 0 6px 24px rgba(11,76,143,0.07) !important;
+    border: 1.5px solid rgba(23,200,212,0.1) !important;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+
+.quest-card-smart:active { transform: scale(0.97) !important; }
+
+.quest-card-smart.done {
+    background: linear-gradient(135deg, rgba(23,200,212,0.06), rgba(11,76,143,0.04)) !important;
+    border-color: rgba(23,200,212,0.25) !important;
+}
+
+/* ── 7. Podium ── */
+.podium-card {
+    background: white !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: 0 12px 36px rgba(11,76,143,0.1) !important;
+    border: 1.5px solid rgba(255,255,255,0.95) !important;
+}
+
+.podium-card.large {
+    background: linear-gradient(160deg, #fff 0%, rgba(23,200,212,0.08) 100%) !important;
+    box-shadow: 0 20px 50px rgba(11,76,143,0.15) !important;
+}
+
+/* ── 8. Buttons ── */
+.btn-primary,
+.btn-plan-primary,
+.ai-magic-btn {
+    background: var(--brand-gradient) !important;
+    border-radius: var(--radius-pill) !important;
+    box-shadow: 0 10px 28px rgba(11,76,143,0.28) !important;
+    font-family: var(--font-brand) !important;
+    font-weight: 800 !important;
+    border: none !important;
+    color: white !important;
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease !important;
+}
+
+.btn-primary:active,
+.btn-plan-primary:active,
+.ai-magic-btn:active {
+    transform: scale(0.93) !important;
+    box-shadow: 0 4px 12px rgba(11,76,143,0.2) !important;
+}
+
+/* Quest complete button */
+.q-btn-completar {
+    background: var(--brand-gradient) !important;
+    border-radius: var(--radius-pill) !important;
+    font-family: var(--font-brand) !important;
+    font-weight: 800 !important;
+    box-shadow: 0 8px 20px rgba(11,76,143,0.2) !important;
+    color: white !important;
+    border: none !important;
+}
+
+/* Filter pills */
+.q-filter-btn.active,
+.filter-chip.active,
+.rank-toggle-btn.active {
+    background: var(--brand-gradient) !important;
+    color: white !important;
+    box-shadow: 0 6px 18px rgba(11,76,143,0.22) !important;
+    border: none !important;
+}
+
+/* ── 9. Progress bars ── */
+.g-progress-fill,
+.level-progress-bar {
+    background: var(--brand-gradient) !important;
+}
+
+/* ── 10. Stats / Badges ── */
+.level-badge-premium,
+.level-badge,
+.q-pts-badge,
+.plan-badge {
+    background: linear-gradient(135deg, rgba(11,76,143,0.08), rgba(23,200,212,0.12)) !important;
+    color: var(--primary-cobalt) !important;
+    border: 1px solid rgba(23,200,212,0.2) !important;
+    border-radius: var(--radius-pill) !important;
+}
+
+/* Racha badge */
+.q-racha-capsule {
+    background: rgba(255,255,255,0.18) !important;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.25) !important;
+    border-radius: var(--radius-pill) !important;
+}
+
+/* ── 11. Map UI ── */
+.map-search-container input,
+.ai-capsule-input-group input,
+.post-input,
+.review-input {
+    border: 1.5px solid rgba(11,76,143,0.12) !important;
+    border-radius: 16px !important;
+    background: white !important;
+    font-family: var(--font-brand) !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.map-search-container input:focus,
+.ai-capsule-input-group input:focus,
+.post-input:focus,
+.review-input:focus {
+    border-color: var(--accent-cyan) !important;
+    box-shadow: 0 0 0 3px rgba(23,200,212,0.15) !important;
+    outline: none !important;
+}
+
+.filter-chip {
+    background: rgba(255,255,255,0.92) !important;
+    border: 1.5px solid rgba(11,76,143,0.1) !important;
+    border-radius: var(--radius-pill) !important;
+    font-family: var(--font-brand) !important;
+    font-weight: 700 !important;
+    color: var(--primary-cobalt) !important;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.04) !important;
+}
+
+/* ── 12. Toast Notifications ── */
+#toast-container > * {
+    border-radius: var(--radius-xl) !important;
+    font-family: var(--font-brand) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 16px 40px rgba(11,76,143,0.18) !important;
+    backdrop-filter: blur(20px) !important;
+}
+
+/* Points toast special */
+.toast-points {
+    background: var(--brand-gradient) !important;
+    color: white !important;
+}
+
+/* ── 13. Scroll & main content ── */
+#main-content {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
+
+/* ── 14. Transitions — spring physics ── */
+.page-enter-premium {
+    animation: premiumSpringIn 0.65s cubic-bezier(0.16,1,0.3,1) both !important;
+}
+
+@keyframes premiumSpringIn {
+    0%  { opacity:0; transform: translateY(28px) scale(0.96); filter: blur(8px); }
+    100%{ opacity:1; transform: translateY(0)    scale(1);    filter: blur(0); }
+}
+
+.entry-anim { animation: premiumSpringIn 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+.card-anim  { animation: premiumSpringIn 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* ── 15. Premium Micro-interactions ── */
+@keyframes cyanPulse {
+    0%  { box-shadow: 0 0 0 0 rgba(23,200,212,0.35); }
+    70% { box-shadow: 0 0 0 12px rgba(23,200,212,0); }
+    100%{ box-shadow: 0 0 0 0 rgba(23,200,212,0); }
+}
+
+.pulse-cyan { animation: cyanPulse 2s infinite; }
+
+/* Gradient text (brand name) */
+.gradient-text {
+    background: var(--brand-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ── 16. Utility ── */
+.center-text { text-align: center; }
+.p-40 { padding: 40px; }
+.p-20 { padding: 20px; }
+
+.typing-dots span {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    margin: 0 3px;
+    animation: dotBounce 1.2s infinite ease-in-out;
+}
+.typing-dots span:nth-child(1) { animation-delay: 0s; }
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotBounce {
+    0%,80%,100%{ transform: scale(0.7); opacity:0.5; }
+    40%        { transform: scale(1.2); opacity:1;   }
+}
+
+/* Magic loader */
+.magic-loader {
+    font-size: 32px;
+    animation: magicSpin 2s linear infinite;
+    display: inline-block;
+}
+@keyframes magicSpin {
+    0%  { transform: rotate(0deg)  scale(1);   }
+    50% { transform: rotate(180deg) scale(1.2); }
+    100%{ transform: rotate(360deg) scale(1);   }
+}
+
+/* Gradient avatar placeholder */
+.gradient-bg {
+    background: var(--brand-gradient) !important;
+    color: white !important;
+}
+
+/* ── 17. Ranking rows ── */
+.ranking-row {
+    background: white !important;
+    border-radius: 20px !important;
+    box-shadow: 0 4px 16px rgba(11,76,143,0.05) !important;
+    border: 1.5px solid rgba(23,200,212,0.08) !important;
+    transition: transform 0.2s ease !important;
+}
+.ranking-row:active { transform: scale(0.97) !important; }
+
+/* ── 18. Profile avatar ring ── */
+.profile-avatar-large {
+    box-shadow:
+        0 0 0 3px white,
+        0 0 0 5px var(--accent-cyan),
+        0 20px 50px rgba(11,76,143,0.18) !important;
+}
+
+/* ── 19. Safe page ── */
+.safe-report-card,
+.report-item {
+    border-radius: var(--radius-xl) !important;
+    border: 1.5px solid rgba(255,107,107,0.1) !important;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.04) !important;
+}
+
+/* ── 20. News cards ── */
+.news-mag-card {
+    border-radius: 28px !important;
+    overflow: hidden !important;
+}
+
+/* ── 21. Floating Stats bar (quests) ── */
+.q-stats-floating-bar {
+    background: white !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: 0 8px 28px rgba(11,76,143,0.08) !important;
+    border: 1px solid rgba(23,200,212,0.12) !important;
+}
+
+/* ── 22. Action grid (profile) ── */
+.action-card-glass {
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.action-card-glass:active { transform: scale(0.93) !important; }
+
+/* ── 23. "is-me" highlight ── */
+.is-me {
+    background: linear-gradient(135deg, rgba(23,200,212,0.08), rgba(11,76,143,0.05)) !important;
+    border: 1.5px solid rgba(23,200,212,0.3) !important;
+}
+
+/* ── 24. Stars rating ── */
+.star.active { color: var(--accent-amber) !important; }
+
+/* ── 25. Scrollbar (hidden) ── */
+* { scrollbar-width: none; -ms-overflow-style: none; }
+*::-webkit-scrollbar { display: none; }
