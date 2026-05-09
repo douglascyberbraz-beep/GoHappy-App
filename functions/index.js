@@ -92,8 +92,10 @@ function sanitizePrompt(prompt) {
 }
 
 // ── Gemini Proxy ──────────────────────────────────────────────────────────────
+// invoker: 'public' permite que el navegador llame sin IAM auth.
+// La autenticación real es por Firebase Auth Bearer token (ver verifyToken)
 exports.geminiProxy = onRequest(
-    { region: 'europe-west1', timeoutSeconds: 30, memory: '256MiB', secrets: [GEMINI_KEY] },
+    { region: 'europe-west1', timeoutSeconds: 30, memory: '256MiB', secrets: [GEMINI_KEY], invoker: 'public' },
     async (req, res) => {
         setCorsHeaders(req, res);
         if (req.method === 'OPTIONS') return res.status(204).send('');

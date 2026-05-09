@@ -30,8 +30,8 @@ const firebaseConfig = {
 //   window.GEMINI_PROXY_ACTIVE = true  (ya está en true por defecto)
 // ─────────────────────────────────────────────────────────────────────────────
 
-// URL del Cloud Function proxy (ajustar región si cambias en functions/index.js)
-window.GEMINI_PROXY_URL = 'https://europe-west1-kindr-8d660.cloudfunctions.net/geminiProxy';
+// URL del Cloud Function proxy (Gen 2 = Cloud Run, region europe-west1)
+window.GEMINI_PROXY_URL = 'https://geminiproxy-cwdjjopdga-ew.a.run.app';
 
 // true = usar proxy seguro (producción) | false = usar mock data (sin función desplegada)
 window.GEMINI_PROXY_ACTIVE = true;

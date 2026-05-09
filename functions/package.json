@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "GoHappy Firebase Cloud Functions — Gemini secure proxy",
   "main": "index.js",
-  "engines": { "node": "18" },
+  "engines": { "node": "22" },
   "scripts": {
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
