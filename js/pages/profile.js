@@ -6,31 +6,7 @@ window.GoHappyProfile = {
 
         if (!user) {
             container.innerHTML = `
-                <style>
-                .bottom-nav {
-                    position: fixed;
-                    bottom: max(35px, env(safe-area-inset-bottom, 20px));
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 94%;
-                    height: 80px;
-                    background: rgba(255, 255, 255, 0.4);
-                    backdrop-filter: blur(40px) saturate(200%);
-                    -webkit-backdrop-filter: blur(40px) saturate(200%);
-                    border-radius: 40px;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    box-shadow: 0 20px 50px rgba(11, 76, 143, 0.15), inset 0 1px 3px rgba(255,255,255,0.7);
-                    z-index: 1500;
-                    padding: 0 10px;
-                    border: 1px solid rgba(255, 255, 255, 0.5);
-                    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-                    gap: 8px;
-                }
-                .bottom-nav::-webkit-scrollbar { display: none; }
-                </style>
-                <div class="p-20 center-text entry-anim">
+                <div class="p-20 center-text entry-anim" style="padding-top: calc(var(--safe-top, 44px) + 60px);">
                     <div style="font-size: 5rem; margin-bottom: 30px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));">🕶️</div>
                     <h3 style="color: var(--primary-cobalt); font-size: 20px; font-weight: 800;">¿Quién eres?</h3>
                     <p style="color: #666; margin-top: 10px;">Identifícate para desbloquear tu nivel, puntos y premios exclusivos.</p>
@@ -229,7 +205,7 @@ window.GoHappyProfile = {
                     window.GoHappyProfile.render(container);
                     window.GoHappySound.play('success');
                 } catch (e) {
-                    alert("Error al guardar el avatar.");
+                    window.GoHappyToast.error("Error al guardar el avatar.");
                 }
             };
         };
@@ -395,7 +371,13 @@ window.GoHappyProfile = {
             const leaveBtn = document.getElementById('leave-family-btn');
             if (leaveBtn) {
                 leaveBtn.onclick = async () => {
-                    if (!confirm('¿Seguro que quieres salir de la familia? Perderás el progreso compartido.')) return;
+                    // Confirmación in-app (no usar confirm nativo bloqueante)
+                    const ok = await window.GoHappyProfile._confirmDialog(
+                        '¿Salir de la familia?',
+                        'Perderás el progreso compartido. Esta acción no se puede deshacer.',
+                        'Salir', 'Cancelar'
+                    );
+                    if (!ok) return;
                     try {
                         await window.GoHappyFamilies.leaveFamily();
                         window.GoHappyToast.info('Has salido de la familia.');
@@ -411,6 +393,30 @@ window.GoHappyProfile = {
             if (loadingEl) loadingEl.style.display = 'none';
             if (contentEl) contentEl.innerHTML = `<p style="color:#94a3b8; font-size:13px; text-align:center;">No se pudo cargar la información familiar.</p>`;
         }
+    },
+
+    // Confirmación in-app premium (reemplaza confirm() nativo)
+    _confirmDialog: (title, message, okText = 'Aceptar', cancelText = 'Cancelar') => {
+        return new Promise(resolve => {
+            const modal = document.createElement('div');
+            modal.className = 'modal entry-anim';
+            modal.style.zIndex = '10000';
+            modal.innerHTML = `
+                <div class="auth-container" style="padding:0;">
+                    <div style="background:white; border-radius:24px 24px 0 0; padding:28px 28px calc(env(safe-area-inset-bottom,20px) + 24px); text-align:center;">
+                        <h3 style="color:var(--primary-cobalt); font-weight:900; margin-bottom:8px; font-size:1.2rem;">${title}</h3>
+                        <p style="color:#64748b; font-size:14px; margin-bottom:24px; line-height:1.5;">${message}</p>
+                        <div style="display:flex; gap:12px;">
+                            <button id="cd-cancel" style="flex:1; padding:14px; border-radius:14px; border:none; background:#f1f5f9; color:#64748b; font-weight:700; font-size:15px; cursor:pointer;">${cancelText}</button>
+                            <button id="cd-ok" style="flex:1; padding:14px; border-radius:14px; border:none; background:#E74C3C; color:white; font-weight:800; font-size:15px; cursor:pointer; box-shadow:0 6px 18px rgba(231,76,60,0.3);">${okText}</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.querySelector('#cd-ok').onclick = () => { modal.remove(); resolve(true); };
+            modal.querySelector('#cd-cancel').onclick = () => { modal.remove(); resolve(false); };
+        });
     }
 };
 

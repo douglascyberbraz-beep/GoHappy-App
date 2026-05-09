@@ -6,39 +6,32 @@ service cloud.firestore {
     // HELPERS
     // ═══════════════════════════════════════════════════════════════
 
-    // Usuario autenticado (no anónimo)
     function isAuthenticated() {
       return request.auth != null && request.auth.uid != null;
     }
 
-    // Usuario autenticado real (no invitado anónimo)
     function isRealUser() {
       return isAuthenticated() && request.auth.token.firebase.sign_in_provider != 'anonymous';
     }
 
-    // Es el propio usuario
     function isOwner(uid) {
       return isAuthenticated() && request.auth.uid == uid;
     }
 
-    // Miembro de la familia
     function isFamilyMember(familyId) {
       return isAuthenticated() &&
              exists(/databases/$(database)/documents/families/$(familyId)) &&
              request.auth.uid in get(/databases/$(database)/documents/families/$(familyId)).data.miembros;
     }
 
-    // Tamaño de string dentro de límites
     function validString(field, min, max) {
       return field is string && field.size() >= min && field.size() <= max;
     }
 
-    // Solo campos permitidos fueron tocados
     function onlyFields(allowed) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowed);
     }
 
-    // Ningún campo de los bloqueados fue tocado
     function noFields(blocked) {
       return !request.resource.data.diff(resource.data).affectedKeys().hasAny(blocked);
     }
@@ -49,41 +42,49 @@ service cloud.firestore {
     // ═══════════════════════════════════════════════════════════════
     match /users/{uid} {
 
-      // Leer perfil: el propio usuario, o cualquier autenticado (para ranking)
       allow get:  if isAuthenticated();
       allow list: if isAuthenticated();
 
-      // Crear perfil: solo el propio usuario, campos obligatorios validados
+      // CREAR perfil: solo el propio usuario, campos validados
       allow create: if isOwner(uid)
         && validString(request.resource.data.nickname, 2, 24)
-        && validString(request.resource.data.email, 3, 254)
+        && (request.resource.data.email is string)
         && request.resource.data.points    is number && request.resource.data.points    >= 0
-        && request.resource.data.familyId  == null
+        && (!request.resource.data.keys().hasAny(['familyId']) || request.resource.data.familyId == null)
         && request.resource.data.createdAt == request.time;
 
-      // Actualizar: solo el propio usuario y solo campos no protegidos
+      // ACTUALIZAR perfil: solo el propio usuario
+      // Campos siempre bloqueados: identidad e historia
+      // familyId/rol: SE PUEDE actualizar (para crear/unirse/salir de familia)
       allow update: if isOwner(uid)
-        && noFields(['uid', 'email', 'createdAt', 'referralCode', 'referredBy', 'familyId', 'rol'])
-        && (!request.resource.data.keys().hasAny(['nickname']) ||
+        && noFields(['uid', 'email', 'createdAt', 'referralCode', 'referredBy'])
+        // Validación nickname si se modifica
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['nickname']) ||
             validString(request.resource.data.nickname, 2, 24))
-        && (!request.resource.data.keys().hasAny(['photo']) ||
-            request.resource.data.photo is string && request.resource.data.photo.size() <= 10)
-        // Points: owner can increase (quest rewards), but not decrease or exceed 999999
-        && (!request.resource.data.keys().hasAny(['points']) ||
+        // Validación photo si se modifica (emoji o URL corta)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['photo']) ||
+            request.resource.data.photo is string && request.resource.data.photo.size() <= 500)
+        // familyId: null o string corto
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['familyId']) ||
+            request.resource.data.familyId == null ||
+            (request.resource.data.familyId is string && request.resource.data.familyId.size() <= 40))
+        // rol: null, 'admin' o 'miembro'
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['rol']) ||
+            request.resource.data.rol == null ||
+            request.resource.data.rol in ['admin', 'miembro'])
+        // Points: solo aumentar, máximo 999999
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['points']) ||
             (request.resource.data.points is number
              && request.resource.data.points >= resource.data.points
              && request.resource.data.points <= 999999))
-        && (!request.resource.data.keys().hasAny(['weeklyPoints']) ||
+        // weeklyPoints: número 0-999999 (puede resetear semanalmente)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['weeklyPoints']) ||
             (request.resource.data.weeklyPoints is number
              && request.resource.data.weeklyPoints >= 0
              && request.resource.data.weeklyPoints <= 999999));
 
-      // Borrar: nunca (soft delete solo via Cloud Functions)
       allow delete: if false;
     }
-
-    // Acumulación de puntos solo via Cloud Functions (admin SDK)
-    // Los clientes NO pueden tocar /users/{uid}/points directamente
 
 
     // ═══════════════════════════════════════════════════════════════
@@ -91,103 +92,107 @@ service cloud.firestore {
     // ═══════════════════════════════════════════════════════════════
     match /families/{familyId} {
 
-      // Leer: solo miembros de la familia
       allow get:  if isAuthenticated() && request.auth.uid in resource.data.miembros;
-      allow list: if false; // Nunca listar todas las familias
 
-      // Crear: real user, máx 1 miembro inicial (el creador)
+      // LIST: necesario para buscar por codigoInvitacion
+      // (limitamos lecturas individuales con el get de arriba)
+      allow list: if isAuthenticated();
+
       allow create: if isRealUser()
         && request.auth.uid == request.resource.data.creadoPor
         && request.resource.data.miembros.size() == 1
         && request.resource.data.miembros[0] == request.auth.uid
-        && validString(request.resource.data.nombre, 2, 40);
+        && validString(request.resource.data.nombre, 2, 40)
+        && validString(request.resource.data.codigoInvitacion, 4, 10);
 
-      // Actualizar: solo miembros, máx 6 miembros, solo campos permitidos
+      // UPDATE: cualquier miembro puede modificar; máximo 6 miembros
       allow update: if isAuthenticated()
         && request.auth.uid in resource.data.miembros
         && request.resource.data.miembros.size() <= 6
-        && request.resource.data.creadoPor == resource.data.creadoPor  // No cambiar creador
-        && noFields(['creadoPor', 'createdAt']);
+        && request.resource.data.miembros.size() >= 0
+        && request.resource.data.creadoPor == resource.data.creadoPor
+        && noFields(['creadoPor', 'fechaCreacion', 'codigoInvitacion']);
 
-      // Borrar: solo el creador
+      // DELETE: solo el creador
       allow delete: if isAuthenticated() && request.auth.uid == resource.data.creadoPor;
     }
 
 
     // ═══════════════════════════════════════════════════════════════
-    // QUESTS (Catálogo compartido + progreso por familia)
+    // QUESTS (Catálogo por familia)
     // ═══════════════════════════════════════════════════════════════
     match /quests/{questId} {
 
-      // Leer: cualquier usuario autenticado
       allow get:  if isAuthenticated();
       allow list: if isAuthenticated();
 
-      // Crear: solo usuarios reales, con campos validados
+      // CREAR: usuario real, dentro de una familia (bootstrap)
       allow create: if isRealUser()
-        && validString(request.resource.data.title, 3, 120)
-        && request.resource.data.points is number
-        && request.resource.data.points >= 0
-        && request.resource.data.points <= 1000;
+        && validString(request.resource.data.titulo, 3, 120)
+        && request.resource.data.puntos is number
+        && request.resource.data.puntos >= 0
+        && request.resource.data.puntos <= 1000;
 
-      // Actualizar: solo el usuario o miembro de la familia propietaria,
-      // y solo campos de progreso (no título, puntos, etc.)
+      // UPDATE: solo el creador o miembro de la familia, solo campos progreso
       allow update: if isAuthenticated()
-        && (request.auth.uid == resource.data.userId ||
-            (resource.data.familyId != null && isFamilyMember(resource.data.familyId)))
-        && onlyFields(['status', 'progress', 'completedAt', 'currentStep',
-                       'updatedAt', 'lastUpdatedBy']);
+        && (resource.data.familyId == null ||
+            isFamilyMember(resource.data.familyId))
+        && onlyFields(['activa', 'completadaHoy', 'updatedAt']);
 
       allow delete: if false;
     }
 
 
     // ═══════════════════════════════════════════════════════════════
-    // COMPLETADAS (Historial de quests terminadas por familia)
+    // COMPLETADAS — historial de quests por familia
     // ═══════════════════════════════════════════════════════════════
     match /completadas/{familyId} {
-
-      // Leer: solo miembros de la familia
       allow read: if isAuthenticated() && isFamilyMember(familyId);
 
-      // Subcolección de registros
       match /registros/{registroId} {
         allow read:   if isAuthenticated() && isFamilyMember(familyId);
+
+        // CREATE: miembro de la familia, su uid en campo userId
         allow create: if isAuthenticated() && isFamilyMember(familyId)
-          && request.auth.uid == request.resource.data.userId;
+          && request.auth.uid == request.resource.data.userId
+          && request.resource.data.questId is string
+          && request.resource.data.fecha is string
+          && request.resource.data.puntosGanados is number
+          && request.resource.data.puntosGanados >= 0
+          && request.resource.data.puntosGanados <= 1000;
+
         allow update, delete: if false;
       }
     }
 
 
     // ═══════════════════════════════════════════════════════════════
-    // ACTIVITY (Memories — historial de actividades del usuario)
+    // ACTIVITY — historial personal (memorias)
     // ═══════════════════════════════════════════════════════════════
     match /activity/{actId} {
 
-      // Leer: solo el propio usuario
       allow get:  if isAuthenticated() && request.auth.uid == resource.data.userId;
-      allow list: if isAuthenticated(); // Restringido por query (userId == uid)
+      allow list: if isAuthenticated();
 
-      // Crear: solo el propio usuario
+      // CREATE: el propio usuario, type obligatorio, title opcional
       allow create: if isAuthenticated()
         && request.auth.uid == request.resource.data.userId
-        && validString(request.resource.data.title, 1, 120);
+        && request.resource.data.type is string
+        && (!request.resource.data.keys().hasAny(['title']) ||
+            validString(request.resource.data.title, 1, 200));
 
       allow update, delete: if false;
     }
 
 
     // ═══════════════════════════════════════════════════════════════
-    // ALERTAS DE SEGURIDAD (Safe)
+    // ALERTAS DE SEGURIDAD
     // ═══════════════════════════════════════════════════════════════
     match /alerts/{alertId} {
 
-      // Leer: cualquier usuario autenticado
       allow get:  if isAuthenticated();
       allow list: if isAuthenticated();
 
-      // Crear: usuario real, campos validados, no puede auto-asignar votos
       allow create: if isRealUser()
         && request.auth.uid == request.resource.data.userId
         && validString(request.resource.data.title, 3, 100)
@@ -195,13 +200,12 @@ service cloud.firestore {
         && request.resource.data.votes == 0
         && request.resource.data.active == true;
 
-      // Actualizar: creador puede archivar | cualquiera puede votar
+      // UPDATE: el creador puede archivar | cualquiera puede sumar 1 voto
       allow update: if isAuthenticated() && (
         (request.auth.uid == resource.data.userId && onlyFields(['active', 'updatedAt'])) ||
         (onlyFields(['votes']) && request.resource.data.votes == resource.data.votes + 1)
       );
 
-      // Borrar: solo el creador
       allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
     }
 
@@ -211,24 +215,20 @@ service cloud.firestore {
     // ═══════════════════════════════════════════════════════════════
     match /posts/{postId} {
 
-      // Leer: cualquier usuario autenticado
       allow get:  if isAuthenticated();
       allow list: if isAuthenticated();
 
-      // Crear: usuario real, contenido validado, sin HTML
       allow create: if isRealUser()
         && request.auth.uid == request.resource.data.userId
-        && validString(request.resource.data.content, 1, 160)
+        && validString(request.resource.data.content, 1, 280)
         && request.resource.data.likes == 0;
 
-      // Actualizar: autor puede editar contenido | cualquiera puede dar like
       allow update: if isAuthenticated() && (
         (request.auth.uid == resource.data.userId && onlyFields(['content', 'updatedAt']) &&
-         validString(request.resource.data.content, 1, 160)) ||
+         validString(request.resource.data.content, 1, 280)) ||
         (onlyFields(['likes']) && request.resource.data.likes == resource.data.likes + 1)
       );
 
-      // Borrar: solo el autor
       allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
     }
 
@@ -242,55 +242,44 @@ service cloud.firestore {
 
       allow create: if isRealUser()
         && request.auth.uid == request.resource.data.userId
-        && validString(request.resource.data.comment, 1, 300)
+        && validString(request.resource.data.siteName, 1, 120)
+        && (request.resource.data.comment == '' || validString(request.resource.data.comment, 1, 500))
         && request.resource.data.rating is number
         && request.resource.data.rating >= 1
         && request.resource.data.rating <= 5;
 
       allow update: if isAuthenticated() && request.auth.uid == resource.data.userId
         && onlyFields(['comment', 'rating', 'updatedAt'])
-        && validString(request.resource.data.comment, 1, 300);
+        && validString(request.resource.data.comment, 1, 500);
 
       allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
     }
 
 
     // ═══════════════════════════════════════════════════════════════
-    // INVITACIONES / REFERIDOS
+    // INVITACIONES / REFERIDOS (legacy, opcional)
     // ═══════════════════════════════════════════════════════════════
     match /invitations/{code} {
-
-      // Validar código: cualquier autenticado puede leer
       allow get:  if isAuthenticated();
-      allow list: if false;
-
-      // Crear invitación: solo usuario real, código validado
+      allow list: if isAuthenticated();
       allow create: if isRealUser()
         && request.auth.uid == request.resource.data.createdBy
         && request.resource.data.used == false
         && validString(request.resource.data.code, 4, 20);
-
-      // Marcar como usada: solo el sistema (via Cloud Functions)
-      allow update: if false;
-      allow delete: if false;
+      allow update, delete: if false;
     }
 
 
     // ═══════════════════════════════════════════════════════════════
-    // LOCATIONS (Solo lectura — generado por AI/admin)
+    // CONTENIDO PÚBLICO (read-only)
     // ═══════════════════════════════════════════════════════════════
-    match /locations/{locId} {
-      allow read:  if isAuthenticated();
-      allow write: if false;
-    }
-
-    // NEWS, EVENTS (Solo lectura pública)
-    match /news/{docId}   { allow read: if isAuthenticated(); allow write: if false; }
-    match /events/{docId} { allow read: if isAuthenticated(); allow write: if false; }
+    match /locations/{locId} { allow read: if isAuthenticated(); allow write: if false; }
+    match /news/{docId}      { allow read: if isAuthenticated(); allow write: if false; }
+    match /events/{docId}    { allow read: if isAuthenticated(); allow write: if false; }
 
 
     // ═══════════════════════════════════════════════════════════════
-    // COLECCIONES INTERNAS (solo Cloud Functions con admin SDK)
+    // INTERNAS (solo Cloud Functions con admin SDK)
     // ═══════════════════════════════════════════════════════════════
     match /_ratelimits/{uid}  { allow read, write: if false; }
     match /_ailogs/{docId}    { allow read, write: if false; }
@@ -298,7 +287,7 @@ service cloud.firestore {
 
 
     // ═══════════════════════════════════════════════════════════════
-    // DENY ALL — Bloque final de seguridad
+    // DENY ALL — bloque final de seguridad
     // ═══════════════════════════════════════════════════════════════
     match /{document=**} {
       allow read, write: if false;

@@ -81,7 +81,7 @@ window.GoHappyAuth = {
         }
     },
 
-    // Buscar usuario por su referralCode y premiar con puntos
+    // Buscar usuario por su referralCode y premiar con puntos (atomic increment)
     _rewardReferrer: async (referralCode) => {
         if (!referralCode) return;
         try {
@@ -89,21 +89,16 @@ window.GoHappyAuth = {
                 .where('referralCode', '==', referralCode.toUpperCase())
                 .limit(1)
                 .get();
-            if (!snap.empty) {
-                const referrerId = snap.docs[0].id;
-                const refPoints = window.GoHappyPoints ? (window.GoHappyPoints.REWARDS.REFERRAL || 500) : 500;
-                const userRef = window.GoHappyDB.collection('users').doc(referrerId);
-                await window.GoHappyDB.runTransaction(async (t) => {
-                    const doc = await t.get(userRef);
-                    if (doc.exists) {
-                        t.update(userRef, {
-                            points: (doc.data().points || 0) + refPoints,
-                            weeklyPoints: (doc.data().weeklyPoints || 0) + refPoints
-                        });
-                    }
-                });
-                console.log(`✅ Referidor ${referrerId} recibió ${refPoints} pts`);
-            }
+            if (snap.empty) return;
+
+            const referrerId = snap.docs[0].id;
+            const refPoints = window.GoHappyPoints?.REWARDS?.REFERRAL || 500;
+
+            await window.GoHappyDB.collection('users').doc(referrerId).update({
+                points:       firebase.firestore.FieldValue.increment(refPoints),
+                weeklyPoints: firebase.firestore.FieldValue.increment(refPoints)
+            });
+            console.log(`✅ Referidor ${referrerId} recibió ${refPoints} pts`);
         } catch (e) {
             console.warn("_rewardReferrer error:", e);
         }
@@ -478,8 +473,6 @@ window.GoHappyAuth = {
             if (locateBtn) locateBtn.style.display = 'flex';
         };
 
-        // Wrap original remove calls
-        const originalLogin = document.getElementById('main-auth-btn').onclick;
     }
 };
 

@@ -1,35 +1,11 @@
 {
   "indexes": [
     {
-      "collectionGroup": "alerts",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "active", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "activity",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "userId",    "order": "ASCENDING" },
         { "fieldPath": "timestamp", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "quests",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "userId", "order": "ASCENDING" },
-        { "fieldPath": "status", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "quests",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "familyId", "order": "ASCENDING" },
-        { "fieldPath": "activa", "order": "ASCENDING" }
       ]
     },
     {
@@ -37,7 +13,7 @@
       "queryScope": "COLLECTION_GROUP",
       "fields": [
         { "fieldPath": "questId", "order": "ASCENDING" },
-        { "fieldPath": "fecha", "order": "ASCENDING" }
+        { "fieldPath": "fecha",   "order": "ASCENDING" }
       ]
     }
   ],

@@ -123,7 +123,7 @@ window.GoHappyTribu = {
 
         // Async AI Topic Injection
         setTimeout(async () => {
-            if (window.GEMINI_KEY && !window.GEMINI_KEY.includes('PEGAR_AQUI')) {
+            if (window.GEMINI_PROXY_ACTIVE && window.GoHappyAI?.getDailyTribuTopic) {
                 try {
                     let coords = "41.6520, -4.7286";
                     try {

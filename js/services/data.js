@@ -45,7 +45,7 @@ window.GoHappyData = {
             if (window.GEMINI_PROXY_ACTIVE) {
                 return await window.GoHappyAI.getNews(coords);
             }
-            const snap = await window.GoHappyDB.collection('news').orderBy('date', 'desc').limit(10).get();
+            const snap = await window.GoHappyDB.collection('news').limit(10).get();
             if (!snap.empty) {
                 return snap.docs.map(d => ({ id: d.id, ...d.data() }));
             }
@@ -65,7 +65,7 @@ window.GoHappyData = {
             if (window.GEMINI_PROXY_ACTIVE) {
                 return await window.GoHappyAI.getEvents(coords);
             }
-            const snap = await window.GoHappyDB.collection('events').orderBy('date', 'asc').limit(10).get();
+            const snap = await window.GoHappyDB.collection('events').limit(10).get();
             if (!snap.empty) {
                 return snap.docs.map(d => ({ id: d.id, ...d.data() }));
             }
@@ -115,14 +115,16 @@ window.GoHappyData = {
     // Añadir un nuevo post a Firestore
     addTribuPost: async (content, user) => {
         try {
+            const cleanContent = (content || '').trim().slice(0, 280);
+            if (!cleanContent) return false;
             const post = {
-                userId: user.uid,
-                user: user.nickname || "Anónimo",
-                avatar: user.photo || "👤",
-                content,
-                likes: 0,
-                comments: 0,
-                createdAt: new Date()
+                userId:    user.uid,
+                user:      user.nickname || "Anónimo",
+                avatar:    user.photo || "👤",
+                content:   cleanContent,
+                likes:     0,
+                comments:  0,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             await window.GoHappyDB.collection('posts').add(post);
             return true;

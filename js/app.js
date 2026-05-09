@@ -15,9 +15,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('touchstart', () => window.GoHappySound.unlock(), { once: true });
     document.addEventListener('click', () => window.GoHappySound.unlock(), { once: true });
 
-    // Gemini Key check
-    if (window.GEMINI_KEY && window.GEMINI_KEY.includes('PEGAR_AQUI')) {
-        console.warn("⚠️ API Key de Gemini no configurada.");
+    // Gemini proxy status check (informativo)
+    if (!window.GEMINI_PROXY_ACTIVE) {
+        console.info("[GoHappy] Gemini proxy desactivado — usando datos demo.");
     }
 
     // Splash Screen con timing premium
@@ -256,6 +256,9 @@ window.addEventListener('pointsUpdated', (e) => {
     if (appState.currentPage === 'profile' && window.GoHappyProfile) {
         window.GoHappyProfile.render(document.getElementById('main-content'));
     }
-    window.GoHappySound.play('points');
-    window.GoHappyToast.points(`¡+${e.detail?.amount || ''} puntos! ⭐`);
+    window.GoHappySound && window.GoHappySound.play('points');
+    const amount = e.detail?.amount || 0;
+    if (amount > 0) {
+        window.GoHappyToast.points(`¡+${amount} puntos! ⭐`);
+    }
 });

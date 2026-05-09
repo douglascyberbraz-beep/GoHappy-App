@@ -36,7 +36,7 @@ window.GoHappyFamilies = {
         let codigoInvitacion = '';
         for (let i = 0; i < 3; i++) {
             const candidate = window.GoHappyFamilies._generateCode();
-            const existing = await window.GoHappyDB.collection('familias')
+            const existing = await window.GoHappyDB.collection('families')
                 .where('codigoInvitacion', '==', candidate).get();
             if (existing.empty) { codigoInvitacion = candidate; break; }
         }
@@ -46,12 +46,12 @@ window.GoHappyFamilies = {
         const familiaData = {
             nombre,
             creadoPor: user.uid,
-            fechaCreacion: new Date(),
+            fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(),
             codigoInvitacion,
             miembros: [user.uid],
             maxMiembros: 6
         };
-        const familiaRef = await window.GoHappyDB.collection('familias').add(familiaData);
+        const familiaRef = await window.GoHappyDB.collection('families').add(familiaData);
         const familyId = familiaRef.id;
 
         // Actualizar el perfil del usuario como admin
@@ -99,7 +99,7 @@ window.GoHappyFamilies = {
         }
 
         // Buscar la familia por código
-        const snap = await window.GoHappyDB.collection('familias')
+        const snap = await window.GoHappyDB.collection('families')
             .where('codigoInvitacion', '==', codigoLimpio)
             .limit(1)
             .get();
@@ -123,7 +123,7 @@ window.GoHappyFamilies = {
 
         // Añadir al usuario como miembro (transacción para evitar race conditions)
         await window.GoHappyDB.runTransaction(async (t) => {
-            const ref = window.GoHappyDB.collection('familias').doc(familyId);
+            const ref = window.GoHappyDB.collection('families').doc(familyId);
             const doc = await t.get(ref);
             if (!doc.exists) throw new Error('La familia ya no existe.');
             const currentMembers = doc.data().miembros || [];
@@ -159,7 +159,7 @@ window.GoHappyFamilies = {
         if (!user || !user.familyId) return null;
 
         try {
-            const doc = await window.GoHappyDB.collection('familias').doc(user.familyId).get();
+            const doc = await window.GoHappyDB.collection('families').doc(user.familyId).get();
             if (!doc.exists) return null;
 
             const data = doc.data();
@@ -200,7 +200,7 @@ window.GoHappyFamilies = {
         const familyId = user.familyId;
 
         await window.GoHappyDB.runTransaction(async (t) => {
-            const ref = window.GoHappyDB.collection('familias').doc(familyId);
+            const ref = window.GoHappyDB.collection('families').doc(familyId);
             const doc = await t.get(ref);
             if (doc.exists) {
                 const miembros = (doc.data().miembros || []).filter(uid => uid !== user.uid);

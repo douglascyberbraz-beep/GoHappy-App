@@ -171,7 +171,7 @@ window.GoHappyQuests = {
                 batch.set(ref, {
                     ...quest,
                     familyId,
-                    creadoEn: new Date()
+                    creadoEn: firebase.firestore.FieldValue.serverTimestamp()
                 });
             });
 
@@ -208,9 +208,9 @@ window.GoHappyQuests = {
 
         try {
             // 1. Obtener catálogo de quests de esta familia
+            // Nota: filtramos 'activa' en cliente para evitar índice compuesto
             const snap = await window.GoHappyDB.collection('quests')
                 .where('familyId', '==', familyId)
-                .where('activa', '==', true)
                 .get();
 
             // Si la familia no tiene quests en Firestore, hacer bootstrap silencioso
@@ -221,7 +221,9 @@ window.GoHappyQuests = {
             }
 
             const hoy = window.GoHappyQuests._fechaHoy();
-            const todasLasQuests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const todasLasQuests = snap.docs
+                .map(d => ({ id: d.id, ...d.data() }))
+                .filter(q => q.activa !== false);
 
             // 2. Obtener IDs completadas HOY por la familia
             const completadasHoy = await window.GoHappyQuests._getCompletadasHoy(familyId, hoy);
@@ -311,45 +313,37 @@ window.GoHappyQuests = {
             }
 
             // Flujo cliente: Registrar completación + actualizar puntos directamente
+            // userId es OBLIGATORIO por las reglas de seguridad
             await window.GoHappyDB
                 .collection('completadas').doc(familyId)
                 .collection('registros').add({
-                    questId:      realQuestId,
+                    questId:           realQuestId,
                     titulo,
-                    completadoPor: user.uid,
+                    userId:            user.uid,
                     completadoPorNick: user.nickname || 'Explorador',
-                    fecha:        hoy,
-                    timestamp:    new Date(),
-                    puntosGanados: puntos
+                    fecha:             hoy,
+                    timestamp:         firebase.firestore.FieldValue.serverTimestamp(),
+                    puntosGanados:     puntos
                 });
 
-            // Actualizar puntos del usuario (reglas permiten incremento)
-            const userRef = window.GoHappyDB.collection('users').doc(user.uid);
-            await window.GoHappyDB.runTransaction(async t => {
-                const uDoc = await t.get(userRef);
-                if (!uDoc.exists) return;
-                const current = uDoc.data();
-                t.update(userRef, {
-                    points:       (current.points || 0) + puntos,
-                    weeklyPoints: (current.weeklyPoints || 0) + puntos
-                });
+            // Actualizar puntos del usuario (atomic increment, sin race conditions)
+            await window.GoHappyDB.collection('users').doc(user.uid).update({
+                points:       firebase.firestore.FieldValue.increment(puntos),
+                weeklyPoints: firebase.firestore.FieldValue.increment(puntos)
             });
 
-            // Sumar puntos al total de la familia
-            const familiaRef = window.GoHappyDB.collection('families').doc(familyId);
-            await window.GoHappyDB.runTransaction(async t => {
-                const fDoc = await t.get(familiaRef);
-                if (!fDoc.exists) return;
-                t.update(familiaRef, { puntosTotales: (fDoc.data().puntosTotales || 0) + puntos });
+            // Sumar puntos al total de la familia (atomic increment)
+            await window.GoHappyDB.collection('families').doc(familyId).update({
+                puntosTotales: firebase.firestore.FieldValue.increment(puntos)
             });
 
-            // Registrar en 'activity' para el módulo Memories
+            // Registrar en 'activity' para Memories — incluir title obligatorio
             await window.GoHappyDB.collection('activity').add({
-                userId:      user.uid,
-                type:        'quest_completed',
-                description: `Misión completada: "${titulo}"`,
-                timestamp:   new Date(),
-                points:      puntos
+                userId:    user.uid,
+                type:      'quest_completed',
+                title:     titulo,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                points:    puntos
             });
 
             // Actualizar sesión local de puntos
@@ -359,7 +353,7 @@ window.GoHappyQuests = {
                 localStorage.setItem('GoHappy_local_user', JSON.stringify(window.GoHappyAuth._currentUser));
             }
 
-            console.log(`✅ Quest "${questData.titulo}" completada. +${puntos} pts`);
+            console.log(`✅ Quest "${titulo}" completada. +${puntos} pts`);
 
             // --- CAPACITOR HAPTICS (Vibración Nativa) ---
             if (window.Capacitor && window.Capacitor.isNativePlatform()) {
@@ -388,20 +382,24 @@ window.GoHappyQuests = {
     getRacha: async (familyId) => {
         if (!familyId) return 0;
         try {
-            // Obtener registros de los últimos 30 días, ordenados desc
-            const hace30Dias = new Date();
-            hace30Dias.setDate(hace30Dias.getDate() - 30);
+            // Generar las 30 fechas de los últimos 30 días en string
+            const fechasUltimos30 = [];
+            for (let i = 0; i < 30; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                fechasUltimos30.push(window.GoHappyQuests._fechaStr(d));
+            }
 
+            // Query simple por field 'fecha' (string YYYY-MM-DD), no requiere índice
+            // 'in' clause acepta máx 30 valores ✅
             const snap = await window.GoHappyDB
                 .collection('completadas').doc(familyId)
                 .collection('registros')
-                .where('timestamp', '>=', hace30Dias)
-                .orderBy('timestamp', 'desc')
+                .where('fecha', 'in', fechasUltimos30)
                 .get();
 
             if (snap.empty) return 0;
 
-            // Obtener el conjunto de fechas únicas con completaciones
             const fechasConQuest = new Set(snap.docs.map(d => d.data().fecha));
 
             // Contar días consecutivos desde hoy hacia atrás
@@ -433,7 +431,7 @@ window.GoHappyQuests = {
         if (!familyId) return { puntosTotales: 0, completadasHoy: 0, completadasTotal: 0 };
         try {
             // Puntos totales desde el doc de familia
-            const familiaDoc = await window.GoHappyDB.collection('familias').doc(familyId).get();
+            const familiaDoc = await window.GoHappyDB.collection('families').doc(familyId).get();
             const puntosTotales = familiaDoc.exists ? (familiaDoc.data().puntosTotales || 0) : 0;
 
             // Completadas hoy

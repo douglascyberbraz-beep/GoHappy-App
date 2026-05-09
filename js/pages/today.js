@@ -89,11 +89,24 @@ window.GoHappyToday = {
 
                 const priceText = act.price || 'Gratis';
                 const isFree = priceText.toLowerCase().includes('grat');
-                
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            ${act.packingList.map(item => `<span style="background: white; padding: 4px 10px; border-radius: 20px; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); color: #555;">✓ ${item}</span>`).join('')}
-                        </div>
-                    </div>`;
+
+                let highlightsHtml = '';
+                if (Array.isArray(act.highlights) && act.highlights.length > 0) {
+                    highlightsHtml = `
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;">
+                            ${act.highlights.map(h => `<span style="background:rgba(11,113,252,0.08); color:var(--primary-cobalt); padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700;">${h}</span>`).join('')}
+                        </div>`;
+                }
+
+                let packingHtml = '';
+                if (Array.isArray(act.packingList) && act.packingList.length > 0) {
+                    packingHtml = `
+                        <div style="background:rgba(255,184,48,0.08); border-radius:14px; padding:12px; margin-bottom:14px;">
+                            <div style="font-size:11px; font-weight:800; color:#B8860B; text-transform:uppercase; margin-bottom:6px;">📦 Llevad con vosotros</div>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                ${act.packingList.map(item => `<span style="background: white; padding: 4px 10px; border-radius: 20px; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); color: #555;">✓ ${item}</span>`).join('')}
+                            </div>
+                        </div>`;
                 }
 
                 card.innerHTML = `
@@ -138,16 +151,6 @@ window.GoHappyToday = {
 
                 content.appendChild(card);
 
-                const goToMap = () => {
-                    window.GoHappyApp.loadPage('map');
-                    setTimeout(() => {
-                        if (window.GoHappyMap && window.GoHappyMap.instance) {
-                            window.GoHappyMap.instance.flyTo({
-                                center: [act.lng || -4.7286, act.lat || 41.6520],
-                                zoom: 16,
-                                speed: 1.5
-                            });
-                        }
                 const mapBtn = document.getElementById(`map-btn-${idx}`);
                 if (mapBtn) {
                     mapBtn.onclick = () => {
@@ -190,7 +193,7 @@ window.GoHappyToday = {
                                         title: act.title,
                                         description: `Plan familiar en ${act.location}`,
                                         points: 50,
-                                        timestamp: new Date()
+                                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
                                     });
                                 } catch (e) { console.warn("Error saving activity:", e); }
                             }

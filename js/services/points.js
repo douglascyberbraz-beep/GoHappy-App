@@ -49,82 +49,75 @@ window.GoHappyPoints = {
     },
 
     // Otorgar puntos reales y sincronizar con Firestore
-    addPoints: async (action, userId, customPoints = null) => {
+    addPoints: async (action, _userId = null, customPoints = null) => {
         const pointsToAdd = customPoints !== null ? customPoints : (window.GoHappyPoints.REWARDS[action] || 0);
+        if (pointsToAdd <= 0) return 0;
         console.log(`Otorgando ${pointsToAdd} puntos por acción: ${action}`);
 
         const user = window.GoHappyAuth.checkAuth();
-        
+
         if (user && !user.isGuest) {
             try {
                 // Actualizar localmente para feedback inmediato
                 user.points = (user.points || 0) + pointsToAdd;
+                user.weeklyPoints = (user.weeklyPoints || 0) + pointsToAdd;
                 localStorage.setItem('GoHappy_local_user', JSON.stringify(user));
-                
-                // Sincronizar con Firestore
-                const userRef = window.GoHappyDB.collection('users').doc(user.uid);
-                await window.GoHappyDB.runTransaction(async (transaction) => {
-                    const sfDoc = await transaction.get(userRef);
-                    const now = new Date();
-                    
-                    const getWeek = (d) => {
-                        const date = new Date(d.getTime());
-                        date.setHours(0, 0, 0, 0);
-                        date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
-                        const week1 = new Date(date.getFullYear(), 0, 4);
-                        return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
-                    };
 
-                    if (!sfDoc.exists) {
-                        transaction.set(userRef, { 
-                            points: pointsToAdd,
-                            weeklyPoints: pointsToAdd,
-                            lastPointUpdate: now.toISOString()
-                        });
-                    } else {
-                        const data = sfDoc.data();
-                        const newPoints = (data.points || 0) + pointsToAdd;
-                        
-                        let currentWeekly = data.weeklyPoints || 0;
-                        let lastUpdate = data.lastPointUpdate ? new Date(data.lastPointUpdate) : new Date(0);
-                        
-                        if (getWeek(now) !== getWeek(lastUpdate) || now.getFullYear() !== lastUpdate.getFullYear()) {
-                            currentWeekly = 0;
-                        }
-                        
-                        transaction.update(userRef, { 
-                            points: newPoints,
-                            weeklyPoints: currentWeekly + pointsToAdd,
-                            lastPointUpdate: now.toISOString()
-                        });
-                    }
+                // Sincronizar con Firestore — increment atómico, solo campos permitidos
+                await window.GoHappyDB.collection('users').doc(user.uid).update({
+                    points:       firebase.firestore.FieldValue.increment(pointsToAdd),
+                    weeklyPoints: firebase.firestore.FieldValue.increment(pointsToAdd)
                 });
-                
-                // --- CRITICAL: GLOBAL SYNC ---
-                // Dispatch event to update UI across all pages
-                window.dispatchEvent(new CustomEvent('GoHappy-points-sync', { 
-                    detail: { 
-                        points: user.points, 
-                        action: action,
-                        added: pointsToAdd
-                    } 
+
+                // Disparar eventos para actualizar UI en todas las pages
+                window.dispatchEvent(new CustomEvent('GoHappy-points-sync', {
+                    detail: { points: user.points, action, added: pointsToAdd }
+                }));
+                window.dispatchEvent(new CustomEvent('pointsUpdated', {
+                    detail: { points: user.points, amount: pointsToAdd }
                 }));
 
-                window.dispatchEvent(new CustomEvent('pointsUpdated', { detail: user.points }));
                 console.log("✅ Puntos sincronizados con Firestore");
                 return pointsToAdd;
             } catch (e) {
                 console.error("Error sincronizando puntos:", e);
-                return 0;
+                // Aún devolvemos los puntos otorgados localmente
+                return pointsToAdd;
             }
         } else {
-            // Fallback para invitados o local
+            // Fallback para invitados — solo localStorage
             let pts = parseInt(localStorage.getItem('GoHappy_guest_points')) || 0;
             pts += pointsToAdd;
             localStorage.setItem('GoHappy_guest_points', pts.toString());
-            window.dispatchEvent(new CustomEvent('pointsUpdated', { detail: pts }));
+            window.dispatchEvent(new CustomEvent('pointsUpdated', {
+                detail: { points: pts, amount: pointsToAdd }
+            }));
         }
         return pointsToAdd;
+    },
+
+    // Resetea puntos semanales del usuario (típicamente lunes 00:00 local)
+    // Lo llamamos al cargar la app si detectamos cambio de semana
+    checkWeeklyReset: async () => {
+        const user = window.GoHappyAuth.checkAuth();
+        if (!user || user.isGuest) return;
+
+        const lastReset = localStorage.getItem('GoHappy_last_weekly_reset');
+        const now = new Date();
+        const week = `${now.getFullYear()}-W${Math.ceil((((now - new Date(now.getFullYear(), 0, 1)) / 86400000) + new Date(now.getFullYear(), 0, 1).getDay() + 1) / 7)}`;
+
+        if (lastReset === week) return;
+
+        try {
+            await window.GoHappyDB.collection('users').doc(user.uid).update({
+                weeklyPoints: 0
+            });
+            localStorage.setItem('GoHappy_last_weekly_reset', week);
+            user.weeklyPoints = 0;
+            localStorage.setItem('GoHappy_local_user', JSON.stringify(user));
+        } catch (e) {
+            console.warn('Weekly reset failed:', e);
+        }
     }
 };
 

@@ -21,12 +21,13 @@ window.GoHappyNewsEvents = {
 
         const content = document.getElementById('news-events-content');
         const locStatus = document.getElementById('loc-status');
+        let currentTab = 'news';
 
         // Reactive Sync
-        window.addEventListener('GoHappy-location-sync', (e) => {
+        window.addEventListener('GoHappy-location-sync', () => {
             if (window.GoHappyApp.currentPage === 'news_events') {
                 locStatus.innerText = "📍 Información de tu zona sincronizada";
-                loadContent(currentTab || 'news');
+                loadContent(currentTab);
             }
         });
 
@@ -161,7 +162,7 @@ window.GoHappyNewsEvents = {
                         if (item.link && item.link !== "") {
                             window.open(item.link, '_blank');
                         } else {
-                            alert(`ℹ️ Información sobre: ${item.title}\n\nPuedes consultar las bases oficiales y los requisitos completos de esta ayuda familiar buscando en la sede electrónica de tu ayuntamiento o comunidad autónoma.`);
+                            window.GoHappyToast.info(`Consulta las bases oficiales de "${item.title}" en la sede electrónica de tu ayuntamiento o comunidad autónoma.`, 6000);
                         }
                     };
                 }

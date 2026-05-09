@@ -11,17 +11,20 @@ window.GoHappySafe = {
         INFO: { icon: 'ℹ️', label: 'Info', color: '#2980B9' }
     },
 
-    // Obtener alertas cercanas
+    // Obtener alertas cercanas (filter active en cliente para no necesitar índice compuesto)
     getAlerts: async (coords) => {
         try {
             const snap = await window.GoHappyDB.collection('alerts')
-                .where('active', '==', true)
                 .orderBy('createdAt', 'desc')
-                .limit(15)
+                .limit(30)
                 .get();
 
             if (!snap.empty) {
-                return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const alerts = snap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .filter(a => a.active !== false)
+                    .slice(0, 15);
+                if (alerts.length > 0) return alerts;
             }
         } catch (e) {
             console.warn("Firestore alerts fallback:", e);
@@ -71,24 +74,25 @@ window.GoHappySafe = {
     // Reportar una nueva alerta
     reportAlert: async (alertData) => {
         const user = window.GoHappyAuth.checkAuth();
-        if (!user) return false;
+        if (!user || user.isGuest) return false;
 
         try {
             const alert = {
                 ...alertData,
                 reportedBy: user.nickname || 'Anónimo',
                 userId: user.uid,
-                createdAt: new Date(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 active: true,
                 votes: 0
             };
             await window.GoHappyDB.collection('alerts').add(alert);
 
-            // Activity for Memories
+            // Activity para Memories — title obligatorio según reglas
             await window.GoHappyDB.collection('activity').add({
-                userId: user.uid,
-                type: 'safety_report',
-                timestamp: new Date()
+                userId:    user.uid,
+                type:      'safety_report',
+                title:     alertData.title || 'Alerta de seguridad',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
 
             window.GoHappyPoints.addPoints('SAFETY_REPORT');
@@ -99,15 +103,13 @@ window.GoHappySafe = {
         }
     },
 
-    // Votar una alerta (confirmar que sigue vigente)
+    // Votar una alerta (atomic increment, sin race conditions)
     voteAlert: async (alertId) => {
         try {
-            const ref = window.GoHappyDB.collection('alerts').doc(alertId);
-            const doc = await ref.get();
-            if (doc.exists) {
-                await ref.update({ votes: (doc.data().votes || 0) + 1 });
-                return true;
-            }
+            await window.GoHappyDB.collection('alerts').doc(alertId).update({
+                votes: firebase.firestore.FieldValue.increment(1)
+            });
+            return true;
         } catch (e) {
             console.warn("Vote error:", e);
         }
