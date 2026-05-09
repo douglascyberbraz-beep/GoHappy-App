@@ -10,39 +10,42 @@
     <!-- Fonts: Inter for premium look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
 
     <!-- MapLibre GL JS CSS for 3D Support -->
     <link href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css' rel='stylesheet' />
 
     <!-- App CSS -->
-    <link rel="stylesheet" href="css/main.css?v=2.0.7">
+    <link rel="stylesheet" href="css/main.css?v=2.8.0">
 
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0B71FC">
+    <meta name="theme-color" content="#0B4C8F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GoHappy">
     <link rel="apple-touch-icon" href="assets/logo.png">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍭</text></svg>">
+    <link rel="apple-touch-startup-image" href="assets/logo.png">
+    <link rel="icon" type="image/png" href="assets/logo.png">
 </head>
 
 <body>
     <div id="app">
+        <!-- Premium Transition Overlay -->
+        <div id="page-transition-overlay" class="page-transition-overlay"></div>
+
         <!-- Splash Screen -->
         <div id="splash-screen" class="splash-screen">
             <div class="logo-container" style="text-align: center;">
-                <img src="assets/ESLOGAN.png" alt="GoHappy" class="splash-logo-img" style="width: 200px; height: auto;">
+                <img src="assets/ESLOGAN.png" alt="GoHappy" class="splash-logo-img">
             </div>
         </div>
 
         <!-- Main Content Area inside #app -->
-        <main id="main-content" class="hidden">
-            <!-- Dynamic Content (News, Events, etc.) -->
-        </main>
+        <main id="main-content" class="hidden"></main>
 
         <!-- Map Container inside #app -->
-        <div id="map-viewport-v11" class="map-viewport-v11" style="display: none;">
-            <!-- New Map lives here -->
-        </div>
+        <div id="map-viewport-v11" class="map-viewport-v11" style="display: none;"></div>
     </div>
 
     <!-- Bottom Navigation -->
@@ -60,6 +63,7 @@
             <span class="label">Safe</span>
         </button>
 
+        <!-- Orbital Map Button (center) -->
         <button class="nav-item active" data-page="map">
             <div class="map-orb">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary-cobalt)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="map-icon-svg">
@@ -69,13 +73,17 @@
             </div>
         </button>
 
+        <button class="nav-item" data-page="tribu">
+            <span class="icon">🏘️</span>
+            <span class="label">Tribu</span>
+        </button>
         <button class="nav-item" data-page="ranking">
             <span class="icon">🌟</span>
-            <span class="label">Ranking</span>
+            <span class="label">Top</span>
         </button>
         <button class="nav-item" data-page="news_events">
             <span class="icon">🗞️</span>
-            <span class="label">NEWS</span>
+            <span class="label">News</span>
         </button>
         <button class="nav-item" data-page="profile">
             <span class="icon">🍭</span>
@@ -83,32 +91,28 @@
         </button>
     </nav>
 
-
-
     <!-- MapLibre GL JS for 3D/Tilt/Rotate -->
     <script src='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js'></script>
 
-    <!-- QRCode JS (Simple implementation via CDN if needed, or mock image for now) -->
-
-    <!-- Firebase SDKs (Compat version for simple file protocol execution) -->
+    <!-- Firebase SDKs (Compat version) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-    <!-- Libraries -->
+    <!-- Global Error Catcher -->
     <script>
-        // Global Error Catcher for Debugging Startup Issues
         window.onerror = function(msg, url, line, col, error) {
             const container = document.getElementById('main-content');
             if (container) {
                 container.innerHTML = `
-                    <div class="p-20 center-text" style="color:red; background: white; position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; justify-content: center;">
-                        <h3>🚨 Error Crítico de Inicio</h3>
-                        <p style="font-size:14px; margin: 15px 0;">${msg}</p>
-                        <p style="font-size:10px; color: #888;">${url} : L${line}</p>
-                        <button onclick="localStorage.clear(); caches.keys().then(n=>{for(let x of n)caches.delete(x)}); location.reload(true);" 
-                                style="margin-top: 20px; background: #E74C3C; color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: bold;">
-                            ♻️ RESET TOTAL APP
+                    <div style="color:red; background: white; position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px; text-align: center; font-family: Inter, sans-serif;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                        <h3 style="color: #E74C3C; font-size: 20px; margin-bottom: 10px;">Error de Inicio</h3>
+                        <p style="font-size: 14px; color: #333; margin: 10px 0; max-width: 300px;">${msg}</p>
+                        <p style="font-size: 11px; color: #888;">${url} : L${line}</p>
+                        <button onclick="localStorage.clear(); caches.keys().then(n=>{for(let x of n)caches.delete(x)}); location.reload(true);"
+                                style="margin-top: 25px; background: linear-gradient(135deg,#0B4C8F,#0B71FC); color: white; border: none; padding: 15px 30px; border-radius: 50px; font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 10px 30px rgba(11,76,143,0.3);">
+                            ♻️ Reiniciar App
                         </button>
                     </div>
                 `;
@@ -119,65 +123,59 @@
 
     <script src="js/lib/qrcode.min.js"></script>
 
-    <!-- App Scripts order fixed -->
-    <script src="js/config.js?v=2.3.4"></script>
-    <script src="js/services/data.js?v=2.3.4"></script>
-    <script src="js/services/points.js?v=2.3.4"></script>
-    <script src="js/services/ai_content.js?v=2.3.4"></script>
-    <script src="js/services/auth.js?v=2.3.4"></script>
-    <script src="js/services/quests.js?v=2.3.4"></script>
-    <script src="js/services/safety.js?v=2.3.4"></script>
-    <script src="js/services/families.js?v=2.3.4"></script>
-    <script src="js/services/notifications.js?v=2.3.4"></script>
-    <script src="js/pages/today.js?v=2.3.4"></script>
-    <script src="js/pages/map_v11.js?v=2.3.4"></script>
-    <script src="js/pages/news_events.js?v=2.3.4"></script>
-    <script src="js/pages/profile.js?v=2.3.4"></script>
-    <script src="js/pages/legal.js?v=2.3.4"></script>
-    <script src="js/pages/safe.js?v=2.3.4"></script>
-    <script src="js/pages/ranking.js?v=2.3.4"></script>
-    <script src="js/pages/memories.js?v=2.3.4"></script>
-    <script src="js/pages/quests.js?v=2.3.4"></script>
+    <!-- Services (load order matters) -->
+    <script src="js/config.js?v=2.8.0"></script>
+    <script src="js/services/toast.js?v=2.8.0"></script>
+    <script src="js/services/sound.js?v=2.8.0"></script>
+    <script src="js/services/data.js?v=2.8.0"></script>
+    <script src="js/services/points.js?v=2.8.0"></script>
+    <script src="js/services/ai_content.js?v=2.8.0"></script>
+    <script src="js/services/auth.js?v=2.8.0"></script>
+    <script src="js/services/quests.js?v=2.8.0"></script>
+    <script src="js/services/safety.js?v=2.8.0"></script>
+    <script src="js/services/families.js?v=2.8.0"></script>
+    <script src="js/services/notifications.js?v=2.8.0"></script>
 
-    <script src="js/pages/family_onboarding.js?v=2.3.4"></script>
+    <!-- Pages -->
+    <script src="js/pages/map_v11.js?v=2.8.0"></script>
+    <script src="js/pages/today.js?v=2.8.0"></script>
+    <script src="js/pages/quests.js?v=2.8.0"></script>
+    <script src="js/pages/ranking.js?v=2.8.0"></script>
+    <script src="js/pages/news_events.js?v=2.8.0"></script>
+    <script src="js/pages/safe.js?v=2.8.0"></script>
+    <script src="js/pages/profile.js?v=2.8.0"></script>
+    <script src="js/pages/tribu.js?v=2.8.0"></script>
+    <script src="js/pages/memories.js?v=2.8.0"></script>
+    <script src="js/pages/legal.js?v=2.8.0"></script>
+    <script src="js/pages/family_onboarding.js?v=2.8.0"></script>
 
-    <!-- Main initialization LAST -->
-    <script src="js/app.js?v=2.3.4"></script>
+    <!-- App Core (last) -->
+    <script src="js/app.js?v=2.8.0"></script>
 
+    <!-- Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Nuclear cleanup command for the user if needed
                 window.forceResetApp = () => {
                     localStorage.clear();
-                    caches.keys().then(names => {
-                        for (let name of names) caches.delete(name);
-                    });
-                    navigator.serviceWorker.getRegistrations().then(regs => {
-                        for (let reg of regs) reg.unregister();
-                    });
+                    caches.keys().then(names => { for (let n of names) caches.delete(n); });
+                    navigator.serviceWorker.getRegistrations().then(regs => { for (let r of regs) r.unregister(); });
                     setTimeout(() => window.location.reload(true), 500);
                 };
 
-                navigator.serviceWorker.register('sw.js?v=2.3.4').then(reg => {
-                    console.log('Service Worker v2.3.4 registrado');
-
-                    // Detect updates and reload
+                navigator.serviceWorker.register('sw.js?v=2.8.0').then(reg => {
+                    console.log('[SW] GoHappy v2.8.0 registrado');
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                // New version available, reload to apply
-                                window.location.reload();
+                                window.GoHappyToast && window.GoHappyToast.info('Nueva versión disponible. Recargando...', 2500);
+                                setTimeout(() => window.location.reload(), 2600);
                             }
                         });
                     });
-                }).catch(err => console.log('Error al registrar SW', err));
+                }).catch(err => console.warn('[SW] Error al registrar:', err));
             });
-
-            // Note: Removed the aggressive window.location.reload() on 'controllerchange'
-            // because it forces a double-load the moment the app boots for the first time
-            // or updates. We let the PWA handle files silently.
         }
     </script>
 </body>

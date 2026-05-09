@@ -1,131 +1,70 @@
-// GoHappy App - Production v2.2.0
-// Toast System (reemplaza alert() para compatibilidad con Google Play TWA)
-window.GoHappyToast = {
-    show: (message, type = 'info', duration = 3500) => {
-        const existing = document.getElementById('gh-toast');
-        if (existing) existing.remove();
-
-        const colors = {
-            success: { bg: 'linear-gradient(135deg, #27AE60, #2ECC71)', icon: '✅' },
-            error:   { bg: 'linear-gradient(135deg, #E74C3C, #C0392B)', icon: '❌' },
-            info:    { bg: 'linear-gradient(135deg, #0B71FC, #0B4C8F)', icon: 'ℹ️' },
-            warning: { bg: 'linear-gradient(135deg, #F39C12, #E67E22)', icon: '⚠️' },
-            points:  { bg: 'linear-gradient(135deg, #8E44AD, #9B59B6)', icon: '⭐' }
-        };
-        const style = colors[type] || colors.info;
-
-        const toast = document.createElement('div');
-        toast.id = 'gh-toast';
-        toast.style.cssText = `
-            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
-            background: ${style.bg}; color: white; padding: 14px 22px;
-            border-radius: 50px; font-size: 14px; font-weight: 700;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.25); z-index: 99999;
-            max-width: 85vw; text-align: center; line-height: 1.4;
-            display: flex; align-items: center; gap: 10px;
-            opacity: 0; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-            backdrop-filter: blur(10px);
-        `;
-        toast.innerHTML = `<span>${style.icon}</span><span>${message}</span>`;
-        document.body.appendChild(toast);
-
-        requestAnimationFrame(() => {
-            toast.style.opacity = '1';
-            toast.style.transform = 'translateX(-50%) translateY(0)';
-        });
-
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateX(-50%) translateY(20px)';
-            setTimeout(() => toast.remove(), 300);
-        }, duration);
-    },
-    success: (msg) => window.GoHappyToast.show(msg, 'success'),
-    error:   (msg) => window.GoHappyToast.show(msg, 'error'),
-    info:    (msg) => window.GoHappyToast.show(msg, 'info'),
-    warning: (msg) => window.GoHappyToast.show(msg, 'warning'),
-    points:  (msg) => window.GoHappyToast.show(msg, 'points', 4000)
-};
-
-// Sound System
-window.GoHappySound = {
-    play: (type) => {
-        // Sonidos desactivados temporalmente para evitar errores 404
-        // ya que la librería antigua de Google Actions fue retirada.
-        try {
-            // Future audio implementation here
-        } catch (e) { }
-    }
-};
+// GoHappy App Core - v2.8.0
+// toast.js y sound.js se cargan antes que este archivo
 
 const appState = {
     currentPage: 'map',
     user: null,
-    location: null
+    location: null,
+    transitioning: false
 };
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', async () => {
 
-    // Config Safeguard
+    // Desbloquear AudioContext en primer gesto del usuario
+    document.addEventListener('touchstart', () => window.GoHappySound.unlock(), { once: true });
+    document.addEventListener('click', () => window.GoHappySound.unlock(), { once: true });
+
+    // Gemini Key check
     if (window.GEMINI_KEY && window.GEMINI_KEY.includes('PEGAR_AQUI')) {
-        console.warn("⚠️ Advertencia: API Key de Gemini no configurada.");
+        console.warn("⚠️ API Key de Gemini no configurada.");
     }
 
-    // Map Initialization: Handled by loadPage('map') to ensure container is visible before L.map()
-
-    // Simulate Splash Screen
+    // Splash Screen con timing premium
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
+        if (!splash) return;
         splash.style.opacity = '0';
-        window.GoHappySound.play('start'); // Play magic chime on entry
+        window.GoHappySound.play('start');
         setTimeout(() => {
             splash.style.display = 'none';
-            document.getElementById('bottom-nav').classList.remove('hidden');
-
-            // Set up initial view if map was loaded first
-            if (appState.currentPage === 'map' && window.GoHappyMap && window.GoHappyMap.instance) {
-                window.GoHappyMap.instance.invalidateSize();
+            const nav = document.getElementById('bottom-nav');
+            if (nav) {
+                nav.classList.remove('hidden');
+                nav.style.animation = 'navSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards';
             }
-        }, 500);
-    }, 1500); // Shorter splash screen
+        }, 600);
+    }, 1800);
 
-    // Initialize Firebase Auth and wait for state
+    // Firebase Auth init
     window.GoHappyAuth.init((user) => {
         if (!user) {
-            // No auth state: show modal
             if (!document.getElementById('auth-modal')) {
                 window.GoHappyAuth.renderAuthModal();
             }
         } else {
             appState.user = user;
-            // Remove auth modal if it exists
             const modal = document.getElementById('auth-modal');
             if (modal) modal.remove();
 
-            // Comprobar si necesita onboarding familiar
-            // (delay para que el splash termine y la UI esté lista)
             setTimeout(() => {
-                if (window.GoHappyFamilyOnboarding &&
-                    window.GoHappyFamilyOnboarding.needsOnboarding()) {
+                if (window.GoHappyFamilyOnboarding && window.GoHappyFamilyOnboarding.needsOnboarding()) {
                     window.GoHappyFamilyOnboarding.show();
                 }
-            }, 1800);
+            }, 2000);
         }
     });
 
-    // Also do a quick sync check to handle initial render
     const quickUser = window.GoHappyAuth.checkAuth();
     appState.user = quickUser;
 
-    // Initialize Navigation
     setupNavigation();
-
-    // Default Page Load
     loadPage('map');
 
-    // Geolocation moved to be requested only when Map is loaded or explicitly requested
-    // see window.GoHappyMap.requestLocation()
+    // Iniciar notificaciones nativas
+    if (window.GoHappyNotifications) {
+        window.GoHappyNotifications.init().catch(console.warn);
+    }
 });
 
 function setupNavigation() {
@@ -134,15 +73,15 @@ function setupNavigation() {
         item.addEventListener('click', (e) => {
             const target = e.currentTarget;
             const page = target.dataset.page;
+            if (page === appState.currentPage || appState.transitioning) return;
 
-            if (page === appState.currentPage) return;
+            window.GoHappySound.play('click');
 
-            window.GoHappySound.play('click'); // Click sound feedback
+            // Animación física del botón
+            target.classList.add('nav-active-pop');
+            setTimeout(() => target.classList.remove('nav-active-pop'), 350);
 
-            // Remove active class from all
             navItems.forEach(nav => nav.classList.remove('active'));
-
-            // Add to clicked
             target.classList.add('active');
 
             loadPage(page);
@@ -151,101 +90,149 @@ function setupNavigation() {
 }
 
 function updateNavStyles(pageName) {
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(nav => {
-        if (nav.dataset.page === pageName) {
-            nav.classList.add('active');
-        } else {
-            nav.classList.remove('active');
-        }
+    document.querySelectorAll('.nav-item').forEach(nav => {
+        nav.classList.toggle('active', nav.dataset.page === pageName);
     });
 }
 
+// Router de páginas
+const PAGE_RENDERERS = {
+    'today':       () => window.GoHappyToday,
+    'ranking':     () => window.GoHappyRanking,
+    'news_events': () => window.GoHappyNewsEvents,
+    'profile':     () => window.GoHappyProfile,
+    'legal':       () => window.GoHappyLegal,
+    'quests':      () => window.GoHappyQuestsPage,
+    'safe':        () => window.GoHappySafePage,
+    'memories':    () => window.GoHappyMemories,
+    'tribu':       () => window.GoHappyTribu,
+    'chat':        () => window.GoHappyChat
+};
+
 async function loadPage(pageName) {
+    if (appState.transitioning) return;
+    appState.transitioning = true;
+
+    const overlay = document.getElementById('page-transition-overlay');
+    const container = document.getElementById('main-content');
+    const mapViewport = document.getElementById('map-viewport-v11');
+
     try {
-        console.log(`Cargando página: ${pageName}`);
-        
-        // --- ROUTE GUARD (Protección) ---
+        // 1. Activar overlay de cristal
+        if (overlay) overlay.classList.add('active');
+        await new Promise(r => setTimeout(r, 200));
+
+        // 2. Route Guard
         const user = window.GoHappyAuth.checkAuth();
-        const paginasPublicas = ['legal', 'map'];
-        
-        if (!user && !paginasPublicas.includes(pageName)) {
-            console.warn(`[Guard] Acceso denegado a ${pageName}. Redirigiendo a Auth.`);
+        const publicPages = ['legal', 'map'];
+        if (!user && !publicPages.includes(pageName)) {
+            if (overlay) overlay.classList.remove('active');
             window.GoHappyAuth.renderAuthModal();
+            appState.transitioning = false;
             return;
         }
 
         appState.currentPage = pageName;
-        const container = document.getElementById('main-content');
-        const mapViewport = document.getElementById('map-viewport-v11');
-
-        // Default hiding
-        container.classList.add('hidden');
-        if (mapViewport) mapViewport.style.display = 'none';
-        container.innerHTML = '<div class="center-text p-20"><div class="typing-dots"><span></span><span></span><span></span></div></div>';
-
-        // Special style for nav items
         updateNavStyles(pageName);
 
+        // 3. Preparar escenario
         if (pageName === 'map') {
-            if (window.GoHappyMap) {
-                window.GoHappyMap.render(mapViewport);
-            } else {
-                console.error("GoHappyMap no definido");
+            container.classList.add('hidden');
+            container.innerHTML = '';
+            if (mapViewport) {
+                mapViewport.style.display = 'flex';
+                if (window.GoHappyMap) {
+                    await window.GoHappyMap.render(mapViewport);
+                }
             }
+            window.GoHappySound.play('map');
         } else {
+            if (mapViewport) mapViewport.style.display = 'none';
+
+            // Skeleton loader premium
             container.classList.remove('hidden');
-            container.classList.add('page-enter');
+            container.innerHTML = `
+                <div class="premium-loader" style="padding: 20px; padding-top: 40px;">
+                    <div class="premium-shimmer" style="height: 180px; border-radius: 32px; margin-bottom: 20px;"></div>
+                    <div class="premium-shimmer" style="height: 80px; border-radius: 24px; margin-bottom: 15px;"></div>
+                    <div class="premium-shimmer" style="height: 80px; border-radius: 24px; margin-bottom: 15px;"></div>
+                    <div class="premium-shimmer" style="height: 80px; border-radius: 24px;"></div>
+                </div>`;
 
-            // Map table of renderers to satisfy pageName
-            const renderers = {
-                'today':       window.GoHappyToday,
-                'ranking':     window.GoHappyRanking,
-                'news_events': window.GoHappyNewsEvents,
-                'profile':     window.GoHappyProfile,
-                'legal':       window.GoHappyLegal,
-                'quests':      window.GoHappyQuestsPage,
-                'safe':        window.GoHappySafePage,
-                'memories':    window.GoHappyMemories
-            };
+            const getRenderer = PAGE_RENDERERS[pageName];
+            const renderer = getRenderer ? getRenderer() : null;
 
-            const renderer = renderers[pageName];
             if (renderer && renderer.render) {
+                container.innerHTML = '';
                 await renderer.render(container);
+
+                // Entrada premium
+                container.style.animation = 'pageEnterPremium 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+                setTimeout(() => { container.style.animation = ''; }, 650);
+
+                // Stagger groups
+                container.querySelectorAll('.stagger-group').forEach(g => {
+                    setTimeout(() => g.classList.add('active'), 80);
+                });
             } else {
-                container.innerHTML = `<div class="p-20 center-text"><h3>Página en construcción</h3><p>La sección ${pageName} estará disponible pronto.</p></div>`;
+                container.innerHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:60vh; gap:16px; color:#94a3b8; font-family:Inter,sans-serif;">
+                        <span style="font-size:48px;">🚧</span>
+                        <h3 style="font-size:18px; font-weight:800; color:#334155; margin:0;">Próximamente</h3>
+                        <p style="font-size:14px; margin:0; text-align:center; max-width:240px;">Esta sección estará disponible en la próxima actualización.</p>
+                    </div>`;
             }
-
-            setTimeout(() => container.classList.remove('page-enter'), 600);
         }
-    } catch (err) {
-        console.error(`Error cargando página ${pageName}:`, err);
-        const container = document.getElementById('main-content');
-        container.classList.remove('hidden');
-        container.innerHTML = `<div class="p-20 center-text" style="color:red; word-break: break-all;">
-            <h3>Error de carga</h3>
-            <p>Vuelve a intentarlo o recarga la app.</p>
-            
-            <button onclick="window.forceResetApp()" style="margin-top: 20px; background: #E74C3C; color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: bold; box-shadow: 0 4px 15px rgba(231,76,60,0.3);">
-                ♻️ Forzar Actualización
-            </button>
 
-            <p style="font-size: 10px; color: #888; text-align: left; margin-top: 30px; opacity: 0.7;">
-                <b>Detalle técnico:</b><br>
-                ${err.message || err}<br>
-                ${err.stack ? err.stack.split('\n').slice(0,2).join('<br>') : ''}
-            </p>
-        </div>`;
+        // 4. Quitar overlay suavemente
+        setTimeout(() => {
+            if (overlay) overlay.classList.remove('active');
+        }, 150);
+
+    } catch (err) {
+        console.error(`[GoHappy] Error cargando ${pageName}:`, err);
+        if (overlay) overlay.classList.remove('active');
+        if (container) {
+            container.classList.remove('hidden');
+            container.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:60vh; gap:16px; padding:30px; text-align:center; font-family:Inter,sans-serif;">
+                    <span style="font-size:48px;">❌</span>
+                    <h3 style="color:#E74C3C; font-size:18px; font-weight:800; margin:0;">Error de carga</h3>
+                    <p style="font-size:14px; color:#64748b; margin:0;">${err.message || 'Error desconocido'}</p>
+                    <button onclick="window.GoHappyApp.loadPage('${pageName}')"
+                        style="background:linear-gradient(135deg,#0B4C8F,#0B71FC);color:white;border:none;padding:14px 28px;border-radius:50px;font-weight:800;font-size:14px;cursor:pointer;margin-top:10px;">
+                        🔄 Reintentar
+                    </button>
+                    <button onclick="window.forceResetApp && window.forceResetApp()"
+                        style="background:none;border:none;color:#94a3b8;font-size:13px;cursor:pointer;font-weight:600;">
+                        ♻️ Reset total
+                    </button>
+                </div>`;
+        }
+        window.GoHappySound.play('error');
+    } finally {
+        appState.transitioning = false;
     }
 }
 
+// API Pública de la App
 window.GoHappyApp = {
-    currentPage: appState.currentPage,
-    loadPage: loadPage,
-    navigate: (page) => {
+    get currentPage() { return appState.currentPage; },
+    loadPage,
+
+    navigate: (page, context = null) => {
+        if (context) window._navContext = context;
         const navItem = document.querySelector(`.nav-item[data-page="${page}"]`);
-        if (navItem) navItem.click();
-        else loadPage(page);
+        if (navItem) {
+            navItem.classList.add('nav-active-pop');
+            setTimeout(() => navItem.classList.remove('nav-active-pop'), 350);
+        }
+        updateNavStyles(page);
+        loadPage(page);
+    },
+
+    notify: (eventName, data) => {
+        window.dispatchEvent(new CustomEvent(`GoHappy-${eventName}`, { detail: data }));
     }
 };
 
@@ -254,22 +241,21 @@ let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    console.log("PWA Install Prompt captured");
-
-    // Reveal install button if it exists
-    const installBtn = document.getElementById('install-pwa-btn');
-    if (installBtn) installBtn.style.display = 'block';
-});
-
-// Global Points Listener
-window.addEventListener('pointsUpdated', (e) => {
-    console.log("Global Points Update:", e.detail);
-    if (appState.currentPage === 'profile') {
-        window.GoHappyProfile.render(document.getElementById('main-content'));
+    const btn = document.getElementById('install-pwa-btn');
+    if (btn) {
+        btn.style.display = 'block';
+        btn.addEventListener('click', () => {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(() => { deferredPrompt = null; btn.style.display = 'none'; });
+        });
     }
 });
 
-// Iniciar sistema de notificaciones nativas al arrancar
-if (window.GoHappyNotifications) {
-    window.GoHappyNotifications.init().catch(console.warn);
-}
+// Listener global de puntos
+window.addEventListener('pointsUpdated', (e) => {
+    if (appState.currentPage === 'profile' && window.GoHappyProfile) {
+        window.GoHappyProfile.render(document.getElementById('main-content'));
+    }
+    window.GoHappySound.play('points');
+    window.GoHappyToast.points(`¡+${e.detail?.amount || ''} puntos! ⭐`);
+});
