@@ -6,8 +6,8 @@ window.GoHappyData = {
     // -- LOCATIONS --
     getLocations: async (coords = "41.6520, -4.7286") => {
         try {
-            // Priority: Dynamic AI Generation
-            if (window.GEMINI_KEY && !window.GEMINI_KEY.includes('PEGAR_AQUI')) {
+            // Priority: Dynamic AI Generation (via secure proxy)
+            if (window.GEMINI_PROXY_ACTIVE) {
                 const dynamicLocs = await window.GoHappyAI.getDynamicLocations(coords);
                 if (dynamicLocs && dynamicLocs.length > 0) return dynamicLocs;
             }
@@ -30,7 +30,7 @@ window.GoHappyData = {
 
     searchLocations: async (query, coords = "41.6520, -4.7286") => {
         try {
-            if (window.GEMINI_KEY && !window.GEMINI_KEY.includes('PEGAR_AQUI')) {
+            if (window.GEMINI_PROXY_ACTIVE) {
                 return await window.GoHappyAI.searchDynamicLocations(query, coords);
             }
         } catch (e) {
@@ -42,7 +42,7 @@ window.GoHappyData = {
     // -- NEWS --
     getNews: async (coords) => {
         try {
-            if (window.GEMINI_KEY && !window.GEMINI_KEY.includes('PEGAR_AQUI')) {
+            if (window.GEMINI_PROXY_ACTIVE) {
                 return await window.GoHappyAI.getNews(coords);
             }
             const snap = await window.GoHappyDB.collection('news').orderBy('date', 'desc').limit(10).get();
@@ -62,7 +62,7 @@ window.GoHappyData = {
     // -- EVENTS --
     getEvents: async (coords) => {
         try {
-            if (window.GEMINI_KEY && !window.GEMINI_KEY.includes('PEGAR_AQUI')) {
+            if (window.GEMINI_PROXY_ACTIVE) {
                 return await window.GoHappyAI.getEvents(coords);
             }
             const snap = await window.GoHappyDB.collection('events').orderBy('date', 'asc').limit(10).get();
@@ -82,7 +82,7 @@ window.GoHappyData = {
     // -- BECAS --
     getBecas: async (coords) => {
         try {
-            if (window.GEMINI_KEY && !window.GEMINI_KEY.includes('PEGAR_AQUI')) {
+            if (window.GEMINI_PROXY_ACTIVE) {
                 return await window.GoHappyAI.getBecas(coords);
             }
         } catch (e) {
@@ -116,6 +116,7 @@ window.GoHappyData = {
     addTribuPost: async (content, user) => {
         try {
             const post = {
+                userId: user.uid,
                 user: user.nickname || "Anónimo",
                 avatar: user.photo || "👤",
                 content,
@@ -133,7 +134,7 @@ window.GoHappyData = {
 
     getTodayActivities: async (coords, preferences = null) => {
         try {
-            if (window.GEMINI_KEY && !window.GEMINI_KEY.includes('PEGAR_AQUI')) {
+            if (window.GEMINI_PROXY_ACTIVE) {
                 return await window.GoHappyAI.getTodayActivities(coords, preferences);
             }
         } catch (e) {

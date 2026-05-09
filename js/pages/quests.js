@@ -282,7 +282,7 @@ window.GoHappyQuestsPage = {
                         return;
                     }
 
-                    window.GoHappyQuestsPage.handleCompletar(quest.id, quest.puntos);
+                    window.GoHappyQuestsPage.handleCompletar(quest.id, quest);
                 };
             });
 
@@ -292,27 +292,25 @@ window.GoHappyQuestsPage = {
         }
     },
 
-    handleCompletar: async (questId, puntos) => {
+    handleCompletar: async (questId, questData) => {
         const user = window.GoHappyAuth.checkAuth();
         if (!user) return;
 
         window.GoHappyToast.info("¡Completando misión! 🚀");
-        
-        const res = await window.GoHappyQuests.completarQuest(user.uid, user.familyId, questId, puntos);
-        if (res.ok) {
-            window.GoHappyToast.success(`¡Misión cumplida! +${puntos} pts`);
-            
-            // --- INTEGRACIÓN INVISIBLE: RECUPERAR MEMORIA ---
-            setTimeout(() => {
-                const wantsMemory = confirm("🌟 ¿Quieres guardar una foto de este momento en tu historia familiar?");
-                if (wantsMemory) {
-                    window.GoHappyToast.info("📸 Abre la cámara para tu recuerdo...");
-                    // Aquí se dispararía el input file de Capacitor o Web
-                }
-            }, 1500);
+        window.GoHappySound && window.GoHappySound.play('click');
 
+        const res = await window.GoHappyQuests.completarQuest(questId, questData);
+        if (res.ok) {
+            window.GoHappySound && window.GoHappySound.play('quest');
+            window.GoHappyToast.points(`¡Misión cumplida! +${res.puntos} pts 🎉`);
             window.GoHappyQuestsPage.loadQuests();
+
+            // Non-blocking memory prompt via toast action
+            setTimeout(() => {
+                window.GoHappyToast.info("📸 ¿Guardas un recuerdo de este momento?", 4000);
+            }, 1200);
         } else {
+            window.GoHappySound && window.GoHappySound.play('error');
             window.GoHappyToast.error(res.error || "No se pudo completar");
         }
     },

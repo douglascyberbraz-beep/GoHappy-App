@@ -210,6 +210,63 @@ exports.geminiProxy = functions
         }
     });
 
+// ─── Cloud Function: completar quest y premiar puntos (seguro, server-side) ──
+exports.completeQuest = functions
+    .region('europe-west1')
+    .https.onCall(async (data, context) => {
+        if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Login requerido');
+
+        const uid = context.auth.uid;
+        const { questId, familyId, puntos, titulo } = data;
+
+        if (!questId || typeof questId !== 'string') throw new functions.https.HttpsError('invalid-argument', 'questId inválido');
+        if (!familyId || typeof familyId !== 'string') throw new functions.https.HttpsError('invalid-argument', 'familyId inválido');
+        if (typeof puntos !== 'number' || puntos < 0 || puntos > 500) throw new functions.https.HttpsError('invalid-argument', 'puntos inválidos');
+
+        const hoy = new Date().toISOString().slice(0, 10);
+
+        // Anti-duplicado: verificar que no está ya completada hoy
+        const registrosRef = db.collection('completadas').doc(familyId).collection('registros');
+        const yaCompletada = await registrosRef
+            .where('questId', '==', questId)
+            .where('fecha', '==', hoy)
+            .limit(1)
+            .get();
+
+        if (!yaCompletada.empty) {
+            throw new functions.https.HttpsError('already-exists', 'Ya completasteis esta misión hoy.');
+        }
+
+        // Verificar que el usuario es miembro de la familia
+        const familiaDoc = await db.collection('families').doc(familyId).get();
+        if (!familiaDoc.exists || !familiaDoc.data().miembros.includes(uid)) {
+            throw new functions.https.HttpsError('permission-denied', 'No eres miembro de esta familia.');
+        }
+
+        // Registrar la completación
+        await registrosRef.add({
+            questId,
+            titulo: titulo || 'Misión Completada',
+            completadoPor: uid,
+            fecha: hoy,
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            puntosGanados: puntos
+        });
+
+        // Premiar puntos al usuario (incremento atómico, no manipulable)
+        await db.collection('users').doc(uid).update({
+            points: admin.firestore.FieldValue.increment(puntos),
+            weeklyPoints: admin.firestore.FieldValue.increment(puntos)
+        });
+
+        // Sumar puntos al total de la familia
+        await db.collection('families').doc(familyId).update({
+            puntosTotales: admin.firestore.FieldValue.increment(puntos)
+        });
+
+        return { ok: true, puntos };
+    });
+
 // ─── Cloud Function: validar código de referido (seguro, server-side) ────────
 exports.validateReferral = functions
     .region('europe-west1')

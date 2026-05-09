@@ -68,12 +68,20 @@ service cloud.firestore {
 
       // Actualizar: solo el propio usuario y solo campos no protegidos
       allow update: if isOwner(uid)
-        && noFields(['uid', 'email', 'createdAt', 'referralCode', 'referredBy'])
-        && noFields(['points', 'weeklyPoints', 'familyId', 'rol'])  // Solo Cloud Functions
+        && noFields(['uid', 'email', 'createdAt', 'referralCode', 'referredBy', 'familyId', 'rol'])
         && (!request.resource.data.keys().hasAny(['nickname']) ||
             validString(request.resource.data.nickname, 2, 24))
         && (!request.resource.data.keys().hasAny(['photo']) ||
-            request.resource.data.photo is string && request.resource.data.photo.size() <= 10);
+            request.resource.data.photo is string && request.resource.data.photo.size() <= 10)
+        // Points: owner can increase (quest rewards), but not decrease or exceed 999999
+        && (!request.resource.data.keys().hasAny(['points']) ||
+            (request.resource.data.points is number
+             && request.resource.data.points >= resource.data.points
+             && request.resource.data.points <= 999999))
+        && (!request.resource.data.keys().hasAny(['weeklyPoints']) ||
+            (request.resource.data.weeklyPoints is number
+             && request.resource.data.weeklyPoints >= 0
+             && request.resource.data.weeklyPoints <= 999999));
 
       // Borrar: nunca (soft delete solo via Cloud Functions)
       allow delete: if false;

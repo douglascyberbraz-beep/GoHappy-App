@@ -250,18 +250,8 @@ window.GoHappyQuests = {
         const hoy = window.GoHappyQuests._fechaHoy();
 
         try {
-            // Soporte para firma (userId, familyId, questId, puntos) o (questId, questData)
-            let realQuestId = questId;
-            let realPuntos = 50;
-
-            if (arguments.length === 4) {
-                // Llamada desde la UI: (uid, familyId, qid, pts)
-                realQuestId = arguments[2];
-                realPuntos = arguments[3];
-            } else {
-                // Llamada interna o legacy: (qid, qdata)
-                realPuntos = questData.puntos || 50;
-            }
+            const realQuestId = questId;
+            const puntos = (questData && typeof questData === 'object' ? questData.puntos : null) || 50;
 
             // Verificar que no esté ya completada hoy
             const yaCompletada = await window.GoHappyQuests._yaCompletadaHoy(familyId, realQuestId, hoy);
@@ -269,14 +259,34 @@ window.GoHappyQuests = {
                 return { ok: false, error: 'Ya completasteis esta misión hoy. ¡Volved mañana!' };
             }
 
-            const puntos = realPuntos;
+            const titulo = (typeof questData === 'object' ? questData.titulo : null) || 'Misión Completada';
 
-            // Registrar la completación
+            // Preferir Cloud Function (segura) si está disponible
+            if (window.firebase && window.firebase.functions) {
+                try {
+                    const fn = window.firebase.functions().httpsCallable('completeQuest');
+                    const result = await fn({ questId: realQuestId, familyId, puntos, titulo });
+                    if (result.data && result.data.ok) {
+                        // Actualizar sesión local de puntos
+                        if (window.GoHappyAuth._currentUser) {
+                            window.GoHappyAuth._currentUser.points = (window.GoHappyAuth._currentUser.points || 0) + puntos;
+                            window.GoHappyAuth._currentUser.weeklyPoints = (window.GoHappyAuth._currentUser.weeklyPoints || 0) + puntos;
+                            localStorage.setItem('GoHappy_local_user', JSON.stringify(window.GoHappyAuth._currentUser));
+                        }
+                        return { ok: true, puntos };
+                    }
+                } catch (fnErr) {
+                    // Cloud Function no disponible (plan Spark) — usar flujo cliente
+                    console.info('[Quests] Cloud Function no disponible, usando flujo cliente:', fnErr.code);
+                }
+            }
+
+            // Flujo cliente: Registrar completación + actualizar puntos directamente
             await window.GoHappyDB
                 .collection('completadas').doc(familyId)
                 .collection('registros').add({
                     questId:      realQuestId,
-                    titulo:       (typeof questData === 'object' ? questData.titulo : null) || 'Misión Completada',
+                    titulo,
                     completadoPor: user.uid,
                     completadoPorNick: user.nickname || 'Explorador',
                     fecha:        hoy,
@@ -284,7 +294,7 @@ window.GoHappyQuests = {
                     puntosGanados: puntos
                 });
 
-            // Sumar puntos al usuario (transacción atómica)
+            // Actualizar puntos del usuario (reglas permiten incremento)
             const userRef = window.GoHappyDB.collection('users').doc(user.uid);
             await window.GoHappyDB.runTransaction(async t => {
                 const uDoc = await t.get(userRef);
@@ -297,19 +307,18 @@ window.GoHappyQuests = {
             });
 
             // Sumar puntos al total de la familia
-            const familiaRef = window.GoHappyDB.collection('familias').doc(familyId);
+            const familiaRef = window.GoHappyDB.collection('families').doc(familyId);
             await window.GoHappyDB.runTransaction(async t => {
                 const fDoc = await t.get(familiaRef);
                 if (!fDoc.exists) return;
-                const currentPts = fDoc.data().puntosTotales || 0;
-                t.update(familiaRef, { puntosTotales: currentPts + puntos });
+                t.update(familiaRef, { puntosTotales: (fDoc.data().puntosTotales || 0) + puntos });
             });
 
             // Registrar en 'activity' para el módulo Memories
             await window.GoHappyDB.collection('activity').add({
                 userId:      user.uid,
                 type:        'quest_completed',
-                description: `Misión completada: "${questData.titulo}"`,
+                description: `Misión completada: "${titulo}"`,
                 timestamp:   new Date(),
                 points:      puntos
             });
