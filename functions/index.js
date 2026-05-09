@@ -27,8 +27,8 @@ const LIMITS = {
 // CORS permitido solo desde nuestros dominios
 const ALLOWED_ORIGINS = [
     'https://douglascyberbraz-beep.github.io',
-    'https://gohappy-8d660.web.app',
-    'https://gohappy-8d660.firebaseapp.com',
+    'https://kindr-8d660.web.app',
+    'https://kindr-8d660.firebaseapp.com',
     'http://localhost:3000',
     'http://localhost:8080'
 ];

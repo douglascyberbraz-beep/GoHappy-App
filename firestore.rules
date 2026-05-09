@@ -33,11 +33,6 @@ service cloud.firestore {
       return field is string && field.size() >= min && field.size() <= max;
     }
 
-    // Timestamp no es futuro (±5 min de tolerancia)
-    function validTimestamp(ts) {
-      return ts == request.time || (ts >= request.time - duration.value(300, 's'));
-    }
-
     // Solo campos permitidos fueron tocados
     function onlyFields(allowed) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowed);

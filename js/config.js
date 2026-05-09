@@ -8,9 +8,9 @@
 
 const firebaseConfig = {
     apiKey:            "AIzaSyDppR0-A8bEKT1sjJDst1N6uZV-EsTLSYo",
-    authDomain:        "gohappy-8d660.firebaseapp.com",
-    projectId:         "gohappy-8d660",
-    storageBucket:     "gohappy-8d660.firebasestorage.app",
+    authDomain:        "kindr-8d660.firebaseapp.com",
+    projectId:         "kindr-8d660",
+    storageBucket:     "kindr-8d660.firebasestorage.app",
     messagingSenderId: "552831875210",
     appId:             "1:552831875210:web:1af5583c40e0d62bbf9573",
     measurementId:     "G-2F3HNE2L5P"
@@ -31,7 +31,7 @@ const firebaseConfig = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 // URL del Cloud Function proxy (ajustar región si cambias en functions/index.js)
-window.GEMINI_PROXY_URL = 'https://europe-west1-gohappy-8d660.cloudfunctions.net/geminiProxy';
+window.GEMINI_PROXY_URL = 'https://europe-west1-kindr-8d660.cloudfunctions.net/geminiProxy';
 
 // true = usar proxy seguro (producción) | false = usar mock data (sin función desplegada)
 window.GEMINI_PROXY_ACTIVE = true;
@@ -62,7 +62,7 @@ if (window.firebase) {
 
         // Dominios autorizados de Firebase Auth (añadir en Firebase Console si cambian)
         // - douglascyberbraz-beep.github.io
-        // - gohappy-8d660.web.app
+        // - kindr-8d660.web.app
         // - localhost (solo dev)
 
         console.log('[GoHappy] Firebase inicializado correctamente ✓');
