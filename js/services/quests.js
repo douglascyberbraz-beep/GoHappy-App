@@ -121,6 +121,34 @@ window.GoHappyQuests = {
             categoria:   'educativa',
             frecuencia:  'semanal',
             activa:      true
+        },
+        // ─── MISIONES MENSUALES ───────────────────────────────────────
+        {
+            titulo:      'Gran Aventura Familiar del Mes',
+            descripcion: 'Planificad y realizad una excursión de un día completo a un lugar especial que nunca hayáis visitado juntos.',
+            icono:       '🗺️',
+            puntos:      500,
+            categoria:   'familiar',
+            frecuencia:  'mensual',
+            activa:      true
+        },
+        {
+            titulo:      'Reto Solidario Familiar',
+            descripcion: 'Participad como familia en una actividad solidaria: banco de alimentos, limpieza de parque, recogida de ropa.',
+            icono:       '❤️',
+            puntos:      400,
+            categoria:   'social',
+            frecuencia:  'mensual',
+            activa:      true
+        },
+        {
+            titulo:      'Proyecto Creativo del Mes',
+            descripcion: 'Cread juntos algo de principio a fin: un álbum de fotos, una maqueta, una pequeña obra de teatro o un cortometraje.',
+            icono:       '🎬',
+            puntos:      350,
+            categoria:   'creativa',
+            frecuencia:  'mensual',
+            activa:      true
         }
     ],
 
@@ -206,9 +234,10 @@ window.GoHappyQuests = {
                 completadaPor: completadasHoy.find(c => c.questId === q.id)?.completadoPor || null
             }));
 
-            // 4. Separar diarias y semanales disponibles
-            const diarias  = questsConEstado.filter(q => q.frecuencia === 'diaria');
+            // 4. Separar por frecuencia
+            const diarias   = questsConEstado.filter(q => q.frecuencia === 'diaria');
             const semanales = questsConEstado.filter(q => q.frecuencia === 'semanal');
+            const mensuales = questsConEstado.filter(q => q.frecuencia === 'mensual');
 
             // Ordenar: primero no completadas, luego completadas
             const ordenar = arr => [
@@ -216,7 +245,7 @@ window.GoHappyQuests = {
                 ...arr.filter(q => q.completadaHoy)
             ];
 
-            const resultado = [...ordenar(diarias), ...ordenar(semanales)];
+            const resultado = [...ordenar(diarias), ...ordenar(semanales), ...ordenar(mensuales)];
 
             // 5. Aplicar límite Free/Premium
             const esPremium = user.isPremium || false;
@@ -469,7 +498,8 @@ window.GoHappyQuests = {
             { id: 'demo-2', titulo: 'Desayuno Familiar', descripcion: 'Preparad el desayuno todos juntos sin prisas.', icono: '🥞', puntos: 40, categoria: 'familiar', frecuencia: 'diaria', activa: true, completadaHoy: false },
             { id: 'demo-3', titulo: 'Cuento en Voz Alta', descripcion: 'Leed un capítulo de un libro en familia.', icono: '📖', puntos: 60, categoria: 'educativa', frecuencia: 'diaria', activa: true, completadaHoy: false },
             { id: 'demo-4', titulo: 'Reto Artístico Semanal', descripcion: 'Dibujad juntos el mismo objeto, cada uno a su manera.', icono: '🎨', puntos: 100, categoria: 'creativa', frecuencia: 'semanal', activa: true, completadaHoy: false },
-            { id: 'demo-5', titulo: 'Explorador de Barrio', descripcion: 'Encontrad un rincón que no conozcáis y sacad una foto.', icono: '🗺️', puntos: 80, categoria: 'fisica', frecuencia: 'semanal', activa: true, completadaHoy: false }
+            { id: 'demo-5', titulo: 'Explorador de Barrio', descripcion: 'Encontrad un rincón que no conozcáis y sacad una foto.', icono: '🗺️', puntos: 80, categoria: 'fisica', frecuencia: 'semanal', activa: true, completadaHoy: false },
+            { id: 'demo-6', titulo: 'Gran Aventura del Mes', descripcion: 'Planificad una excursión de un día a un lugar especial que nunca hayáis visitado.', icono: '🗺️', puntos: 500, categoria: 'familiar', frecuencia: 'mensual', activa: true, completadaHoy: false }
         ];
         return isPremium ? todas : todas.slice(0, window.GoHappyQuests.FREE_LIMIT);
     },

@@ -282,7 +282,7 @@ window.GoHappyMap = {
                 border: 3px solid var(--primary-cobalt);
             ">
                 <div style="transform: rotate(45deg); font-size: 20px;">${icon}</div>
-                ${hasReview ? `<div class="tribe-insignia" style="position: absolute; top: -10px; right: -10px; background: var(--accent-pink); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; transform: rotate(45deg); font-weight: 800; border: 2px solid white;">TRIBU</div>` : ''}
+                ${hasReview ? `<div class="tribe-insignia" style="position: absolute; top: -10px; right: -10px; background: #F39C12; color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: 900; border: 2px solid white; white-space:nowrap;">⭐ reseñado</div>` : ''}
             </div>
         `;
 
@@ -545,22 +545,24 @@ window.GoHappyMap = {
                 // Save to Firestore
                 await window.GoHappyDB.collection('reviews').add({
                     userId: user.uid,
-                    userName: user.nickname,
+                    userName: user.nickname || 'Usuario',
                     siteName: finalName,
+                    comment: reviewText || '',
                     rating: parseInt(rating),
-                    text: reviewText,
                     lat: lat,
                     lng: lng,
-                    createdAt: new Date()
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
                 // Add points
+                const pts = window.GoHappyPoints.REWARDS.REVIEW || 30;
                 await window.GoHappyPoints.addPoints('REVIEW');
-                
-                // Visual feedback on map
-                window.GoHappyMap.createMarker({ name: finalName, lat, lng, rating, type: 'new' });
-                
-                window.GoHappyToast.points(`¡Reseña publicada! +100 pts. ¡Gracias por ayudar a la comunidad! ✨`);
+
+                // Visual feedback on map — marca el sitio como reseñado
+                window.GoHappyMap.createMarker({ name: finalName, lat, lng, rating: parseInt(rating), type: 'new', isCommunity: true });
+
+                window.GoHappySound && window.GoHappySound.play('success');
+                window.GoHappyToast.points(`¡Reseña publicada! +${pts} pts. ¡Gracias por ayudar a la comunidad! ✨`);
                 modal.remove();
             } catch (e) {
                 console.error("Error saving review:", e);

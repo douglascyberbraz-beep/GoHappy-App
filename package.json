@@ -1,6 +1,6 @@
 {
   "name": "gohappy-app",
-  "version": "2.9.1",
+  "version": "3.0.0-beta",
   "description": "GoHappy Family App - La comunidad real para familias modernas",
   "main": "index.html",
   "scripts": {

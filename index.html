@@ -16,7 +16,7 @@
     <link href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css' rel='stylesheet' />
 
     <!-- App CSS -->
-    <link rel="stylesheet" href="css/main.css?v=2.9.1">
+    <link rel="stylesheet" href="css/main.css?v=3.0.0">
 
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
@@ -50,10 +50,6 @@
 
     <!-- Bottom Navigation -->
     <nav id="bottom-nav" class="bottom-nav hidden">
-        <button class="nav-item" data-page="today">
-            <span class="icon">✨</span>
-            <span class="label">Today</span>
-        </button>
         <button class="nav-item" data-page="quests">
             <span class="icon">⚔️</span>
             <span class="label">Quests</span>
@@ -61,6 +57,10 @@
         <button class="nav-item" data-page="safe">
             <span class="icon">🛡️</span>
             <span class="label">Safe</span>
+        </button>
+        <button class="nav-item" data-page="today">
+            <span class="icon">✨</span>
+            <span class="label">Today</span>
         </button>
 
         <!-- Orbital Map Button (center) -->
@@ -73,12 +73,8 @@
             </div>
         </button>
 
-        <button class="nav-item" data-page="tribu">
-            <span class="icon">🏘️</span>
-            <span class="label">Tribu</span>
-        </button>
         <button class="nav-item" data-page="ranking">
-            <span class="icon">🌟</span>
+            <span class="icon">🏆</span>
             <span class="label">Top</span>
         </button>
         <button class="nav-item" data-page="news_events">
@@ -86,7 +82,7 @@
             <span class="label">News</span>
         </button>
         <button class="nav-item" data-page="profile">
-            <span class="icon">🍭</span>
+            <span class="icon">👤</span>
             <span class="label">Perfil</span>
         </button>
     </nav>
@@ -125,34 +121,34 @@
     <script src="js/lib/qrcode.min.js"></script>
 
     <!-- Services (load order matters) -->
-    <script src="js/config.js?v=2.9.1"></script>
-    <script src="js/services/security.js?v=2.9.1"></script>
-    <script src="js/services/toast.js?v=2.9.1"></script>
-    <script src="js/services/sound.js?v=2.9.1"></script>
-    <script src="js/services/data.js?v=2.9.1"></script>
-    <script src="js/services/points.js?v=2.9.1"></script>
-    <script src="js/services/ai_content.js?v=2.9.1"></script>
-    <script src="js/services/auth.js?v=2.9.1"></script>
-    <script src="js/services/quests.js?v=2.9.1"></script>
-    <script src="js/services/safety.js?v=2.9.1"></script>
-    <script src="js/services/families.js?v=2.9.1"></script>
-    <script src="js/services/notifications.js?v=2.9.1"></script>
+    <script src="js/config.js?v=3.0.0"></script>
+    <script src="js/services/security.js?v=3.0.0"></script>
+    <script src="js/services/toast.js?v=3.0.0"></script>
+    <script src="js/services/sound.js?v=3.0.0"></script>
+    <script src="js/services/data.js?v=3.0.0"></script>
+    <script src="js/services/points.js?v=3.0.0"></script>
+    <script src="js/services/ai_content.js?v=3.0.0"></script>
+    <script src="js/services/auth.js?v=3.0.0"></script>
+    <script src="js/services/quests.js?v=3.0.0"></script>
+    <script src="js/services/safety.js?v=3.0.0"></script>
+    <script src="js/services/families.js?v=3.0.0"></script>
+    <script src="js/services/notifications.js?v=3.0.0"></script>
 
     <!-- Pages -->
-    <script src="js/pages/map_v11.js?v=2.9.1"></script>
-    <script src="js/pages/today.js?v=2.9.1"></script>
-    <script src="js/pages/quests.js?v=2.9.1"></script>
-    <script src="js/pages/ranking.js?v=2.9.1"></script>
-    <script src="js/pages/news_events.js?v=2.9.1"></script>
-    <script src="js/pages/safe.js?v=2.9.1"></script>
-    <script src="js/pages/profile.js?v=2.9.1"></script>
-    <script src="js/pages/tribu.js?v=2.9.1"></script>
-    <script src="js/pages/memories.js?v=2.9.1"></script>
-    <script src="js/pages/legal.js?v=2.9.1"></script>
-    <script src="js/pages/family_onboarding.js?v=2.9.1"></script>
+    <script src="js/pages/map_v11.js?v=3.0.0"></script>
+    <script src="js/pages/today.js?v=3.0.0"></script>
+    <script src="js/pages/quests.js?v=3.0.0"></script>
+    <script src="js/pages/ranking.js?v=3.0.0"></script>
+    <script src="js/pages/news_events.js?v=3.0.0"></script>
+    <script src="js/pages/safe.js?v=3.0.0"></script>
+    <script src="js/pages/profile.js?v=3.0.0"></script>
+    <script src="js/pages/tribu.js?v=3.0.0"></script>
+    <script src="js/pages/memories.js?v=3.0.0"></script>
+    <script src="js/pages/legal.js?v=3.0.0"></script>
+    <script src="js/pages/family_onboarding.js?v=3.0.0"></script>
 
     <!-- App Core (last) -->
-    <script src="js/app.js?v=2.9.1"></script>
+    <script src="js/app.js?v=3.0.0"></script>
 
     <!-- Service Worker Registration -->
     <script>
@@ -165,7 +161,7 @@
                     setTimeout(() => window.location.reload(true), 500);
                 };
 
-                navigator.serviceWorker.register('sw.js?v=2.9.1').then(reg => {
+                navigator.serviceWorker.register('sw.js?v=3.0.0').then(reg => {
                     console.log('[SW] GoHappy v2.8.0 registrado');
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;

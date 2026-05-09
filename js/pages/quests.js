@@ -54,6 +54,7 @@ window.GoHappyQuestsPage = {
                     <button class="q-filter-btn active" data-filter="todas">Todas</button>
                     <button class="q-filter-btn" data-filter="diaria">☀️ Diarias</button>
                     <button class="q-filter-btn" data-filter="semanal">📅 Semanales</button>
+                    <button class="q-filter-btn" data-filter="mensual">📆 Mensuales</button>
                     <button class="q-filter-btn" data-filter="fisica">🏃 Activas</button>
                 </div>
 
@@ -253,7 +254,7 @@ window.GoHappyQuestsPage = {
                         <h4 class="q-title">${q.titulo}</h4>
                         <div class="q-meta">
                             <span class="q-pts-badge">+${q.puntos} pts</span>
-                            <span class="q-frec">${q.frecuencia === 'semanal' ? '📅 Semanal' : '☀️ Diaria'}</span>
+                            <span class="q-frec">${q.frecuencia === 'mensual' ? '📆 Mensual' : q.frecuencia === 'semanal' ? '📅 Semanal' : '☀️ Diaria'}</span>
                         </div>
                     </div>
                     <div class="q-check-circle">

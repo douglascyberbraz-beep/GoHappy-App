@@ -1,5 +1,5 @@
 {
-    "version": "2.9.1",
-    "timestamp": "2026-05-09T16:00:00Z",
-    "note": "Bug fixes: AI proxy activation, Tribu posts userId, Firestore points rules, quest completion flow"
+    "version": "3.0.0-beta",
+    "timestamp": "2026-05-09T18:00:00Z",
+    "note": "Beta: visión alineada — nav reordenado, quests mensuales, ranking desde Firestore, reviews mejoradas, premium gating"
 }

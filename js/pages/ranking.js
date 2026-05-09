@@ -34,8 +34,42 @@ window.GoHappyRanking = {
 
         const renderSites = async () => {
             list.innerHTML = '<div class="center-text p-20"><div class="typing-dots"><span></span><span></span><span></span></div></div>';
-            const locations = await window.GoHappyData.getLocations();
-            const sorted = [...locations].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 10);
+
+            // Cargar reseñas reales de Firestore y agrupar por sitio
+            let sorted = [];
+            try {
+                const snap = await window.GoHappyDB.collection('reviews')
+                    .orderBy('createdAt', 'desc')
+                    .limit(100)
+                    .get();
+
+                if (!snap.empty) {
+                    // Agrupar por siteName y calcular media de rating
+                    const byName = {};
+                    snap.docs.forEach(d => {
+                        const r = d.data();
+                        if (!r.siteName) return;
+                        if (!byName[r.siteName]) {
+                            byName[r.siteName] = { name: r.siteName, ratings: [], lat: r.lat, lng: r.lng, type: 'community', isCommunity: true };
+                        }
+                        byName[r.siteName].ratings.push(r.rating || 0);
+                    });
+
+                    sorted = Object.values(byName).map(s => ({
+                        ...s,
+                        rating: Math.round((s.ratings.reduce((a, b) => a + b, 0) / s.ratings.length) * 10) / 10,
+                        reviews: s.ratings.length
+                    })).sort((a, b) => b.rating - a.rating || b.reviews - a.reviews).slice(0, 10);
+                }
+            } catch (e) {
+                console.warn('[Ranking] Error cargando reseñas:', e);
+            }
+
+            // Fallback: si no hay reseñas, usar localizaciones de IA
+            if (sorted.length === 0) {
+                const locations = await window.GoHappyData.getLocations();
+                sorted = [...locations].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 10);
+            }
 
             if (sorted.length === 0) {
                 list.innerHTML = '<p class="center-text p-40">¡Aún no hay sitios en el ranking!</p>';
@@ -58,14 +92,15 @@ window.GoHappyRanking = {
                 const size = pos === 1 ? 'large' : 'medium';
 
                 html += `
-                    <div class="podium-card ${size} entry-anim" onclick="window.GoHappyRanking.goToMap('${site.id}', ${site.lat}, ${site.lng})">
+                    <div class="podium-card ${size} entry-anim" onclick="window.GoHappyRanking.goToMap('${site.id || ''}', ${site.lat || 0}, ${site.lng || 0})">
                         <div class="podium-rank">${medal}</div>
                         <div class="podium-image" style="background: ${site.image ? `url(${site.image})` : getPlaceholder(site.type)}; background-size: cover; background-position: center;">
                             ${!site.image ? '<span class="podium-icon">📍</span>' : ''}
+                            ${site.isCommunity ? '<div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.5);color:white;font-size:9px;padding:2px 6px;border-radius:8px;font-weight:800;">COMUNIDAD</div>' : ''}
                         </div>
                         <div class="podium-info">
                             <h4 class="truncate">${site.name}</h4>
-                            <span class="stars">⭐ ${site.rating}</span>
+                            <span class="stars">⭐ ${site.rating}${site.reviews ? ` <small style="opacity:.7">(${site.reviews})</small>` : ''}</span>
                         </div>
                     </div>
                 `;
@@ -76,12 +111,14 @@ window.GoHappyRanking = {
             html += '<div class="ranking-rows">';
             others.forEach((site, i) => {
                 html += `
-                    <div class="ranking-row card-anim" onclick="window.GoHappyRanking.goToMap('${site.id}', ${site.lat}, ${site.lng})">
+                    <div class="ranking-row card-anim" onclick="window.GoHappyRanking.goToMap('${site.id || ''}', ${site.lat || 0}, ${site.lng || 0})">
                         <span class="row-rank">#${i + 4}</span>
-                        <div class="row-thumb" style="background: ${site.image ? `url(${site.image})` : getPlaceholder(site.type)}; background-size: cover;"></div>
+                        <div class="row-thumb" style="background: ${site.image ? `url(${site.image})` : getPlaceholder(site.type)}; background-size: cover; position:relative;">
+                            ${site.isCommunity ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;">⭐</div>' : ''}
+                        </div>
                         <div class="row-info">
                             <h4 class="truncate">${site.name}</h4>
-                            <span class="row-type">${site.type || 'Lugar'}</span>
+                            <span class="row-type">${site.isCommunity ? `${site.reviews} reseñas` : (site.type || 'Lugar')}</span>
                         </div>
                         <div class="row-score">⭐ ${site.rating}</div>
                     </div>
