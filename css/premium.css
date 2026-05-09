@@ -111,9 +111,13 @@ h1, h2, h3, h4, h5,
         0 30px 80px rgba(11,76,143,0.08);
 }
 
-/* ── 3. Splash Screen ───────────────────────────────────────────── */
+/* ── 3. Splash Screen — Premium con orbes flotantes ─────────────── */
 .splash-screen {
-    background: linear-gradient(160deg, #FFFFFF 0%, #EAF4FF 50%, #DCF1F4 100%) !important;
+    background:
+        radial-gradient(ellipse 80% 60% at 30% 20%, rgba(11,113,252,0.10) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 50% at 80% 80%, rgba(23,200,212,0.15) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255,255,255,1) 0%, rgba(248,252,255,1) 100%) !important;
+    background-color: #FFFFFF !important;
     position: absolute;
     inset: 0;
     display: flex;
@@ -121,6 +125,49 @@ h1, h2, h3, h4, h5,
     align-items: center;
     justify-content: center;
     z-index: 9999;
+    overflow: hidden;
+}
+
+/* Orbe flotante decorativo izquierda */
+.splash-screen::after {
+    content: '';
+    position: absolute;
+    top: -120px;
+    left: -120px;
+    width: 380px;
+    height: 380px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(11,113,252,0.18) 0%, transparent 70%);
+    filter: blur(40px);
+    animation: orbFloat1 12s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Orbe flotante decorativo derecha */
+.splash-screen::before {
+    content: '';
+    position: absolute;
+    bottom: -150px;
+    right: -150px;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(23,200,212,0.22) 0%, transparent 70%);
+    filter: blur(50px);
+    animation: orbFloat2 14s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes orbFloat1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50%      { transform: translate(40px, 60px) scale(1.15); }
+}
+
+@keyframes orbFloat2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50%      { transform: translate(-50px, -40px) scale(0.92); }
 }
 
 .logo-container {
@@ -128,51 +175,76 @@ h1, h2, h3, h4, h5,
     box-shadow: none !important;
     animation: none !important;
     position: relative;
+    z-index: 2;
+    /* Halo radial sutil detrás del logo */
+    filter: drop-shadow(0 16px 40px rgba(11,76,143,0.18));
 }
 
 .splash-logo-img {
-    width: 240px;
-    max-width: 80%;
+    width: 280px;
+    max-width: 78vw;
     object-fit: contain;
-    animation: splashIn 1.2s cubic-bezier(0.19,1,0.22,1) both;
-    filter: drop-shadow(0 12px 32px rgba(11,76,143,0.18));
+    /* mix-blend-mode multiply elimina el fondo blanco del PNG */
+    mix-blend-mode: multiply;
+    animation: splashIn 1.4s cubic-bezier(0.19,1,0.22,1) both;
 }
 
 @keyframes splashIn {
-    0%   { opacity:0; transform:scale(0.85); filter:blur(12px); }
-    60%  { opacity:1; transform:scale(1.04); filter:blur(0); }
-    100% { opacity:1; transform:scale(1);    filter:blur(0); }
+    0%   { opacity:0; transform: scale(0.82) translateY(20px); filter: blur(16px); }
+    60%  { opacity:1; transform: scale(1.05) translateY(0);    filter: blur(0); }
+    100% { opacity:1; transform: scale(1)    translateY(0);    filter: blur(0); }
 }
 
-.splash-screen::after {
-    content: '';
+/* Barra de carga fina debajo */
+.splash-screen .splash-loader {
     position: absolute;
-    bottom: calc(var(--safe-bottom) + 40px);
+    bottom: calc(var(--safe-bottom) + 50px);
     left: 50%;
     transform: translateX(-50%);
-    width: 130px;
-    height: 4px;
+    width: 140px;
+    height: 3px;
     border-radius: var(--r-pill);
-    background: rgba(11,76,143,0.1);
+    background: rgba(11,76,143,0.08);
+    overflow: hidden;
+    z-index: 2;
 }
 
-.splash-screen::before {
+.splash-screen .splash-loader::before {
     content: '';
     position: absolute;
-    bottom: calc(var(--safe-bottom) + 40px);
-    left: calc(50% - 65px);
-    width: 0;
-    height: 4px;
-    border-radius: var(--r-pill);
-    background: var(--brand-bright);
-    animation: splashBar 2s cubic-bezier(0.4,0,0.2,1) forwards 0.5s;
-    z-index: 1;
+    top: 0; left: 0;
+    height: 100%;
+    width: 40%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, transparent, var(--cobalt-bright), var(--cyan), transparent);
+    animation: splashBar 1.6s cubic-bezier(0.4,0,0.2,1) infinite;
 }
 
 @keyframes splashBar {
-    0%  { width: 0;    opacity:1; }
-    80% { width: 130px; opacity:1; }
-    100%{ width: 130px; opacity:0; }
+    0%   { left: -40%; }
+    100% { left: 100%; }
+}
+
+/* Texto de marca debajo (subtítulo opcional) */
+.splash-screen .splash-tagline {
+    position: absolute;
+    bottom: calc(var(--safe-bottom) + 80px);
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: -apple-system, 'SF Pro Text', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--cobalt);
+    opacity: 0.5;
+    z-index: 2;
+    animation: fadeInUp 1.8s cubic-bezier(0.19,1,0.22,1) both 0.4s;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translate(-50%, 10px); }
+    to   { opacity: 0.5; transform: translate(-50%, 0); }
 }
 
 /* ── 4. Bottom Tab Bar — iOS 26 Liquid Glass ───────────────────── */
