@@ -1,99 +1,97 @@
 /* ================================================================
-   GoHappy — iOS 18 Liquid Glass Design System  v3.0
+   GoHappy — iOS 26 Liquid Glass  v3.1
    Cobalt #0B4C8F · Cyan #17C8D4 · "Tu camino a la alegría"
-   Feels native on iPhone & Android. Zero compromises.
+   Claro · translúcido · aireado · refracción real
    ================================================================ */
 
-/* ── 0. System font stack (renders like native on every device) ── */
 :root {
     /* Brand */
-    --cobalt:          #0B4C8F;
-    --cobalt-dark:     #062B55;
-    --cobalt-deep:     #041D3A;
-    --cyan:            #17C8D4;
-    --cyan-light:      #6FE2EA;
-    --cyan-soft:       rgba(23,200,212,0.12);
-    --brand-gradient:  linear-gradient(135deg, #0B4C8F 0%, #0E82C8 55%, #17C8D4 100%);
-    --brand-gradient-v:linear-gradient(180deg, #0B4C8F 0%, #17C8D4 100%);
+    --cobalt:           #0B4C8F;
+    --cobalt-bright:    #0B71FC;
+    --cyan:             #17C8D4;
+    --cyan-bright:      #00D4E0;
+    --cyan-pastel:      #B8F0F4;
+    --brand-gradient:   linear-gradient(135deg, #0B4C8F 0%, #0B71FC 50%, #17C8D4 100%);
+    --brand-soft:       linear-gradient(135deg, rgba(11,76,143,0.06) 0%, rgba(23,200,212,0.08) 100%);
+    --brand-bright:     linear-gradient(135deg, #0B71FC 0%, #17C8D4 100%);
 
-    /* iOS System Colors */
-    --ios-bg:          #F2F2F7;
-    --ios-bg2:         #FFFFFF;
-    --ios-sep:         rgba(60,60,67,0.13);
-    --ios-label:       rgba(0,0,0,0.85);
-    --ios-label2:      rgba(60,60,67,0.6);
-    --ios-label3:      rgba(60,60,67,0.36);
-    --ios-fill:        rgba(120,120,128,0.2);
-    --ios-fill2:       rgba(120,120,128,0.16);
-    --ios-red:         #FF3B30;
-    --ios-green:       #34C759;
-    --ios-amber:       #FF9F0A;
-    --ios-blue:        #007AFF;
-    --ios-teal:        #30B0C7;
+    /* iOS 26 backgrounds — claros, pastel */
+    --bg-app:           #F4F8FF;
+    --bg-page:          linear-gradient(180deg, #F4F8FF 0%, #EBF4FB 100%);
+    --bg-card:          rgba(255,255,255,0.72);
+    --bg-card-strong:   rgba(255,255,255,0.88);
+    --bg-floating:      rgba(255,255,255,0.55);
 
-    /* Liquid Glass layers */
-    --glass-bg:        rgba(255,255,255,0.72);
-    --glass-bg-dark:   rgba(255,255,255,0.55);
-    --glass-blur:      blur(50px) saturate(180%) brightness(1.08);
-    --glass-blur-md:   blur(30px) saturate(160%) brightness(1.05);
-    --glass-blur-sm:   blur(16px) saturate(140%);
-    --glass-border:    0.5px solid rgba(255,255,255,0.85);
-    --glass-border-sep:0.5px solid rgba(60,60,67,0.1);
-    --glass-shadow:    0 2px 8px rgba(0,0,0,0.04), 0 8px 28px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.8);
-    --glass-shadow-lg: 0 4px 16px rgba(0,0,0,0.06), 0 20px 50px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9);
+    /* iOS 26 Liquid Glass — el alma de toda la app */
+    --glass-blur:       blur(40px) saturate(180%) brightness(1.05);
+    --glass-blur-strong:blur(60px) saturate(200%) brightness(1.1);
+    --glass-blur-sm:    blur(20px) saturate(160%);
+    --glass-rim:        inset 0 1px 0 rgba(255,255,255,0.95);
+    --glass-shadow:     0 1px 0 rgba(255,255,255,0.85) inset,
+                        0 -0.5px 0 rgba(0,0,0,0.04) inset,
+                        0 8px 24px rgba(11,76,143,0.06),
+                        0 2px 6px rgba(11,76,143,0.04);
+    --glass-shadow-lg:  0 1px 0 rgba(255,255,255,0.95) inset,
+                        0 -0.5px 0 rgba(0,0,0,0.05) inset,
+                        0 20px 50px rgba(11,76,143,0.10),
+                        0 8px 16px rgba(11,76,143,0.06);
+    --glass-border:     0.5px solid rgba(255,255,255,0.9);
 
-    /* Radii (iOS uses 10-22px for most elements, 13px for small) */
-    --r-xs:  10px;
-    --r-sm:  13px;
-    --r-md:  18px;
-    --r-lg:  22px;
-    --r-xl:  28px;
-    --r-2xl: 38px;
+    /* Text */
+    --text-primary:     #0F172A;
+    --text-secondary:   rgba(15,23,42,0.6);
+    --text-tertiary:    rgba(15,23,42,0.36);
+
+    /* Radii — iOS 26 prefiere radii GRANDES */
+    --r-sm:  14px;
+    --r-md:  20px;
+    --r-lg:  26px;
+    --r-xl:  32px;
+    --r-2xl: 40px;
     --r-pill:999px;
 
-    /* Safe Areas */
-    --safe-top:    env(safe-area-inset-top,    44px);
+    /* Safe areas */
+    --safe-top:    env(safe-area-inset-top, 44px);
     --safe-bottom: env(safe-area-inset-bottom, 20px);
-    --safe-left:   env(safe-area-inset-left,   0px);
-    --safe-right:  env(safe-area-inset-right,  0px);
 
     /* Nav */
-    --nav-height: 83px;
-    --nav-total:  calc(83px + env(safe-area-inset-bottom, 20px));
+    --nav-height:  82px;
+    --nav-total:   calc(82px + env(safe-area-inset-bottom, 20px));
 }
 
-/* ── 1. Base reset & iOS scroll ── */
+/* ── 1. Reset + iOS scroll ──────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
 
 html {
     height: 100%;
-    /* iOS momentum scroll on the whole page */
-    -webkit-overflow-scrolling: touch;
     overflow: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 
 body {
-    font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', 'Inter', sans-serif;
-    background: var(--ios-bg);
-    color: var(--ios-label);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Helvetica Neue', sans-serif;
+    background: var(--bg-app) !important;
+    color: var(--text-primary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    /* Prevent iOS text inflate */
     -webkit-text-size-adjust: 100%;
     overscroll-behavior: none;
 }
 
+* { -webkit-tap-highlight-color: transparent; }
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; -ms-overflow-style: none; }
+
 h1, h2, h3, h4, h5,
-.brand-font,
 .q-title, .plan-title, .ranking-title,
 .today-welcome-title, .profile-name-main {
-    font-family: -apple-system, 'SF Pro Display', 'Poppins', 'Helvetica Neue', sans-serif !important;
+    font-family: -apple-system, 'SF Pro Display', 'Poppins', sans-serif !important;
     font-weight: 700;
-    letter-spacing: -0.3px;
+    letter-spacing: -0.4px;
+    color: var(--text-primary);
 }
 
-/* Scrollable areas — iOS momentum */
 #main-content,
 .ranking-display-area,
 .news-content,
@@ -104,30 +102,18 @@ h1, h2, h3, h4, h5,
     scroll-behavior: smooth;
 }
 
-/* Remove tap highlight on iOS */
-* { -webkit-tap-highlight-color: transparent; }
-
-/* Scrollbars invisible */
-*::-webkit-scrollbar { display: none; }
-* { scrollbar-width: none; -ms-overflow-style: none; }
-
-/* ── 2. App container ── */
+/* ── 2. App container ───────────────────────────────────────────── */
 #app {
-    background: var(--ios-bg);
-    max-width: 430px; /* iPhone 16 Pro Max width */
+    background: var(--bg-app) !important;
+    max-width: 430px;
     box-shadow:
-        0 0 0 0.5px rgba(0,0,0,0.08),
-        0 20px 80px rgba(0,0,0,0.12);
-    border-radius: 0;
-    overflow: hidden;
+        0 0 0 0.5px rgba(11,76,143,0.06),
+        0 30px 80px rgba(11,76,143,0.08);
 }
 
-/* ── 3. Splash Screen — iOS-native entry ── */
+/* ── 3. Splash Screen ───────────────────────────────────────────── */
 .splash-screen {
-    background: linear-gradient(160deg,
-        #FFFFFF          0%,
-        #EBF6FF         40%,
-        rgba(23,200,212,0.08) 100%) !important;
+    background: linear-gradient(160deg, #FFFFFF 0%, #EAF4FF 50%, #DCF1F4 100%) !important;
     position: absolute;
     inset: 0;
     display: flex;
@@ -138,65 +124,58 @@ h1, h2, h3, h4, h5,
 }
 
 .logo-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
     background: transparent !important;
     box-shadow: none !important;
-    position: relative;
     animation: none !important;
+    position: relative;
 }
 
 .splash-logo-img {
     width: 240px;
     max-width: 80%;
     object-fit: contain;
-    animation: iosLaunch 1.2s cubic-bezier(0.19,1,0.22,1) both;
-    filter: drop-shadow(0 12px 32px rgba(11,76,143,0.2));
+    animation: splashIn 1.2s cubic-bezier(0.19,1,0.22,1) both;
+    filter: drop-shadow(0 12px 32px rgba(11,76,143,0.18));
 }
 
-@keyframes iosLaunch {
-    0%  { opacity:0; transform:scale(0.85); filter: blur(16px) drop-shadow(0 0 0 transparent); }
-    60% { opacity:1; transform:scale(1.03); filter: blur(0) drop-shadow(0 12px 32px rgba(11,76,143,0.18)); }
-    100%{ opacity:1; transform:scale(1);    filter: blur(0) drop-shadow(0 12px 32px rgba(11,76,143,0.2)); }
+@keyframes splashIn {
+    0%   { opacity:0; transform:scale(0.85); filter:blur(12px); }
+    60%  { opacity:1; transform:scale(1.04); filter:blur(0); }
+    100% { opacity:1; transform:scale(1);    filter:blur(0); }
 }
 
-/* Loading bar */
 .splash-screen::after {
     content: '';
     position: absolute;
-    bottom: calc(var(--safe-bottom) + 30px);
+    bottom: calc(var(--safe-bottom) + 40px);
     left: 50%;
     transform: translateX(-50%);
     width: 130px;
     height: 4px;
     border-radius: var(--r-pill);
     background: rgba(11,76,143,0.1);
-    overflow: hidden;
 }
 
 .splash-screen::before {
     content: '';
     position: absolute;
-    bottom: calc(var(--safe-bottom) + 30px);
+    bottom: calc(var(--safe-bottom) + 40px);
     left: calc(50% - 65px);
     width: 0;
     height: 4px;
     border-radius: var(--r-pill);
-    background: var(--brand-gradient);
-    animation: splashProgress 2.2s cubic-bezier(0.4,0,0.2,1) forwards 0.6s;
+    background: var(--brand-bright);
+    animation: splashBar 2s cubic-bezier(0.4,0,0.2,1) forwards 0.5s;
     z-index: 1;
 }
 
-@keyframes splashProgress {
-    0%  { width: 0; }
-    40% { width: 80px; }
-    80% { width: 110px; }
+@keyframes splashBar {
+    0%  { width: 0;    opacity:1; }
+    80% { width: 130px; opacity:1; }
     100%{ width: 130px; opacity:0; }
 }
 
-/* ── 4. Bottom Tab Bar — iOS Liquid Glass ── */
+/* ── 4. Bottom Tab Bar — iOS 26 Liquid Glass ───────────────────── */
 .bottom-nav {
     position: fixed !important;
     bottom: 0 !important;
@@ -206,24 +185,23 @@ h1, h2, h3, h4, h5,
     max-width: 430px !important;
     height: var(--nav-total) !important;
     padding-bottom: env(safe-area-inset-bottom, 20px) !important;
-    padding-top: 10px !important;
-    padding-left: 4px !important;
-    padding-right: 4px !important;
+    padding-top: 8px !important;
 
     display: flex !important;
     align-items: flex-start !important;
     justify-content: space-around !important;
 
-    /* iOS Tab Bar glass — exact values */
-    background: rgba(249,249,249,0.78) !important;
-    backdrop-filter: blur(50px) saturate(180%) brightness(1.12) !important;
-    -webkit-backdrop-filter: blur(50px) saturate(180%) brightness(1.12) !important;
-    border-top: 0.5px solid rgba(0,0,0,0.12) !important;
-    box-shadow: none !important;
+    /* iOS 26 — extreme glass */
+    background: rgba(255,255,255,0.62) !important;
+    backdrop-filter: blur(60px) saturate(200%) brightness(1.08) !important;
+    -webkit-backdrop-filter: blur(60px) saturate(200%) brightness(1.08) !important;
+    border-top: 0.5px solid rgba(255,255,255,0.85) !important;
+    box-shadow:
+        0 -1px 0 rgba(255,255,255,0.7) inset,
+        0 -8px 32px rgba(11,76,143,0.04) !important;
     z-index: 1000 !important;
 }
 
-/* Nav items */
 .nav-item {
     display: flex !important;
     flex-direction: column !important;
@@ -232,98 +210,81 @@ h1, h2, h3, h4, h5,
     gap: 3px !important;
     flex: 1 !important;
     min-width: 0 !important;
-    padding: 0 4px !important;
+    padding: 4px !important;
     background: none !important;
     border: none !important;
     cursor: pointer !important;
-    color: var(--ios-label3) !important;
-    transition: color 0.18s ease, transform 0.18s cubic-bezier(0.34,1.56,0.64,1) !important;
+    color: var(--text-tertiary) !important;
+    transition:
+        color 0.2s ease,
+        transform 0.18s cubic-bezier(0.34,1.56,0.64,1) !important;
     position: relative !important;
     -webkit-user-select: none !important;
     user-select: none !important;
-    min-height: 44px !important; /* iOS minimum touch target */
+    min-height: 44px !important;
 }
 
 .nav-item .icon {
     font-size: 22px !important;
     line-height: 1 !important;
-    display: block !important;
     transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
 }
 
 .nav-item .label {
-    font-size: 9px !important;
+    font-size: 10px !important;
     font-weight: 700 !important;
     font-family: -apple-system, 'SF Pro Text', sans-serif !important;
     letter-spacing: 0.2px !important;
     text-transform: none !important;
     line-height: 1 !important;
-    transition: color 0.18s ease !important;
 }
 
-/* Active state */
-.nav-item.active {
-    color: var(--cobalt) !important;
-}
+.nav-item.active { color: var(--cobalt-bright) !important; }
+.nav-item.active .icon { transform: scale(1.15) translateY(-1px) !important; }
+.nav-item:active { transform: scale(0.86) !important; }
 
-.nav-item.active .icon {
-    transform: scale(1.12) translateY(-1px) !important;
-}
-
-/* No colored bar — iOS uses tinted icon only */
-.nav-item.active::before { display: none !important; }
-
-/* Active tap springback */
-.nav-item:active {
-    transform: scale(0.84) !important;
-}
-
-/* ── Map Orb (center) — elevated sphere ── */
+/* ── Map Orb — esfera elevada ─────────────────────────────────── */
 .nav-item[data-page="map"] {
     padding: 0 !important;
     overflow: visible !important;
-    margin-top: -18px !important;
+    margin-top: -22px !important;
 }
 
 .map-orb {
-    width: 56px !important;
-    height: 56px !important;
+    width: 58px !important;
+    height: 58px !important;
     border-radius: 50% !important;
-    background: var(--glass-bg) !important;
-    backdrop-filter: var(--glass-blur-md) !important;
-    -webkit-backdrop-filter: var(--glass-blur-md) !important;
+    background: rgba(255,255,255,0.8) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    -webkit-backdrop-filter: var(--glass-blur) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     box-shadow:
-        0 6px 20px rgba(11,76,143,0.20),
-        0 2px 6px rgba(11,76,143,0.12),
-        inset 0 1.5px 0 rgba(255,255,255,0.95),
-        inset 0 -1px 0 rgba(0,0,0,0.06) !important;
+        inset 0 1.5px 0 rgba(255,255,255,1),
+        inset 0 -1px 0 rgba(0,0,0,0.06),
+        0 6px 18px rgba(11,76,143,0.18),
+        0 2px 5px rgba(11,76,143,0.1) !important;
     border: 0.5px solid rgba(255,255,255,0.9) !important;
     transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1),
                 box-shadow 0.3s ease !important;
     margin-top: 0 !important;
 }
 
-/* Gradient ring on active */
 .nav-item[data-page="map"].active .map-orb {
     background: white !important;
     box-shadow:
-        0 10px 32px rgba(11,76,143,0.28),
-        0 4px 10px rgba(11,76,143,0.15),
         inset 0 1.5px 0 rgba(255,255,255,1),
-        0 0 0 2.5px var(--cobalt) !important;
-    transform: scale(1.06) translateY(-4px) !important;
+        0 8px 28px rgba(11,113,252,0.3),
+        0 4px 10px rgba(11,113,252,0.15),
+        0 0 0 2.5px var(--cobalt-bright) !important;
+    transform: scale(1.06) translateY(-3px) !important;
 }
 
-.nav-item[data-page="map"]:active .map-orb {
-    transform: scale(0.88) !important;
-}
-
+.nav-item[data-page="map"]:active .map-orb { transform: scale(0.9) !important; }
 .map-icon-svg { display: block !important; }
 
-/* ── 5. Status bar / notch safe areas ── */
+/* ── 5. Main content ───────────────────────────────────────────── */
 #main-content {
     position: absolute !important;
     top: 0 !important;
@@ -332,96 +293,10 @@ h1, h2, h3, h4, h5,
     bottom: var(--nav-total) !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch !important;
-    overscroll-behavior-y: contain !important;
+    background: var(--bg-app);
 }
 
-/* Heroes need top padding for status bar */
-.today-hero-premium,
-.q-header-premium,
-.ranking-hero-premium,
-.safe-hero,
-.news-hero {
-    padding-top: calc(var(--safe-top) + 20px) !important;
-}
-
-/* ── 6. Liquid Glass Card System ── */
-
-/* Base glass card */
-.liquid-card,
-.card,
-.plan-card-premium,
-.gamification-card-premium,
-.ai-capsule-card,
-.action-card-glass,
-.news-mag-card {
-    background: var(--glass-bg) !important;
-    backdrop-filter: var(--glass-blur-md) !important;
-    -webkit-backdrop-filter: var(--glass-blur-md) !important;
-    border: var(--glass-border) !important;
-    border-radius: var(--r-xl) !important;
-    box-shadow: var(--glass-shadow) !important;
-    transition:
-        transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
-        box-shadow 0.22s ease !important;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    will-change: transform;
-}
-
-.card:active,
-.plan-card-premium:active,
-.action-card-glass:active,
-.news-mag-card:active {
-    transform: scale(0.975) !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
-}
-
-/* White-only cards (solid, not glass) */
-.quest-card-smart,
-.ranking-row,
-.q-stats-floating-bar,
-.profile-action-card {
-    background: rgba(255,255,255,0.96) !important;
-    border-radius: var(--r-lg) !important;
-    border: 0.5px solid rgba(0,0,0,0.06) !important;
-    box-shadow:
-        0 1px 3px rgba(0,0,0,0.04),
-        0 4px 16px rgba(0,0,0,0.06) !important;
-    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1) !important;
-}
-
-.quest-card-smart:active,
-.ranking-row:active {
-    transform: scale(0.97) !important;
-}
-
-/* Done quest */
-.quest-card-smart.done {
-    background: linear-gradient(135deg,
-        rgba(23,200,212,0.05) 0%,
-        rgba(11,76,143,0.03) 100%) !important;
-    border-color: rgba(23,200,212,0.18) !important;
-}
-
-/* Podium */
-.podium-card {
-    background: rgba(255,255,255,0.9) !important;
-    backdrop-filter: var(--glass-blur-sm) !important;
-    -webkit-backdrop-filter: var(--glass-blur-sm) !important;
-    border: var(--glass-border) !important;
-    border-radius: var(--r-xl) !important;
-    box-shadow: var(--glass-shadow) !important;
-}
-
-.podium-card.large {
-    background: linear-gradient(160deg,
-        rgba(255,255,255,0.95) 0%,
-        rgba(23,200,212,0.06) 100%) !important;
-    box-shadow: var(--glass-shadow-lg) !important;
-}
-
-/* ── 7. Page Heroes — Brand Gradient ── */
+/* ── 6. Page Heroes — Brand gradient con luz ───────────────────── */
 .today-hero-premium,
 .q-header-premium,
 .ranking-hero-premium,
@@ -431,22 +306,12 @@ h1, h2, h3, h4, h5,
     background-image: none !important;
     position: relative !important;
     overflow: hidden !important;
+    padding-top: calc(var(--safe-top) + 24px) !important;
+    padding-bottom: 36px !important;
+    border-radius: 0 0 var(--r-2xl) var(--r-2xl) !important;
 }
 
-/* Specular shine (iOS depth trick) */
-.today-hero-premium::after,
-.q-header-premium::after,
-.ranking-hero-premium::after {
-    content: '' !important;
-    position: absolute !important;
-    top: 0 !important; left: 0 !important; right: 0 !important;
-    height: 50% !important;
-    background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%) !important;
-    pointer-events: none !important;
-    border-radius: inherit !important;
-}
-
-/* Ambient glow spots */
+/* Specular shine — refracción de luz iOS 26 */
 .today-hero-premium::before,
 .q-header-premium::before,
 .ranking-hero-premium::before {
@@ -454,38 +319,94 @@ h1, h2, h3, h4, h5,
     position: absolute !important;
     inset: 0 !important;
     background:
-        radial-gradient(ellipse 60% 40% at 15% 60%, rgba(23,200,212,0.22) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 60% at 85% 30%, rgba(255,255,255,0.06) 0%, transparent 55%) !important;
+        radial-gradient(ellipse 60% 50% at 20% 30%, rgba(255,255,255,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 60% at 85% 80%, rgba(23,200,212,0.25) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 30% at 50% 0%, rgba(255,255,255,0.15) 0%, transparent 70%) !important;
     pointer-events: none !important;
 }
 
-/* ── 8. iOS-style Typography ── */
-.today-welcome-title,
-.ranking-title,
-.profile-name-main {
-    font-size: clamp(1.8rem, 7vw, 2.2rem) !important;
-    font-weight: 800 !important;
-    letter-spacing: -0.5px !important;
-    line-height: 1.1 !important;
+.today-hero-premium::after,
+.q-header-premium::after,
+.ranking-hero-premium::after {
+    content: '' !important;
+    position: absolute !important;
+    top: 0; left: 0; right: 0;
+    height: 50% !important;
+    background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 100%) !important;
+    pointer-events: none !important;
+    border-radius: inherit !important;
 }
 
-.today-welcome-subtitle,
-.ranking-subtitle,
-.profile-email-sub {
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    opacity: 0.75 !important;
-    letter-spacing: 0 !important;
+/* ── 7. Liquid Glass Cards ─────────────────────────────────────── */
+.card,
+.plan-card-premium,
+.gamification-card-premium,
+.ai-capsule-card,
+.action-card-glass,
+.news-mag-card,
+.podium-card {
+    background: var(--bg-card) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    -webkit-backdrop-filter: var(--glass-blur) !important;
+    border: var(--glass-border) !important;
+    border-radius: var(--r-xl) !important;
+    box-shadow: var(--glass-shadow) !important;
+    transition:
+        transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
+        box-shadow 0.22s ease !important;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
-/* Section titles */
-h3, h4 {
-    letter-spacing: -0.2px !important;
+.card:active,
+.plan-card-premium:active,
+.action-card-glass:active,
+.news-mag-card:active {
+    transform: scale(0.975) !important;
+    box-shadow: 0 2px 8px rgba(11,76,143,0.06) !important;
 }
 
-/* ── 9. Button System — iOS native ── */
+/* Quest cards — sólido pero glassy */
+.quest-card-smart {
+    background: rgba(255,255,255,0.85) !important;
+    backdrop-filter: var(--glass-blur-sm) !important;
+    -webkit-backdrop-filter: var(--glass-blur-sm) !important;
+    border: var(--glass-border) !important;
+    border-radius: var(--r-lg) !important;
+    box-shadow: var(--glass-shadow) !important;
+    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
 
-/* Primary filled — brand gradient */
+.quest-card-smart:active { transform: scale(0.97) !important; }
+
+.quest-card-smart.done {
+    background: linear-gradient(135deg,
+        rgba(23,200,212,0.10) 0%,
+        rgba(11,113,252,0.05) 100%) !important;
+    border-color: rgba(23,200,212,0.35) !important;
+}
+
+/* Ranking rows */
+.ranking-row {
+    background: rgba(255,255,255,0.85) !important;
+    backdrop-filter: var(--glass-blur-sm) !important;
+    -webkit-backdrop-filter: var(--glass-blur-sm) !important;
+    border-radius: var(--r-lg) !important;
+    border: var(--glass-border) !important;
+    box-shadow: var(--glass-shadow) !important;
+    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.ranking-row:active { transform: scale(0.97) !important; }
+
+/* Podium destacado */
+.podium-card.large {
+    background: linear-gradient(160deg,
+        rgba(255,255,255,0.95) 0%,
+        rgba(184,240,244,0.4) 100%) !important;
+    box-shadow: var(--glass-shadow-lg) !important;
+}
+
+/* ── 8. Botones — Pill iOS ─────────────────────────────────────── */
 .btn-primary,
 .btn-plan-primary,
 .q-btn-completar,
@@ -496,12 +417,13 @@ h3, h4 {
     border-radius: var(--r-pill) !important;
     font-family: -apple-system, 'SF Pro Text', sans-serif !important;
     font-weight: 700 !important;
-    font-size: 17px !important;
+    font-size: 16px !important;
     padding: 14px 28px !important;
-    min-height: 50px !important; /* iOS min touch target */
+    min-height: 50px !important;
     box-shadow:
-        0 1px 0 rgba(255,255,255,0.2) inset,
-        0 8px 24px rgba(11,76,143,0.24) !important;
+        inset 0 1px 0 rgba(255,255,255,0.25),
+        0 8px 24px rgba(11,113,252,0.28),
+        0 2px 6px rgba(11,113,252,0.15) !important;
     transition:
         transform 0.18s cubic-bezier(0.34,1.56,0.64,1),
         box-shadow 0.18s ease,
@@ -511,6 +433,21 @@ h3, h4 {
     align-items: center !important;
     justify-content: center !important;
     gap: 8px !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+/* Brillo superior */
+.btn-primary::before,
+.btn-plan-primary::before,
+.q-btn-completar::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0; left: 0; right: 0;
+    height: 50% !important;
+    background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 100%) !important;
+    border-radius: inherit !important;
+    pointer-events: none !important;
 }
 
 .btn-primary:active,
@@ -518,30 +455,25 @@ h3, h4 {
 .q-btn-completar:active,
 .ai-magic-btn:active {
     transform: scale(0.94) !important;
-    opacity: 0.85 !important;
-    box-shadow: 0 2px 8px rgba(11,76,143,0.14) !important;
+    opacity: 0.9 !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 6px rgba(11,113,252,0.2) !important;
 }
 
-/* Secondary outlined */
+/* Secundarios */
 .btn-plan-secondary {
-    background: var(--ios-fill) !important;
-    color: var(--cobalt) !important;
+    background: rgba(11,76,143,0.08) !important;
+    color: var(--cobalt-bright) !important;
     border: none !important;
     border-radius: var(--r-pill) !important;
     font-weight: 700 !important;
     min-height: 50px !important;
+    backdrop-filter: var(--glass-blur-sm) !important;
+    -webkit-backdrop-filter: var(--glass-blur-sm) !important;
     transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), opacity 0.12s ease !important;
 }
 .btn-plan-secondary:active { transform: scale(0.94) !important; opacity: 0.7 !important; }
 
-/* Danger (iOS red) */
-.btn-danger {
-    color: var(--ios-red) !important;
-    border-color: var(--ios-red) !important;
-    border-radius: var(--r-lg) !important;
-}
-
-/* Filter pills — iOS segment feel */
+/* Filtros pill */
 .q-filter-btn,
 .filter-chip,
 .rank-toggle-btn {
@@ -551,110 +483,130 @@ h3, h4 {
     font-size: 13px !important;
     padding: 8px 16px !important;
     min-height: 36px !important;
-    border: none !important;
-    background: var(--ios-fill) !important;
-    color: var(--ios-label2) !important;
+    border: 0.5px solid rgba(255,255,255,0.6) !important;
+    background: rgba(255,255,255,0.7) !important;
+    backdrop-filter: var(--glass-blur-sm) !important;
+    -webkit-backdrop-filter: var(--glass-blur-sm) !important;
+    color: var(--text-secondary) !important;
     transition: transform 0.16s cubic-bezier(0.34,1.56,0.64,1), background 0.2s ease !important;
     cursor: pointer !important;
+    box-shadow: 0 2px 8px rgba(11,76,143,0.05) !important;
 }
 
 .q-filter-btn.active,
 .filter-chip.active,
 .rank-toggle-btn.active {
-    background: var(--cobalt) !important;
+    background: var(--brand-bright) !important;
     color: white !important;
-    box-shadow: 0 4px 16px rgba(11,76,143,0.22) !important;
+    border-color: transparent !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.25),
+        0 6px 18px rgba(11,113,252,0.25) !important;
 }
 
 .q-filter-btn:active,
 .filter-chip:active,
 .rank-toggle-btn:active { transform: scale(0.92) !important; }
 
-/* ── 10. Input System — iOS style ── */
+/* AI magic button — circular */
+.ai-magic-btn {
+    background: var(--brand-bright) !important;
+    border-radius: var(--r-md) !important;
+    width: 48px !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    padding: 0 !important;
+}
+
+/* ── 9. Inputs ─────────────────────────────────────────────────── */
 input, textarea, .post-input, .review-input {
     font-family: -apple-system, 'SF Pro Text', sans-serif !important;
-    font-size: 17px !important; /* iOS default */
+    font-size: 16px !important;
     border-radius: var(--r-md) !important;
-    border: 1px solid rgba(60,60,67,0.2) !important;
-    background: rgba(255,255,255,0.92) !important;
+    border: 0.5px solid rgba(11,76,143,0.15) !important;
+    background: rgba(255,255,255,0.85) !important;
+    backdrop-filter: var(--glass-blur-sm) !important;
+    -webkit-backdrop-filter: var(--glass-blur-sm) !important;
     padding: 13px 16px !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
     -webkit-appearance: none !important;
     appearance: none !important;
     outline: none !important;
+    color: var(--text-primary) !important;
 }
 
 input:focus, textarea:focus, .post-input:focus, .review-input:focus {
-    border-color: var(--cobalt) !important;
-    box-shadow: 0 0 0 3.5px rgba(11,76,143,0.12) !important;
+    border-color: var(--cobalt-bright) !important;
+    box-shadow: 0 0 0 4px rgba(11,113,252,0.12) !important;
     background: white !important;
 }
 
-/* Search bar (iOS pill) */
-.map-search-container input {
+/* Map search bar — pill flotante */
+.map-search-container input,
+.map-search-bar {
     border-radius: var(--r-pill) !important;
-    background: rgba(255,255,255,0.92) !important;
-    backdrop-filter: var(--glass-blur-sm) !important;
-    -webkit-backdrop-filter: var(--glass-blur-sm) !important;
-    font-size: 15px !important;
-    padding: 11px 18px !important;
+    background: rgba(255,255,255,0.85) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    -webkit-backdrop-filter: var(--glass-blur) !important;
+    border: 0.5px solid rgba(255,255,255,0.85) !important;
     box-shadow: var(--glass-shadow) !important;
+    font-size: 15px !important;
 }
 
-/* ── 11. Auth Modal — iOS bottom sheet ── */
+/* ── 10. Auth Modal — bottom sheet iOS ─────────────────────────── */
 .modal {
-    background: rgba(0,0,0,0.48) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    align-items: flex-end !important; /* sheet from bottom */
+    background: rgba(15,23,42,0.4) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    align-items: flex-end !important;
     padding: 0 !important;
 }
 
 .auth-container {
     width: 100% !important;
     max-width: 430px !important;
-    background: rgba(255,255,255,0.94) !important;
-    backdrop-filter: blur(40px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-    border-radius: 20px 20px 0 0 !important;
+    background: rgba(255,255,255,0.96) !important;
+    backdrop-filter: var(--glass-blur-strong) !important;
+    -webkit-backdrop-filter: var(--glass-blur-strong) !important;
+    border-radius: 24px 24px 0 0 !important;
     padding: 8px 32px calc(var(--safe-bottom) + 28px) !important;
-    box-shadow: 0 -4px 40px rgba(0,0,0,0.16) !important;
+    box-shadow:
+        0 -1px 0 rgba(255,255,255,0.95) inset,
+        0 -4px 40px rgba(11,76,143,0.16) !important;
     animation: sheetUp 0.45s cubic-bezier(0.19,1,0.22,1) both !important;
 }
 
-/* iOS sheet handle */
 .auth-container::before {
     content: '' !important;
     display: block !important;
-    width: 36px !important;
-    height: 4px !important;
+    width: 40px !important;
+    height: 5px !important;
     border-radius: var(--r-pill) !important;
-    background: rgba(60,60,67,0.28) !important;
-    margin: 0 auto 24px !important;
+    background: rgba(15,23,42,0.2) !important;
+    margin: 8px auto 24px !important;
 }
 
 @keyframes sheetUp {
-    0%  { transform: translateY(100%); }
-    100%{ transform: translateY(0); }
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
 }
 
-/* ── 12. Page transitions — iOS push/pop ── */
+/* ── 11. Transitions iOS ───────────────────────────────────────── */
 .page-enter-premium {
-    animation: iosPageIn 0.48s cubic-bezier(0.19,1,0.22,1) both !important;
+    animation: pageIn 0.5s cubic-bezier(0.19,1,0.22,1) both !important;
 }
 
-@keyframes iosPageIn {
-    0%  { opacity:0; transform: translateY(24px) scale(0.97); }
-    100%{ opacity:1; transform: translateY(0)    scale(1); }
+@keyframes pageIn {
+    from { opacity:0; transform: translateY(20px) scale(0.97); }
+    to   { opacity:1; transform: translateY(0) scale(1); }
 }
 
-.entry-anim { animation: iosPageIn 0.42s cubic-bezier(0.19,1,0.22,1) both; }
-.card-anim  { animation: iosPageIn 0.36s cubic-bezier(0.19,1,0.22,1) both; }
+.entry-anim { animation: pageIn 0.42s cubic-bezier(0.19,1,0.22,1) both; }
+.card-anim  { animation: pageIn 0.36s cubic-bezier(0.19,1,0.22,1) both; }
 
-/* Stagger group */
 .stagger-group > * {
     opacity: 0;
-    animation: iosPageIn 0.5s cubic-bezier(0.19,1,0.22,1) both;
+    animation: pageIn 0.5s cubic-bezier(0.19,1,0.22,1) both;
 }
 .stagger-group > *:nth-child(1){ animation-delay: 0.05s; }
 .stagger-group > *:nth-child(2){ animation-delay: 0.10s; }
@@ -663,87 +615,124 @@ input:focus, textarea:focus, .post-input:focus, .review-input:focus {
 .stagger-group > *:nth-child(5){ animation-delay: 0.25s; }
 .stagger-group > *:nth-child(n+6){ animation-delay: 0.30s; }
 
-/* ── 13. Progress bars ── */
+/* ── 12. Progress bars ─────────────────────────────────────────── */
 .g-progress-fill,
 .level-progress-bar {
-    background: var(--brand-gradient) !important;
+    background: var(--brand-bright) !important;
     border-radius: var(--r-pill) !important;
+    box-shadow: 0 0 12px rgba(11,113,252,0.4) !important;
 }
 
 .g-progress-track,
 .level-progress-container {
-    background: rgba(120,120,128,0.16) !important;
+    background: rgba(11,76,143,0.08) !important;
     border-radius: var(--r-pill) !important;
-    height: 6px !important;
+    height: 8px !important;
+    overflow: hidden !important;
 }
 
-/* ── 14. Level & Points badges ── */
+/* ── 13. Badges ────────────────────────────────────────────────── */
 .level-badge-premium {
     background: var(--brand-gradient) !important;
     color: white !important;
     border: none !important;
     border-radius: var(--r-pill) !important;
     font-size: 12px !important;
-    font-weight: 700 !important;
-    padding: 5px 14px !important;
-    box-shadow: 0 4px 14px rgba(11,76,143,0.22) !important;
+    font-weight: 800 !important;
+    padding: 6px 14px !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.25),
+        0 4px 14px rgba(11,113,252,0.28) !important;
 }
 
 .q-pts-badge {
-    background: var(--cyan-soft) !important;
+    background: rgba(23,200,212,0.18) !important;
     color: var(--cobalt) !important;
-    border: none !important;
+    border: 0.5px solid rgba(23,200,212,0.4) !important;
     border-radius: var(--r-pill) !important;
     font-size: 11px !important;
     font-weight: 800 !important;
+    padding: 4px 10px !important;
 }
 
-/* ── 15. Profile ── */
+/* ── 14. Profile avatar ─────────────────────────────────────────── */
 .profile-avatar-large {
     box-shadow:
         0 0 0 3px white,
-        0 0 0 5px var(--cobalt),
-        0 16px 50px rgba(11,76,143,0.22) !important;
+        0 0 0 6px rgba(11,113,252,0.3),
+        0 16px 50px rgba(11,76,143,0.18) !important;
     border-radius: 50% !important;
     transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1) !important;
 }
 .profile-avatar-large:active { transform: scale(0.92) !important; }
 
 .profile-hero-premium {
-    background: white !important;
-    padding-top: calc(var(--safe-top) + 20px) !important;
+    background: rgba(255,255,255,0.7) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    -webkit-backdrop-filter: var(--glass-blur) !important;
+    padding-top: calc(var(--safe-top) + 24px) !important;
+    border-radius: 0 0 var(--r-2xl) var(--r-2xl) !important;
 }
 
-/* ── 16. Racha capsule (quests header) ── */
+/* ── 15. Quests racha capsule ───────────────────────────────────── */
 .q-racha-capsule {
-    background: rgba(255,255,255,0.18) !important;
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
-    border: 0.5px solid rgba(255,255,255,0.3) !important;
+    background: rgba(255,255,255,0.22) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 0.5px solid rgba(255,255,255,0.35) !important;
     border-radius: var(--r-pill) !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.35) !important;
 }
 
-/* ── 17. Stats floating bar ── */
+/* Stats floating bar */
 .q-stats-floating-bar {
-    background: rgba(255,255,255,0.88) !important;
-    backdrop-filter: var(--glass-blur-sm) !important;
-    -webkit-backdrop-filter: var(--glass-blur-sm) !important;
+    background: rgba(255,255,255,0.85) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    -webkit-backdrop-filter: var(--glass-blur) !important;
     border-radius: var(--r-xl) !important;
-    border: var(--glass-border-sep) !important;
+    border: var(--glass-border) !important;
     box-shadow: var(--glass-shadow) !important;
 }
 
-/* ── 18. Toasts / Notifications ── */
+/* Ranking toggle pills */
+.ranking-toggle-pills {
+    background: rgba(255,255,255,0.18) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 0.5px solid rgba(255,255,255,0.3) !important;
+    border-radius: var(--r-pill) !important;
+    padding: 5px !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3) !important;
+}
+
+.rank-toggle-btn {
+    background: transparent !important;
+    border: none !important;
+    color: rgba(255,255,255,0.7) !important;
+    box-shadow: none !important;
+}
+
+.rank-toggle-btn.active {
+    background: white !important;
+    color: var(--cobalt-bright) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
+}
+
+/* ── 16. Toasts ─────────────────────────────────────────────────── */
 #toast-container > *,
 .toast {
     border-radius: var(--r-xl) !important;
     font-family: -apple-system, 'SF Pro Text', sans-serif !important;
     font-weight: 600 !important;
     font-size: 14px !important;
-    backdrop-filter: blur(30px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.6) !important;
+    background: rgba(255,255,255,0.85) !important;
+    backdrop-filter: var(--glass-blur-strong) !important;
+    -webkit-backdrop-filter: var(--glass-blur-strong) !important;
+    border: 0.5px solid rgba(255,255,255,0.9) !important;
+    color: var(--text-primary) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.95),
+        0 12px 40px rgba(11,76,143,0.16) !important;
     padding: 14px 20px !important;
 }
 
@@ -751,21 +740,18 @@ input:focus, textarea:focus, .post-input:focus, .review-input:focus {
 .toast-success {
     background: var(--brand-gradient) !important;
     color: white !important;
-    border: none !important;
+    border-color: transparent !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.25),
+        0 12px 40px rgba(11,113,252,0.3) !important;
 }
 
-/* ── 19. Gradient avatar placeholder ── */
-.gradient-bg {
-    background: var(--brand-gradient) !important;
-    color: white !important;
-}
-
-/* ── 20. Typing dots (cian) ── */
+/* ── 17. Loading & dots ─────────────────────────────────────────── */
 .typing-dots span {
     display: inline-block;
     width: 8px; height: 8px;
     border-radius: 50%;
-    background: var(--cyan);
+    background: var(--cyan-bright);
     margin: 0 3px;
     animation: dotBounce 1.2s infinite ease-in-out;
 }
@@ -775,168 +761,125 @@ input:focus, textarea:focus, .post-input:focus, .review-input:focus {
 
 @keyframes dotBounce {
     0%,80%,100%{ transform: scale(0.65); opacity:0.45; }
-    40%        { transform: scale(1.2);  opacity:1; }
+    40%        { transform: scale(1.2);  opacity:1;   }
 }
 
-/* Magic spinner */
 .magic-loader {
-    font-size: 30px;
+    font-size: 32px;
     display: inline-block;
-    animation: magicSpin 1.8s linear infinite;
+    animation: magicSpin 1.8s cubic-bezier(0.4,0,0.2,1) infinite;
 }
 @keyframes magicSpin {
     0%  { transform: rotate(0deg)   scale(1); }
-    50% { transform: rotate(180deg) scale(1.18); }
+    50% { transform: rotate(180deg) scale(1.2); }
     100%{ transform: rotate(360deg) scale(1); }
 }
 
-/* ── 21. Map search & chip filters ── */
-.filter-chip {
+/* ── 18. Map UI overlay ─────────────────────────────────────────── */
+.map-search-container {
+    background: transparent !important;
+}
+
+#map-viewport-v11,
+.map-viewport-v11 {
+    background: #EAF4FF !important;
+}
+
+.locate-fab {
     background: rgba(255,255,255,0.9) !important;
-    backdrop-filter: var(--glass-blur-sm) !important;
-    -webkit-backdrop-filter: var(--glass-blur-sm) !important;
-    border: 0.5px solid rgba(0,0,0,0.08) !important;
-    border-radius: var(--r-pill) !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    color: var(--cobalt) !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
-    padding: 8px 16px !important;
+    backdrop-filter: var(--glass-blur) !important;
+    -webkit-backdrop-filter: var(--glass-blur) !important;
+    border: 0.5px solid rgba(255,255,255,0.9) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.95),
+        0 6px 20px rgba(11,76,143,0.18) !important;
+    color: var(--cobalt-bright) !important;
 }
 
-.filter-chip.active {
-    background: var(--cobalt) !important;
+/* ── 19. Gradient utilities ─────────────────────────────────────── */
+.gradient-bg {
+    background: var(--brand-bright) !important;
     color: white !important;
-    border-color: transparent !important;
-    box-shadow: 0 4px 16px rgba(11,76,143,0.24) !important;
 }
 
-/* ── 22. Ranking toggle ── */
-.ranking-toggle-pills {
-    background: rgba(255,255,255,0.14) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 0.5px solid rgba(255,255,255,0.2) !important;
-    border-radius: var(--r-pill) !important;
-    padding: 5px !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2) !important;
-}
-
-.rank-toggle-btn.active {
-    background: rgba(255,255,255,0.92) !important;
-    color: var(--cobalt) !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
-}
-
-/* ── 23. Ranking rows ── */
-.ranking-row {
-    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1) !important;
-}
-
-/* "Is-me" highlight */
-.is-me {
-    background: linear-gradient(135deg,
-        rgba(23,200,212,0.08) 0%,
-        rgba(11,76,143,0.04) 100%) !important;
-    border: 1px solid rgba(23,200,212,0.25) !important;
-}
-
-/* ── 24. AI capsule card ── */
-.ai-magic-btn {
-    background: var(--cobalt) !important;
-    border-radius: var(--r-md) !important;
-    width: 48px !important;
-    height: 48px !important;
-    min-height: 48px !important;
-    padding: 0 !important;
-    box-shadow: 0 6px 20px rgba(11,76,143,0.2) !important;
-}
-
-/* ── 25. Safe zone spacer at bottom of scrollable pages ── */
-.quests-page > div:last-child,
-[style*="height:140px"] {
-    height: calc(140px + env(safe-area-inset-bottom, 20px)) !important;
-}
-
-/* ── 26. Utilities ── */
-.center-text { text-align: center; }
-.p-40 { padding: 40px; }
-.p-20 { padding: 20px; }
-.truncate { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-
-/* Gradient text utility */
 .gradient-text {
-    background: var(--brand-gradient);
+    background: var(--brand-bright);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-/* iOS-style separator */
-.ios-sep {
-    height: 0.5px;
-    background: var(--ios-sep);
-    margin: 0 16px;
+/* "Is-me" en ranking */
+.is-me {
+    background: linear-gradient(135deg,
+        rgba(23,200,212,0.12) 0%,
+        rgba(11,113,252,0.06) 100%) !important;
+    border: 1px solid rgba(23,200,212,0.4) !important;
 }
 
-/* Pulsing ring (used on map active marker) */
-@keyframes gpsPulse {
-    0%  { transform: translate(-50%,-50%) scale(1); opacity:0.6; }
-    100%{ transform: translate(-50%,-50%) scale(2.8); opacity:0; }
+/* ── 20. Stars rating ───────────────────────────────────────────── */
+.star.active { color: #FFB830 !important; }
+
+/* ── 21. Page transition overlay ────────────────────────────────── */
+.page-transition-overlay {
+    background: rgba(255,255,255,0.3) !important;
+    backdrop-filter: blur(40px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
 }
 
-/* Review badge on map */
-[style*="reseñado"] {
-    font-family: -apple-system, 'SF Pro Text', sans-serif !important;
-    font-weight: 700 !important;
-    letter-spacing: -0.2px !important;
+/* ── 22. Hero typography ────────────────────────────────────────── */
+.today-welcome-title,
+.ranking-title,
+.profile-name-main {
+    font-size: clamp(1.8rem, 7vw, 2.2rem) !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.5px !important;
+    line-height: 1.1 !important;
+    color: white !important;
 }
 
-/* ── 27. Dark mode (minimal — iOS auto) ── */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --ios-bg:    #1C1C1E;
-        --ios-bg2:   #2C2C2E;
-        --ios-sep:   rgba(255,255,255,0.15);
-        --ios-label: rgba(255,255,255,0.92);
-        --ios-label2:rgba(235,235,245,0.6);
-        --ios-label3:rgba(235,235,245,0.36);
-        --ios-fill:  rgba(118,118,128,0.24);
-        --glass-bg:  rgba(44,44,46,0.72);
-        --glass-border: 0.5px solid rgba(255,255,255,0.1);
-    }
-
-    body { background: #000000; }
-    #app { background: #1C1C1E; }
-
-    .bottom-nav {
-        background: rgba(28,28,30,0.82) !important;
-        border-top-color: rgba(255,255,255,0.12) !important;
-    }
-
-    .quest-card-smart,
-    .ranking-row { background: rgba(44,44,46,0.96) !important; }
-
-    input, textarea, .post-input, .review-input {
-        background: rgba(44,44,46,0.9) !important;
-        border-color: rgba(255,255,255,0.1) !important;
-        color: rgba(255,255,255,0.92) !important;
-    }
-
-    .auth-container {
-        background: rgba(28,28,30,0.96) !important;
-    }
-
-    .filter-chip {
-        background: rgba(58,58,60,0.9) !important;
-        color: rgba(255,255,255,0.8) !important;
-    }
+.today-welcome-subtitle,
+.ranking-subtitle {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    opacity: 0.85 !important;
+    color: white !important;
+    letter-spacing: 0 !important;
 }
 
-/* ── 28. Android-specific overrides ── */
-/* Remove iOS rubber-band on Android Chrome */
-@supports not (-webkit-overflow-scrolling: touch) {
-    #main-content {
-        overscroll-behavior-y: none;
-    }
+.profile-email-sub {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: var(--text-secondary) !important;
 }
+
+/* ── 23. Utilities ──────────────────────────────────────────────── */
+.center-text { text-align: center; }
+.p-40 { padding: 40px; }
+.p-20 { padding: 20px; }
+.truncate { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+
+/* Spacer al final de pantallas con scroll */
+.quests-page > div:last-child,
+[style*="height:140px"] {
+    height: calc(140px + env(safe-area-inset-bottom, 20px)) !important;
+}
+
+/* Premium shimmer skeleton */
+.premium-shimmer {
+    background: linear-gradient(90deg,
+        rgba(255,255,255,0.4) 0%,
+        rgba(255,255,255,0.85) 50%,
+        rgba(255,255,255,0.4) 100%) !important;
+    background-size: 200% 100% !important;
+    animation: shimmer 1.5s infinite linear !important;
+    border-radius: var(--r-xl) !important;
+    box-shadow: var(--glass-shadow) !important;
+}
+
+@keyframes shimmer {
+    to { background-position: -200% 0; }
+}
+
+/* ── 24. NO dark mode override (era el bug del fondo negro) ───── */
+/* Dejamos que el sistema use sus colores. La app SIEMPRE clara. */

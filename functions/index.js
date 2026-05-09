@@ -1,39 +1,40 @@
 /**
- * GoHappy — Firebase Cloud Functions
+ * GoHappy — Firebase Cloud Functions v2
  * Proxy seguro para Gemini API. La clave NUNCA llega al cliente.
- *
- * DEPLOY: firebase deploy --only functions
- * REQUIRES: Firebase Blaze plan (necesario para llamadas de red externas)
+ * Node 18 · firebase-functions v5 · europe-west1
  */
 
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
-const fetch = require('node-fetch');
+const { onRequest, onCall, HttpsError } = require('firebase-functions/v2/https');
+const { defineSecret } = require('firebase-functions/params');
+const { initializeApp } = require('firebase-admin/app');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 
-admin.initializeApp();
-const db = admin.firestore();
+initializeApp();
+const db = getFirestore();
 
-// ─── Configuración ──────────────────────────────────────────────────────────
-const GEMINI_KEY = functions.config().gemini.key; // firebase functions:config:set gemini.key="TU_CLAVE"
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+// Clave Gemini como Secret de Firebase (nunca en código)
+const GEMINI_KEY = defineSecret('GEMINI_KEY');
 
-// Límites por plan de usuario
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+
+// Límites por plan
 const LIMITS = {
-    guest:   { daily: 3,  monthly: 20  },
-    free:    { daily: 10, monthly: 100 },
-    premium: { daily: 50, monthly: 500 }
+    guest:   { daily: 3,   monthly: 20  },
+    free:    { daily: 10,  monthly: 100 },
+    premium: { daily: 50,  monthly: 500 }
 };
 
-// CORS permitido solo desde nuestros dominios
+// CORS — solo nuestros dominios
 const ALLOWED_ORIGINS = [
-    'https://douglascyberbraz-beep.github.io',
     'https://kindr-8d660.web.app',
     'https://kindr-8d660.firebaseapp.com',
+    'https://douglascyberbraz-beep.github.io',
     'http://localhost:3000',
     'http://localhost:8080'
 ];
 
-// ─── Helper CORS ────────────────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
 function setCorsHeaders(req, res) {
     const origin = req.headers.origin;
     if (ALLOWED_ORIGINS.includes(origin)) {
@@ -45,280 +46,190 @@ function setCorsHeaders(req, res) {
     res.set('Vary', 'Origin');
 }
 
-// ─── Helper: verificar token Firebase Auth ───────────────────────────────────
 async function verifyToken(req) {
-    const authHeader = req.headers.authorization || '';
-    if (!authHeader.startsWith('Bearer ')) return null;
-    const token = authHeader.slice(7);
+    const { getAuth } = require('firebase-admin/auth');
+    const header = req.headers.authorization || '';
+    if (!header.startsWith('Bearer ')) return null;
     try {
-        return await admin.auth().verifyIdToken(token);
-    } catch (e) {
-        return null;
-    }
+        return await getAuth().verifyIdToken(header.slice(7));
+    } catch { return null; }
 }
 
-// ─── Helper: rate limiting en Firestore ─────────────────────────────────────
 async function checkRateLimit(uid, userLevel) {
     const limit = LIMITS[userLevel] || LIMITS.free;
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    const month = new Date().toISOString().slice(0, 7);  // YYYY-MM
-
+    const today = new Date().toISOString().slice(0, 10);
+    const month = new Date().toISOString().slice(0, 7);
     const ref = db.collection('_ratelimits').doc(uid);
 
-    return await db.runTransaction(async (t) => {
+    return db.runTransaction(async (t) => {
         const doc = await t.get(ref);
         const data = doc.exists ? doc.data() : {};
+        const daily   = (data.date  === today) ? (data.daily   || 0) : 0;
+        const monthly = (data.month === month) ? (data.monthly || 0) : 0;
 
-        const dailyCount  = (data.date  === today) ? (data.daily  || 0) : 0;
-        const monthlyCount = (data.month === month) ? (data.monthly || 0) : 0;
-
-        if (dailyCount >= limit.daily)   return { allowed: false, reason: `Límite diario alcanzado (${limit.daily}/día)` };
-        if (monthlyCount >= limit.monthly) return { allowed: false, reason: `Límite mensual alcanzado (${limit.monthly}/mes)` };
+        if (daily   >= limit.daily)   return { allowed: false, reason: `Límite diario alcanzado (${limit.daily}/día)` };
+        if (monthly >= limit.monthly) return { allowed: false, reason: `Límite mensual alcanzado (${limit.monthly}/mes)` };
 
         t.set(ref, {
-            uid,
-            date:    today,
-            month:   month,
-            daily:   dailyCount + 1,
-            monthly: monthlyCount + 1,
-            lastCall: admin.firestore.FieldValue.serverTimestamp()
+            uid, date: today, month,
+            daily: daily + 1, monthly: monthly + 1,
+            lastCall: FieldValue.serverTimestamp()
         }, { merge: true });
 
-        return { allowed: true, remaining: limit.daily - dailyCount - 1 };
+        return { allowed: true, remaining: limit.daily - daily - 1 };
     });
 }
 
-// ─── Helper: validar y sanitizar el prompt ──────────────────────────────────
 function sanitizePrompt(prompt) {
-    if (typeof prompt !== 'string') return null;
-    if (prompt.length > 8000) return null; // Máximo 8k chars
-    // Bloquear intentos de prompt injection básicos
+    if (typeof prompt !== 'string' || prompt.length > 8000) return null;
     const blocked = [
         /ignore (previous|above|all) instructions/i,
-        /you are now/i,
-        /pretend (you are|to be)/i,
-        /act as (a|an) (different|new)/i,
-        /\bDAN\b/,
-        /jailbreak/i
+        /you are now/i, /pretend (you are|to be)/i,
+        /act as (a|an) (different|new)/i, /\bDAN\b/, /jailbreak/i
     ];
-    for (const pattern of blocked) {
-        if (pattern.test(prompt)) return null;
-    }
+    if (blocked.some(p => p.test(prompt))) return null;
     return prompt.trim();
 }
 
-// ─── Cloud Function principal ────────────────────────────────────────────────
-exports.geminiProxy = functions
-    .region('europe-west1') // Más cerca de España/Latam
-    .runWith({ timeoutSeconds: 30, memory: '256MB' })
-    .https.onRequest(async (req, res) => {
+// ── Gemini Proxy ──────────────────────────────────────────────────────────────
+exports.geminiProxy = onRequest(
+    { region: 'europe-west1', timeoutSeconds: 30, memory: '256MiB', secrets: [GEMINI_KEY] },
+    async (req, res) => {
         setCorsHeaders(req, res);
+        if (req.method === 'OPTIONS') return res.status(204).send('');
+        if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
 
-        // Preflight
-        if (req.method === 'OPTIONS') {
-            res.status(204).send('');
-            return;
-        }
+        const decoded = await verifyToken(req);
+        if (!decoded) return res.status(401).json({ error: 'No autenticado.' });
 
-        if (req.method !== 'POST') {
-            res.status(405).json({ error: 'Método no permitido' });
-            return;
-        }
+        const uid = decoded.uid;
 
-        // 1. Verificar autenticación
-        const decodedToken = await verifyToken(req);
-        if (!decodedToken) {
-            res.status(401).json({ error: 'No autenticado. Inicia sesión para usar GoHappy IA.' });
-            return;
-        }
-
-        const uid = decodedToken.uid;
-
-        // 2. Obtener nivel del usuario
-        let userLevel = 'free';
+        let userLevel = decoded.firebase?.sign_in_provider === 'anonymous' ? 'guest' : 'free';
         try {
             const userDoc = await db.collection('users').doc(uid).get();
             if (userDoc.exists) {
-                const level = userDoc.data().level || '';
-                if (level.includes('Oro') || level.includes('Premium')) userLevel = 'premium';
-                if (decodedToken.firebase?.sign_in_provider === 'anonymous') userLevel = 'guest';
+                const lvl = userDoc.data().level || '';
+                if (lvl.includes('Oro') || lvl.includes('Premium')) userLevel = 'premium';
             }
-        } catch (e) { /* usar 'free' como default */ }
+        } catch {}
 
-        // 3. Rate limiting
-        const rateCheck = await checkRateLimit(uid, userLevel);
-        if (!rateCheck.allowed) {
-            res.status(429).json({ error: rateCheck.reason });
-            return;
-        }
+        const rate = await checkRateLimit(uid, userLevel);
+        if (!rate.allowed) return res.status(429).json({ error: rate.reason });
 
-        // 4. Extraer y validar el prompt
         const { prompt, expectJson = true } = req.body || {};
-        const cleanPrompt = sanitizePrompt(prompt);
-        if (!cleanPrompt) {
-            res.status(400).json({ error: 'Prompt inválido o demasiado largo.' });
-            return;
-        }
+        const clean = sanitizePrompt(prompt);
+        if (!clean) return res.status(400).json({ error: 'Prompt inválido.' });
 
-        // 5. Llamar a Gemini con la clave SEGURA (solo en el servidor)
         try {
-            const requestBody = {
-                contents: [{ parts: [{ text: cleanPrompt }] }],
+            const body = {
+                contents: [{ parts: [{ text: clean }] }],
                 safetySettings: [
-                    { category: 'HARM_CATEGORY_HARASSMENT',       threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                    { category: 'HARM_CATEGORY_HATE_SPEECH',      threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                    { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                    { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
                     { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
                     { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' }
                 ]
             };
-            if (expectJson) {
-                requestBody.generationConfig = { response_mime_type: 'application/json' };
-            }
+            if (expectJson) body.generationConfig = { response_mime_type: 'application/json' };
 
-            const geminiRes = await fetch(`${GEMINI_URL}?key=${GEMINI_KEY}`, {
+            const r = await fetch(`${GEMINI_URL}?key=${GEMINI_KEY.value()}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody),
-                timeout: 25000
+                body: JSON.stringify(body),
+                signal: AbortSignal.timeout(25000)
             });
 
-            if (!geminiRes.ok) {
-                const errText = await geminiRes.text();
-                console.error('[Gemini] Error:', geminiRes.status, errText);
-                res.status(502).json({ error: 'Error en servicio de IA. Intenta de nuevo.' });
-                return;
+            if (!r.ok) {
+                console.error('[Gemini] Error:', r.status, await r.text());
+                return res.status(502).json({ error: 'Error en IA. Intenta de nuevo.' });
             }
 
-            const data = await geminiRes.json();
-
-            // Log de uso (sin el prompt — privacidad)
             db.collection('_ailogs').add({
-                uid,
-                timestamp: admin.firestore.FieldValue.serverTimestamp(),
-                model: 'gemini-1.5-flash',
-                expectJson,
-                success: true,
-                remainingToday: rateCheck.remaining
+                uid, model: 'gemini-2.0-flash', expectJson, success: true,
+                remainingToday: rate.remaining,
+                timestamp: FieldValue.serverTimestamp()
             }).catch(() => {});
 
-            res.set('X-RateLimit-Remaining', rateCheck.remaining);
-            res.status(200).json(data);
+            res.set('X-RateLimit-Remaining', rate.remaining);
+            return res.status(200).json(await r.json());
 
         } catch (e) {
-            console.error('[geminiProxy] Error inesperado:', e);
-            res.status(500).json({ error: 'Error interno del servidor.' });
+            console.error('[geminiProxy]', e);
+            return res.status(500).json({ error: 'Error interno.' });
         }
-    });
+    }
+);
 
-// ─── Cloud Function: completar quest y premiar puntos (seguro, server-side) ──
-exports.completeQuest = functions
-    .region('europe-west1')
-    .https.onCall(async (data, context) => {
-        if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Login requerido');
+// ── Completar Quest ───────────────────────────────────────────────────────────
+exports.completeQuest = onCall(
+    { region: 'europe-west1' },
+    async ({ data, auth }) => {
+        if (!auth) throw new HttpsError('unauthenticated', 'Login requerido');
 
-        const uid = context.auth.uid;
         const { questId, familyId, puntos, titulo } = data;
-
-        if (!questId || typeof questId !== 'string') throw new functions.https.HttpsError('invalid-argument', 'questId inválido');
-        if (!familyId || typeof familyId !== 'string') throw new functions.https.HttpsError('invalid-argument', 'familyId inválido');
-        if (typeof puntos !== 'number' || puntos < 0 || puntos > 500) throw new functions.https.HttpsError('invalid-argument', 'puntos inválidos');
+        if (!questId || typeof questId !== 'string') throw new HttpsError('invalid-argument', 'questId inválido');
+        if (!familyId || typeof familyId !== 'string') throw new HttpsError('invalid-argument', 'familyId inválido');
+        if (typeof puntos !== 'number' || puntos < 0 || puntos > 500) throw new HttpsError('invalid-argument', 'puntos inválidos');
 
         const hoy = new Date().toISOString().slice(0, 10);
-
-        // Anti-duplicado: verificar que no está ya completada hoy
         const registrosRef = db.collection('completadas').doc(familyId).collection('registros');
-        const yaCompletada = await registrosRef
-            .where('questId', '==', questId)
-            .where('fecha', '==', hoy)
-            .limit(1)
-            .get();
 
-        if (!yaCompletada.empty) {
-            throw new functions.https.HttpsError('already-exists', 'Ya completasteis esta misión hoy.');
+        const dup = await registrosRef.where('questId', '==', questId).where('fecha', '==', hoy).limit(1).get();
+        if (!dup.empty) throw new HttpsError('already-exists', 'Ya completasteis esta misión hoy.');
+
+        const familia = await db.collection('families').doc(familyId).get();
+        if (!familia.exists || !familia.data().miembros.includes(auth.uid)) {
+            throw new HttpsError('permission-denied', 'No eres miembro de esta familia.');
         }
 
-        // Verificar que el usuario es miembro de la familia
-        const familiaDoc = await db.collection('families').doc(familyId).get();
-        if (!familiaDoc.exists || !familiaDoc.data().miembros.includes(uid)) {
-            throw new functions.https.HttpsError('permission-denied', 'No eres miembro de esta familia.');
-        }
-
-        // Registrar la completación
         await registrosRef.add({
-            questId,
-            titulo: titulo || 'Misión Completada',
-            completadoPor: uid,
-            fecha: hoy,
-            timestamp: admin.firestore.FieldValue.serverTimestamp(),
-            puntosGanados: puntos
+            questId, titulo: titulo || 'Misión', completadoPor: auth.uid,
+            fecha: hoy, puntosGanados: puntos, timestamp: FieldValue.serverTimestamp()
         });
 
-        // Premiar puntos al usuario (incremento atómico, no manipulable)
-        await db.collection('users').doc(uid).update({
-            points: admin.firestore.FieldValue.increment(puntos),
-            weeklyPoints: admin.firestore.FieldValue.increment(puntos)
+        await db.collection('users').doc(auth.uid).update({
+            points: FieldValue.increment(puntos),
+            weeklyPoints: FieldValue.increment(puntos)
         });
 
-        // Sumar puntos al total de la familia
         await db.collection('families').doc(familyId).update({
-            puntosTotales: admin.firestore.FieldValue.increment(puntos)
+            puntosTotales: FieldValue.increment(puntos)
         });
 
         return { ok: true, puntos };
+    }
+);
+
+// ── Validar Referido ──────────────────────────────────────────────────────────
+exports.validateReferral = onCall({ region: 'europe-west1' }, async ({ data, auth }) => {
+    if (!auth) throw new HttpsError('unauthenticated', 'Login requerido');
+    const { code } = data;
+    if (!code || typeof code !== 'string' || code.length > 20) throw new HttpsError('invalid-argument', 'Código inválido');
+
+    const snap = await db.collection('users').where('referralCode', '==', code.toUpperCase().trim()).limit(1).get();
+    if (snap.empty) return { valid: false };
+    const ref = snap.docs[0];
+    if (ref.id === auth.uid) return { valid: false };
+    return { valid: true, referrerId: ref.id };
+});
+
+// ── Premiar Referidor ─────────────────────────────────────────────────────────
+exports.rewardReferrer = onCall({ region: 'europe-west1' }, async ({ data, auth }) => {
+    if (!auth) throw new HttpsError('unauthenticated', 'Login requerido');
+    const { referrerId, newUserId } = data;
+    if (!referrerId || referrerId === auth.uid) return { ok: false };
+
+    const REWARD = 500;
+    const ref = db.collection('users').doc(referrerId);
+    await db.runTransaction(async (t) => {
+        const doc = await t.get(ref);
+        if (!doc.exists) return;
+        t.update(ref, { points: FieldValue.increment(REWARD), weeklyPoints: FieldValue.increment(REWARD) });
     });
 
-// ─── Cloud Function: validar código de referido (seguro, server-side) ────────
-exports.validateReferral = functions
-    .region('europe-west1')
-    .https.onCall(async (data, context) => {
-        if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Login requerido');
-
-        const { code } = data;
-        if (!code || typeof code !== 'string' || code.length > 20) {
-            throw new functions.https.HttpsError('invalid-argument', 'Código inválido');
-        }
-
-        const snap = await db.collection('users')
-            .where('referralCode', '==', code.toUpperCase().trim())
-            .limit(1)
-            .get();
-
-        if (snap.empty) return { valid: false };
-
-        const referrer = snap.docs[0];
-        if (referrer.id === context.auth.uid) return { valid: false }; // No auto-referido
-
-        return { valid: true, referrerId: referrer.id };
+    await db.collection('_referrals').doc(`${referrerId}_${newUserId}`).set({
+        referrerId, newUserId, points: REWARD, timestamp: FieldValue.serverTimestamp()
     });
 
-// ─── Cloud Function: premiar referidor (seguro, server-side) ─────────────────
-exports.rewardReferrer = functions
-    .region('europe-west1')
-    .https.onCall(async (data, context) => {
-        if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Login requerido');
-
-        const { referrerId, newUserId } = data;
-        if (!referrerId || referrerId === context.auth.uid) return { ok: false };
-
-        // Anti-duplicado: verificar que el newUser no haya sido ya referido por este referrer
-        const REWARD_POINTS = 500;
-        const ref = db.collection('users').doc(referrerId);
-
-        await db.runTransaction(async (t) => {
-            const doc = await t.get(ref);
-            if (!doc.exists) return;
-            t.update(ref, {
-                points: admin.firestore.FieldValue.increment(REWARD_POINTS),
-                weeklyPoints: admin.firestore.FieldValue.increment(REWARD_POINTS)
-            });
-        });
-
-        // Log anti-duplicado
-        await db.collection('_referrals').doc(`${referrerId}_${newUserId}`).set({
-            referrerId, newUserId,
-            points: REWARD_POINTS,
-            timestamp: admin.firestore.FieldValue.serverTimestamp()
-        });
-
-        return { ok: true, points: REWARD_POINTS };
-    });
+    return { ok: true, points: REWARD };
+});

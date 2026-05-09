@@ -1,5 +1,5 @@
 {
-    "version": "3.0.0-beta",
-    "timestamp": "2026-05-09T18:00:00Z",
-    "note": "Beta: visión alineada — nav reordenado, quests mensuales, ranking desde Firestore, reviews mejoradas, premium gating"
+    "version": "3.1.0-beta",
+    "timestamp": "2026-05-09T20:00:00Z",
+    "note": "Liquid Glass iOS 26: estética clara, sin dark mode automático (fix fondo negro), traslucidez extrema, refracción de luz"
 }
