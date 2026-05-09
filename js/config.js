@@ -1,53 +1,74 @@
-// --------------------------------------------------------------
-// CONFIGURACIÓN DE FIREBASE Y GEMINI
-// --------------------------------------------------------------
-// Paso 1: Pega aquí abajo tu configuración de Firebase
-// (La obtienes en Project Settings -> General -> Your apps -> Web app)
+// ─────────────────────────────────────────────────────────────────────────────
+// GoHappy — Configuración de Firebase
+// ─────────────────────────────────────────────────────────────────────────────
+// NOTA TÉCNICA: La Firebase Web API Key es PUBLIC BY DESIGN.
+// La seguridad de Firebase se basa en Firestore Security Rules + Auth,
+// NO en ocultar esta clave. Ver: https://firebase.google.com/docs/projects/api-keys
+// ─────────────────────────────────────────────────────────────────────────────
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDppR0-A8bEKT1sjJDst1N6uZV-EsTLSYo",
-    authDomain: "GoHappy-8d660.firebaseapp.com",
-    projectId: "GoHappy-8d660",
-    storageBucket: "GoHappy-8d660.firebasestorage.app",
+    apiKey:            "AIzaSyDppR0-A8bEKT1sjJDst1N6uZV-EsTLSYo",
+    authDomain:        "gohappy-8d660.firebaseapp.com",
+    projectId:         "gohappy-8d660",
+    storageBucket:     "gohappy-8d660.firebasestorage.app",
     messagingSenderId: "552831875210",
-    appId: "1:552831875210:web:1af5583c40e0d62bbf9573",
-    measurementId: "G-2F3HNE2L5P"
+    appId:             "1:552831875210:web:1af5583c40e0d62bbf9573",
+    measurementId:     "G-2F3HNE2L5P"
 };
 
-// Paso 2: Clave API de Google Gemini (Para el Chat IA)
-// Construida en partes para evitar bloqueos automatizados de bots en GitHub
-const __gk1 = "AIzaSy";
-const __gk2 = "DoOl7_uj";
-const __gk3 = "mTvRmN_";
-const __gk4 = "kuH8LcCP";
-const __gk5 = "qoYQGKsG9Y";
-const GEMINI_API_KEY = __gk1 + __gk2 + __gk3 + __gk4 + __gk5;
+// ─────────────────────────────────────────────────────────────────────────────
+// SEGURIDAD — Gemini API Proxy
+// La clave de Gemini NUNCA está en el código cliente.
+// Todas las llamadas pasan por nuestro Cloud Function autenticado.
+//
+// DEPLOY del proxy:
+//   1. cd functions && npm install
+//   2. firebase functions:config:set gemini.key="TU_CLAVE_AQUI"
+//   3. firebase deploy --only functions
+//
+// Una vez desplegado, activa el proxy:
+//   window.GEMINI_PROXY_ACTIVE = true  (ya está en true por defecto)
+// ─────────────────────────────────────────────────────────────────────────────
 
-// --------------------------------------------------------------
-// NO TOCAR NADA DEBAJO DE ESTA LÍNEA
-// --------------------------------------------------------------
+// URL del Cloud Function proxy (ajustar región si cambias en functions/index.js)
+window.GEMINI_PROXY_URL = 'https://europe-west1-gohappy-8d660.cloudfunctions.net/geminiProxy';
 
-// Inicializar Firebase (Versión Compat para ejecución local sin servidor)
+// true = usar proxy seguro (producción) | false = usar mock data (sin función desplegada)
+window.GEMINI_PROXY_ACTIVE = true;
+
+// Clave legacy eliminada — NO PONER CLAVES AQUÍ
+// Si el proxy no está desplegado todavía, la app mostrará datos de demostración
+// hasta que actives las Cloud Functions.
+window.GEMINI_KEY = null; // <-- explícitamente null: sin acceso directo
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Inicializar Firebase
+// ─────────────────────────────────────────────────────────────────────────────
 if (window.firebase) {
-    firebase.initializeApp(firebaseConfig);
-    window.GoHappyFirebaseApp = firebase.app();
-    window.GoHappyAuthReal = firebase.auth();
-    window.GoHappyDB = firebase.firestore();
-    
-    // Activar Persistencia Offline
-    window.GoHappyDB.enablePersistence({ synchronizeTabs: true }).catch((err) => {
-        if (err.code == 'failed-precondition') {
-            console.warn('Persistencia fallida: Múltiples pestañas.');
-        } else if (err.code == 'unimplemented') {
-            console.warn('El navegador no soporta persistencia.');
-        }
-    });
+    try {
+        firebase.initializeApp(firebaseConfig);
+        window.GoHappyFirebaseApp = firebase.app();
+        window.GoHappyAuthReal    = firebase.auth();
+        window.GoHappyDB          = firebase.firestore();
 
-    console.log("🔥 Firebase conectado correctamente (Modo Offline Activo)");
+        // Persistencia offline (permite usar la app sin conexión)
+        window.GoHappyDB.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+            if (err.code === 'failed-precondition') {
+                console.warn('[GoHappy] Persistencia: múltiples pestañas abiertas.');
+            } else if (err.code === 'unimplemented') {
+                console.warn('[GoHappy] Persistencia offline no soportada en este navegador.');
+            }
+        });
+
+        // Dominios autorizados de Firebase Auth (añadir en Firebase Console si cambian)
+        // - douglascyberbraz-beep.github.io
+        // - gohappy-8d660.web.app
+        // - localhost (solo dev)
+
+        console.log('[GoHappy] Firebase inicializado correctamente ✓');
+    } catch (e) {
+        console.error('[GoHappy] Error inicializando Firebase:', e);
+    }
 } else {
-    console.error("❌ Error: Librerías de Firebase no cargadas.");
+    console.error('[GoHappy] Error: Firebase SDK no cargado.');
 }
-
-// Exponer clave de Gemini globalmente para el chat
-window.GEMINI_KEY = GEMINI_API_KEY;
-

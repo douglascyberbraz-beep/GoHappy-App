@@ -24,6 +24,46 @@ window.GoHappyMap = {
             const loader = document.getElementById('map-loader');
             if (loader) loader.style.display = 'none';
             window.GoHappyMap.instance.resize();
+            
+            // --- SMART NAV CHECK ---
+            if (window._navContext) {
+                window.GoHappyMap.handleNavContext(window._navContext);
+                window._navContext = null;
+            }
+        }
+    },
+
+    handleNavContext: (context) => {
+        if (!window.GoHappyMap.instance) return;
+        
+        console.log("[Map] Manejando contexto de navegación:", context);
+        
+        let targetCoords = null;
+        if (context.coords) {
+            targetCoords = [context.coords.lng, context.coords.lat];
+        } else if (context.focus) {
+            // Futuro: buscar por nombre si no hay coordenadas, 
+            // por ahora intentamos encontrar un marcador con ese nombre
+            const m = window.GoHappyMap.markers.find(m => m.data && m.data.name === context.focus);
+            if (m) targetCoords = [m.data.lng, m.data.lat];
+        }
+
+        if (targetCoords) {
+            window.GoHappyMap.instance.flyTo({
+                center: targetCoords,
+                zoom: context.zoom || 17,
+                speed: 1.5,
+                curve: 1.42,
+                essential: true
+            });
+
+            // Abrir popup si existe el marcador
+            const marker = window.GoHappyMap.markers.find(m => 
+                m.data && (m.data.name === context.focus || (m.data.lat === targetCoords[1] && m.data.lng === targetCoords[0]))
+            );
+            if (marker && marker.instance) {
+                setTimeout(() => marker.instance.togglePopup(), 1200);
+            }
         }
     },
 
@@ -61,6 +101,12 @@ window.GoHappyMap = {
                 window.GoHappyMap.isInitialized = true;
                 const loader = document.getElementById('map-loader');
                 if (loader) loader.style.display = 'none';
+                
+                // --- SMART NAV CHECK (Initial Load) ---
+                if (window._navContext) {
+                    window.GoHappyMap.handleNavContext(window._navContext);
+                    window._navContext = null;
+                }
                 
                 // Waze Style Colors - More Premium and Clean
                 const layersToColor = [

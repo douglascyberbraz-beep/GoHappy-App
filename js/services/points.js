@@ -100,10 +100,22 @@ window.GoHappyPoints = {
                     }
                 });
                 
+                // --- CRITICAL: GLOBAL SYNC ---
+                // Dispatch event to update UI across all pages
+                window.dispatchEvent(new CustomEvent('GoHappy-points-sync', { 
+                    detail: { 
+                        points: user.points, 
+                        action: action,
+                        added: pointsToAdd
+                    } 
+                }));
+
                 window.dispatchEvent(new CustomEvent('pointsUpdated', { detail: user.points }));
                 console.log("✅ Puntos sincronizados con Firestore");
+                return pointsToAdd;
             } catch (e) {
                 console.error("Error sincronizando puntos:", e);
+                return 0;
             }
         } else {
             // Fallback para invitados o local

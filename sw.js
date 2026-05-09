@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gohappy-cache-v2.8.0';
+const CACHE_NAME = 'gohappy-cache-v2.9.0';
 const TILE_CACHE = 'gohappy-tiles-v1.3.0';
 
 const ASSETS = [
@@ -10,6 +10,7 @@ const ASSETS = [
     'js/config.js',
     'js/lib/qrcode.min.js',
     // Services
+    'js/services/security.js',
     'js/services/toast.js',
     'js/services/sound.js',
     'js/services/data.js',

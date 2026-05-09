@@ -1,7 +1,7 @@
 window.GoHappySafePage = {
     render: async (container) => {
         container.innerHTML = `
-            <div class="safe-page">
+            <div class="safe-page stagger-group">
                 <div class="page-header center-text">
                     <h2 style="color: var(--primary-cobalt); font-weight: 800;">🛡️ SAFE</h2>
                     <p style="color: #888; font-size: 13px;">Alertas de seguridad en tu zona</p>
@@ -83,10 +83,17 @@ window.GoHappySafePage = {
                         <p class="alert-location" style="font-size: 12px; color: #888;">📍 ${alert.location}</p>
                         <p class="alert-desc" style="font-size: 13px; color: #555; margin-top: 6px; line-height: 1.4;">${alert.description}</p>
                         <div class="alert-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-                            <span style="font-size: 11px; color: #aaa;">👤 ${alert.reportedBy}</span>
-                            <div style="display: flex; gap: 8px; align-items: center;">
-                                <span style="font-size: 12px; color: #888;">👍 ${alert.votes || 0}</span>
-                                <button class="btn-vote" data-alert="${alert.id}" style="font-size: 11px; padding: 4px 10px; border-radius: 8px; border: 1px solid #ddd; background: #f9f9f9; cursor: pointer;">Confirmar</button>
+                            <span class="alert-type-label" style="color: ${typeInfo.color};">${typeInfo.label.toUpperCase()}</span>
+                            <span class="alert-time">${alert.timeAgo || 'Reciente'}</span>
+                        </div>
+                        <h4 class="alert-title">${alert.title}</h4>
+                        <p class="alert-location">📍 ${alert.location}</p>
+                        <p class="alert-desc">${alert.description}</p>
+                        <div class="alert-footer">
+                            <span class="alert-reporter">👤 ${alert.reportedBy}</span>
+                            <div class="alert-actions">
+                                <span class="alert-votes">👍 ${alert.votes || 0}</span>
+                                <button class="btn-vote" data-alert="${alert.id}">Confirmar</button>
                             </div>
                         </div>
                     </div>
@@ -176,6 +183,11 @@ window.GoHappySafePage = {
 
             if (success) {
                 modal.classList.add('hidden');
+                
+                // --- UNIFIED SYNC ---
+                window.GoHappyApp.notify('data-sync', { type: 'alert', location });
+                window.GoHappyPoints.addPoints('SAFETY_REPORT');
+                
                 window.GoHappyToast.points('¡Alerta reportada! +20 pts. ¡Gracias por cuidar a la comunidad!');
                 window.GoHappySafePage.render(container);
             } else {

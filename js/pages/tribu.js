@@ -57,6 +57,22 @@ window.GoHappyTribu = {
                 return;
             }
 
+            // Validar contenido antes de publicar
+            const sec = window.GoHappySecurity;
+            if (sec && !sec.validate.postContent(text)) {
+                window.GoHappyToast.error('El mensaje debe tener entre 1 y 160 caracteres.');
+                return;
+            }
+            if (sec && !sec.isClean(text)) {
+                window.GoHappyToast.error('Contenido no permitido. Por favor revisa tu mensaje.');
+                return;
+            }
+            // Rate limiting local: máx 3 posts por minuto
+            if (sec && !sec.checkLocalRateLimit('tribu_post', 3)) {
+                window.GoHappyToast.warning('Estás publicando demasiado rápido. Espera un momento. 🙏');
+                return;
+            }
+
             if (text && text.length <= 160) {
                 const publishBtn = document.getElementById('publish-btn');
                 publishBtn.disabled = true;
@@ -146,6 +162,7 @@ window.GoHappyTribu = {
             container.innerHTML = '<p class="center-text p-20">No hay publicaciones aún. ¡Sé el primero!</p>';
             return;
         }
+        const sec = window.GoHappySecurity;
         postList.forEach(post => {
             const card = document.createElement('div');
             card.className = `tribu-card entry-anim ${post.isAI ? 'ai-sponsored-card' : ''}`;
@@ -154,18 +171,27 @@ window.GoHappyTribu = {
                 card.style.border = '1px solid var(--accent-cyan)';
             }
 
+            // Sanitizar todo el contenido de usuario antes de inyectar en DOM
+            const safeAvatar  = sec ? sec.safe(post.avatar)  : (post.avatar  || '😊');
+            const safeUser    = sec ? sec.safe(post.user)    : (post.user    || 'Usuario');
+            const safeTime    = sec ? sec.safe(post.time)    : (post.time    || '');
+            // El contenido del post puede incluir <strong> y <br> si viene de la IA
+            const safeContent = post.isAI
+                ? (sec ? sec.safePost(post.content) : post.content)
+                : (sec ? sec.safe(post.content) : post.content);
+
             card.innerHTML = `
                 <div class="tribu-header">
-                    <div class="tribu-avatar" style="${post.isAI ? 'background: var(--primary-cobalt); box-shadow: 0 0 10px var(--accent-cyan);' : ''}">${post.avatar}</div>
+                    <div class="tribu-avatar" style="${post.isAI ? 'background: var(--primary-cobalt); box-shadow: 0 0 10px var(--accent-cyan);' : ''}">${safeAvatar}</div>
                     <div class="tribu-info">
-                        <span class="tribu-user" style="${post.isAI ? 'font-weight: 900; color: var(--primary-cobalt);' : ''}">${post.user} ${post.isAI ? '✨ (Oficial)' : ''}</span>
-                        <span class="tribu-time">${post.time}</span>
+                        <span class="tribu-user" style="${post.isAI ? 'font-weight: 900; color: var(--primary-cobalt);' : ''}">${safeUser}${post.isAI ? ' ✨ <em style="font-size:11px;opacity:0.7">(Oficial)</em>' : ''}</span>
+                        <span class="tribu-time">${safeTime}</span>
                     </div>
                 </div>
-                <p class="tribu-content" style="${post.isAI ? 'font-size: 14px; line-height: 1.5; color: var(--primary-cobalt);' : ''}">${post.content}</p>
+                <p class="tribu-content" style="${post.isAI ? 'font-size: 14px; line-height: 1.5; color: var(--primary-cobalt);' : ''}">${safeContent}</p>
                 <div class="tribu-actions">
-                    <button class="action-btn">❤️ ${post.likes}</button>
-                    <button class="action-btn">💬 ${post.comments}</button>
+                    <button class="action-btn">❤️ ${parseInt(post.likes) || 0}</button>
+                    <button class="action-btn">💬 ${parseInt(post.comments) || 0}</button>
                     <button class="action-btn">🔗</button>
                 </div>
             `;

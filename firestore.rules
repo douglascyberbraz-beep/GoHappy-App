@@ -2,116 +2,301 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ---------- USERS ----------
-    // Cualquier usuario logueado puede leer perfiles (para ranking).
-    // Solo el propio usuario puede escribir su perfil.
+    // ═══════════════════════════════════════════════════════════════
+    // HELPERS
+    // ═══════════════════════════════════════════════════════════════
+
+    // Usuario autenticado (no anónimo)
+    function isAuthenticated() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    // Usuario autenticado real (no invitado anónimo)
+    function isRealUser() {
+      return isAuthenticated() && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    // Es el propio usuario
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // Miembro de la familia
+    function isFamilyMember(familyId) {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/families/$(familyId)) &&
+             request.auth.uid in get(/databases/$(database)/documents/families/$(familyId)).data.miembros;
+    }
+
+    // Tamaño de string dentro de límites
+    function validString(field, min, max) {
+      return field is string && field.size() >= min && field.size() <= max;
+    }
+
+    // Timestamp no es futuro (±5 min de tolerancia)
+    function validTimestamp(ts) {
+      return ts == request.time || (ts >= request.time - duration.value(300, 's'));
+    }
+
+    // Solo campos permitidos fueron tocados
+    function onlyFields(allowed) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowed);
+    }
+
+    // Ningún campo de los bloqueados fue tocado
+    function noFields(blocked) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(blocked);
+    }
+
+
+    // ═══════════════════════════════════════════════════════════════
+    // USUARIOS
+    // ═══════════════════════════════════════════════════════════════
     match /users/{uid} {
-      allow read: if request.auth != null;
-      allow create: if request.auth.uid == uid;
-      allow update: if request.auth.uid == uid 
-                    && !request.resource.data.diff(resource.data).affectedKeys()
-                        .intersects(['points', 'familyId', 'rol', 'weeklyPoints', 'email']);
+
+      // Leer perfil: el propio usuario, o cualquier autenticado (para ranking)
+      allow get:  if isAuthenticated();
+      allow list: if isAuthenticated();
+
+      // Crear perfil: solo el propio usuario, campos obligatorios validados
+      allow create: if isOwner(uid)
+        && validString(request.resource.data.nickname, 2, 24)
+        && validString(request.resource.data.email, 3, 254)
+        && request.resource.data.points    is number && request.resource.data.points    >= 0
+        && request.resource.data.familyId  == null
+        && request.resource.data.createdAt == request.time;
+
+      // Actualizar: solo el propio usuario y solo campos no protegidos
+      allow update: if isOwner(uid)
+        && noFields(['uid', 'email', 'createdAt', 'referralCode', 'referredBy'])
+        && noFields(['points', 'weeklyPoints', 'familyId', 'rol'])  // Solo Cloud Functions
+        && (!request.resource.data.keys().hasAny(['nickname']) ||
+            validString(request.resource.data.nickname, 2, 24))
+        && (!request.resource.data.keys().hasAny(['photo']) ||
+            request.resource.data.photo is string && request.resource.data.photo.size() <= 10);
+
+      // Borrar: nunca (soft delete solo via Cloud Functions)
       allow delete: if false;
     }
 
-    // ---------- QUESTS (Catálogo) ----------
+    // Acumulación de puntos solo via Cloud Functions (admin SDK)
+    // Los clientes NO pueden tocar /users/{uid}/points directamente
+
+
+    // ═══════════════════════════════════════════════════════════════
+    // FAMILIAS
+    // ═══════════════════════════════════════════════════════════════
+    match /families/{familyId} {
+
+      // Leer: solo miembros de la familia
+      allow get:  if isAuthenticated() && request.auth.uid in resource.data.miembros;
+      allow list: if false; // Nunca listar todas las familias
+
+      // Crear: real user, máx 1 miembro inicial (el creador)
+      allow create: if isRealUser()
+        && request.auth.uid == request.resource.data.creadoPor
+        && request.resource.data.miembros.size() == 1
+        && request.resource.data.miembros[0] == request.auth.uid
+        && validString(request.resource.data.nombre, 2, 40);
+
+      // Actualizar: solo miembros, máx 6 miembros, solo campos permitidos
+      allow update: if isAuthenticated()
+        && request.auth.uid in resource.data.miembros
+        && request.resource.data.miembros.size() <= 6
+        && request.resource.data.creadoPor == resource.data.creadoPor  // No cambiar creador
+        && noFields(['creadoPor', 'createdAt']);
+
+      // Borrar: solo el creador
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.creadoPor;
+    }
+
+
+    // ═══════════════════════════════════════════════════════════════
+    // QUESTS (Catálogo compartido + progreso por familia)
+    // ═══════════════════════════════════════════════════════════════
     match /quests/{questId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null; 
-      allow update: if request.auth != null;
+
+      // Leer: cualquier usuario autenticado
+      allow get:  if isAuthenticated();
+      allow list: if isAuthenticated();
+
+      // Crear: solo usuarios reales, con campos validados
+      allow create: if isRealUser()
+        && validString(request.resource.data.title, 3, 120)
+        && request.resource.data.points is number
+        && request.resource.data.points >= 0
+        && request.resource.data.points <= 1000;
+
+      // Actualizar: solo el usuario o miembro de la familia propietaria,
+      // y solo campos de progreso (no título, puntos, etc.)
+      allow update: if isAuthenticated()
+        && (request.auth.uid == resource.data.userId ||
+            (resource.data.familyId != null && isFamilyMember(resource.data.familyId)))
+        && onlyFields(['status', 'progress', 'completedAt', 'currentStep',
+                       'updatedAt', 'lastUpdatedBy']);
+
       allow delete: if false;
     }
 
-    // ---------- COMPLETADAS (Historial Familiar) ----------
-    match /completadas/{familyId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
 
+    // ═══════════════════════════════════════════════════════════════
+    // COMPLETADAS (Historial de quests terminadas por familia)
+    // ═══════════════════════════════════════════════════════════════
+    match /completadas/{familyId} {
+
+      // Leer: solo miembros de la familia
+      allow read: if isAuthenticated() && isFamilyMember(familyId);
+
+      // Subcolección de registros
       match /registros/{registroId} {
-        allow read: if request.auth != null;
-        allow create: if request.auth != null;
+        allow read:   if isAuthenticated() && isFamilyMember(familyId);
+        allow create: if isAuthenticated() && isFamilyMember(familyId)
+          && request.auth.uid == request.resource.data.userId;
         allow update, delete: if false;
       }
     }
 
-    // ---------- ACTIVITY (Memories) ----------
+
+    // ═══════════════════════════════════════════════════════════════
+    // ACTIVITY (Memories — historial de actividades del usuario)
+    // ═══════════════════════════════════════════════════════════════
     match /activity/{actId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
+
+      // Leer: solo el propio usuario
+      allow get:  if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow list: if isAuthenticated(); // Restringido por query (userId == uid)
+
+      // Crear: solo el propio usuario
+      allow create: if isAuthenticated()
+        && request.auth.uid == request.resource.data.userId
+        && validString(request.resource.data.title, 1, 120);
+
       allow update, delete: if false;
     }
 
-    // ---------- ALERTS (Safe) ----------
-    // Cualquier usuario logueado puede leer alertas activas y crear nuevas.
-    // Solo el creador puede modificar la suya.
+
+    // ═══════════════════════════════════════════════════════════════
+    // ALERTAS DE SEGURIDAD (Safe)
+    // ═══════════════════════════════════════════════════════════════
     match /alerts/{alertId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null
-                    && request.auth.uid == request.resource.data.userId;
-      allow update: if request.auth != null
-                    && (request.auth.uid == resource.data.userId
-                        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votes']));
-      allow delete: if request.auth != null
-                    && request.auth.uid == resource.data.userId;
+
+      // Leer: cualquier usuario autenticado
+      allow get:  if isAuthenticated();
+      allow list: if isAuthenticated();
+
+      // Crear: usuario real, campos validados, no puede auto-asignar votos
+      allow create: if isRealUser()
+        && request.auth.uid == request.resource.data.userId
+        && validString(request.resource.data.title, 3, 100)
+        && validString(request.resource.data.description, 5, 500)
+        && request.resource.data.votes == 0
+        && request.resource.data.active == true;
+
+      // Actualizar: creador puede archivar | cualquiera puede votar
+      allow update: if isAuthenticated() && (
+        (request.auth.uid == resource.data.userId && onlyFields(['active', 'updatedAt'])) ||
+        (onlyFields(['votes']) && request.resource.data.votes == resource.data.votes + 1)
+      );
+
+      // Borrar: solo el creador
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
     }
 
-    // ---------- POSTS (Tribu) ----------
-    // Cualquier logueado puede leer posts. Solo el autor puede crear el suyo.
+
+    // ═══════════════════════════════════════════════════════════════
+    // POSTS DE TRIBU
+    // ═══════════════════════════════════════════════════════════════
     match /posts/{postId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null
-                    && request.auth.uid == request.resource.data.userId;
-      allow update: if request.auth != null
-                    && (request.auth.uid == resource.data.userId
-                        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']));
-      allow delete: if request.auth != null
-                    && request.auth.uid == resource.data.userId;
+
+      // Leer: cualquier usuario autenticado
+      allow get:  if isAuthenticated();
+      allow list: if isAuthenticated();
+
+      // Crear: usuario real, contenido validado, sin HTML
+      allow create: if isRealUser()
+        && request.auth.uid == request.resource.data.userId
+        && validString(request.resource.data.content, 1, 160)
+        && request.resource.data.likes == 0;
+
+      // Actualizar: autor puede editar contenido | cualquiera puede dar like
+      allow update: if isAuthenticated() && (
+        (request.auth.uid == resource.data.userId && onlyFields(['content', 'updatedAt']) &&
+         validString(request.resource.data.content, 1, 160)) ||
+        (onlyFields(['likes']) && request.resource.data.likes == resource.data.likes + 1)
+      );
+
+      // Borrar: solo el autor
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
     }
 
-    // ---------- REVIEWS (Mapa) ----------
-    // Cualquier logueado puede leer reseñas. Solo el autor puede crearlas.
+
+    // ═══════════════════════════════════════════════════════════════
+    // RESEÑAS (Mapa)
+    // ═══════════════════════════════════════════════════════════════
     match /reviews/{reviewId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null
-                    && request.auth.uid == request.resource.data.userId;
-      allow update, delete: if request.auth != null
-                             && request.auth.uid == resource.data.userId;
+      allow get:  if isAuthenticated();
+      allow list: if isAuthenticated();
+
+      allow create: if isRealUser()
+        && request.auth.uid == request.resource.data.userId
+        && validString(request.resource.data.comment, 1, 300)
+        && request.resource.data.rating is number
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5;
+
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId
+        && onlyFields(['comment', 'rating', 'updatedAt'])
+        && validString(request.resource.data.comment, 1, 300);
+
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
     }
 
-    // ---------- INVITATIONS (Referidos) ----------
-    // Cualquier logueado puede leer códigos para validar. Solo el sistema crea.
+
+    // ═══════════════════════════════════════════════════════════════
+    // INVITACIONES / REFERIDOS
+    // ═══════════════════════════════════════════════════════════════
     match /invitations/{code} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null;
+
+      // Validar código: cualquier autenticado puede leer
+      allow get:  if isAuthenticated();
+      allow list: if false;
+
+      // Crear invitación: solo usuario real, código validado
+      allow create: if isRealUser()
+        && request.auth.uid == request.resource.data.createdBy
+        && request.resource.data.used == false
+        && validString(request.resource.data.code, 4, 20);
+
+      // Marcar como usada: solo el sistema (via Cloud Functions)
+      allow update: if false;
       allow delete: if false;
     }
 
-    // ---------- FAMILIES ----------
-    // Solo miembros de la familia pueden leer y modificar.
-    // La regla de máximo 6 miembros se valida en el servidor.
-    match /families/{familyId} {
-      allow read: if request.auth != null
-                  && request.auth.uid in resource.data.miembros;
-      allow create: if request.auth != null
-                    && request.auth.uid == request.resource.data.creadoPor
-                    && request.resource.data.miembros.size() == 1
-                    && request.resource.data.miembros[0] == request.auth.uid;
-      allow update: if request.auth != null
-                    && request.auth.uid in resource.data.miembros
-                    && request.resource.data.miembros.size() <= 6;
-      allow delete: if request.auth != null
-                    && request.auth.uid == resource.data.creadoPor;
-    }
 
-    // ---------- LOCATIONS / NEWS / EVENTS ----------
-    // Solo lectura pública para usuarios logueados.
+    // ═══════════════════════════════════════════════════════════════
+    // LOCATIONS (Solo lectura — generado por AI/admin)
+    // ═══════════════════════════════════════════════════════════════
     match /locations/{locId} {
-      allow read: if request.auth != null;
-      allow write: if false; // Generado por AI, no editable directamente
+      allow read:  if isAuthenticated();
+      allow write: if false;
     }
 
-    // ---------- DENY ALL ELSE ----------
+    // NEWS, EVENTS (Solo lectura pública)
+    match /news/{docId}   { allow read: if isAuthenticated(); allow write: if false; }
+    match /events/{docId} { allow read: if isAuthenticated(); allow write: if false; }
+
+
+    // ═══════════════════════════════════════════════════════════════
+    // COLECCIONES INTERNAS (solo Cloud Functions con admin SDK)
+    // ═══════════════════════════════════════════════════════════════
+    match /_ratelimits/{uid}  { allow read, write: if false; }
+    match /_ailogs/{docId}    { allow read, write: if false; }
+    match /_referrals/{docId} { allow read, write: if false; }
+
+
+    // ═══════════════════════════════════════════════════════════════
+    // DENY ALL — Bloque final de seguridad
+    // ═══════════════════════════════════════════════════════════════
     match /{document=**} {
       allow read, write: if false;
     }

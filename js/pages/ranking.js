@@ -1,17 +1,20 @@
 window.GoHappyRanking = {
     render: async (container) => {
         container.innerHTML = `
-            <div class="page-header center-text">
-                <h2 style="color: var(--primary-cobalt); font-weight: 900; font-size: 26px; letter-spacing: -0.5px;">🏆 EL TOP DE LA TRIBU</h2>
-                <p style="font-size: 13px; color: #64748b; margin-top: 5px; margin-bottom: 20px;">Los que más ayudan a la comunidad GoHappy</p>
-                <div class="tab-scroller" style="background: rgba(255,255,255,0.5); padding: 5px; border-radius: 30px; border: 1px solid rgba(0,0,0,0.05); display: inline-flex; margin-bottom: 10px;">
-                    <button class="tab-btn active" data-tab="sites" style="padding: 10px 25px; border-radius: 25px; font-weight: 700; font-size: 13px;">🌟 Mejores Sitios</button>
-                    <button class="tab-btn" data-tab="users" style="padding: 10px 25px; border-radius: 25px; font-weight: 700; font-size: 13px;">🤝 Colaboradores</button>
+            <div class="ranking-hero-premium">
+                <div class="ranking-hero-content">
+                    <h2 class="ranking-title">🏆 TOP TRIBU</h2>
+                    <p class="ranking-subtitle">Los líderes que mueven la comunidad GoHappy</p>
+                    
+                    <div class="ranking-toggle-pills">
+                        <button class="rank-toggle-btn active" data-tab="sites">🌟 Sitios</button>
+                        <button class="rank-toggle-btn" data-tab="users">🤝 Miembros</button>
+                    </div>
                 </div>
             </div>
             
-            <div id="ranking-list" class="ranking-container stagger-group" style="padding-bottom: 100px;">
-                <div class="center-text p-20"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+            <div id="ranking-list" class="ranking-display-area stagger-group">
+                <div class="center-text p-40"><div class="typing-dots"><span></span><span></span><span></span></div></div>
             </div>
         `;
 
@@ -153,10 +156,10 @@ window.GoHappyRanking = {
 
         await renderSites();
 
-        container.querySelectorAll('.tab-btn').forEach(btn => {
+        container.querySelectorAll('.rank-toggle-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const tab = e.target.dataset.tab;
-                container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                container.querySelectorAll('.rank-toggle-btn').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
                 if (tab === 'sites') await renderSites();
                 else await renderContributors();

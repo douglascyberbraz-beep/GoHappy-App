@@ -6,6 +6,30 @@ window.GoHappyProfile = {
 
         if (!user) {
             container.innerHTML = `
+                <style>
+                .bottom-nav {
+                    position: fixed;
+                    bottom: max(35px, env(safe-area-inset-bottom, 20px));
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 94%;
+                    height: 80px;
+                    background: rgba(255, 255, 255, 0.4);
+                    backdrop-filter: blur(40px) saturate(200%);
+                    -webkit-backdrop-filter: blur(40px) saturate(200%);
+                    border-radius: 40px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    box-shadow: 0 20px 50px rgba(11, 76, 143, 0.15), inset 0 1px 3px rgba(255,255,255,0.7);
+                    z-index: 1500;
+                    padding: 0 10px;
+                    border: 1px solid rgba(255, 255, 255, 0.5);
+                    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+                    gap: 8px;
+                }
+                .bottom-nav::-webkit-scrollbar { display: none; }
+                </style>
                 <div class="p-20 center-text entry-anim">
                     <div style="font-size: 5rem; margin-bottom: 30px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));">🕶️</div>
                     <h3 style="color: var(--primary-cobalt); font-size: 20px; font-weight: 800;">¿Quién eres?</h3>
@@ -23,50 +47,57 @@ window.GoHappyProfile = {
         const levelInfo = window.GoHappyPoints.getLevelInfo(user.points);
 
         container.innerHTML = `
-            <div class="profile-page entry-anim" style="padding-bottom: 120px; background: #f8fafc;">
-                <div class="profile-hero-premium" style="background: white; padding: 40px 20px; border-radius: 0 0 50px 50px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); width: 100%; display: flex; flex-direction: column; align-items: center;">
-                    <div class="profile-avatar-wrapper" id="open-avatar-editor" style="cursor: pointer; position: relative; margin-bottom: 20px;">
-                        <div class="profile-avatar-large profile-glow" style="width: 110px; height: 110px; border-radius: 50%; font-size: 60px; background: white; border: 4px solid var(--primary-cobalt); display: flex; align-items: center; justify-content: center; box-shadow: 0 15px 35px rgba(11, 113, 252, 0.2);">${user.photo || '👤'}</div>
-                        <div class="level-label-bubble" style="background: var(--primary-cobalt); color: white; font-weight: 800; padding: 6px 18px; border-radius: 20px; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); font-size: 12px; box-shadow: 0 5px 15px rgba(11, 113, 252, 0.3);">Nivel ${user.level || '1'}</div>
+            <div class="profile-page-premium stagger-group">
+                <div class="profile-hero-premium">
+                    <div class="profile-avatar-wrapper" id="open-avatar-editor">
+                        <div class="profile-avatar-large profile-glow">${user.photo || '👤'}</div>
+                        <div class="level-badge-premium">Nivel ${user.level || '1'}</div>
                     </div>
-                    <div class="profile-info-header" style="text-align: center;">
-                        <h2 class="profile-name-premium" style="color: var(--primary-navy); font-weight: 900; font-size: 1.8rem; margin: 0;">${user.nickname || 'Explorador'}</h2>
-                        <p style="color: #64748b; font-size: 13px; font-weight: 600; margin-top: 5px;">${user.email || 'Miembro de la Tribu'}</p>
+                    <div class="profile-meta-header">
+                        <h2 class="profile-name-main">${user.nickname || 'Explorador'}</h2>
+                        <p class="profile-email-sub">${user.email || 'Miembro GoHappy'}</p>
                     </div>
                 </div>
 
-                <div class="gamification-dashboard premium-glass">
-                    <div class="dashboard-header">
-                        <div class="points-circle">
-                            <span class="big-pts">${user.points}</span>
-                            <span class="pts-label">PUNTOS</span>
+                <div class="gamification-card-premium">
+                    <div class="g-card-header">
+                        <div class="g-points-display">
+                            <span class="g-points-val">${user.points}</span>
+                            <label>PUNTOS</label>
                         </div>
-                        <div class="level-status">
-                            <h3 style="margin:0; font-size: 18px;">${levelInfo.icon} ${levelInfo.name}</h3>
-                            <p style="font-size: 12px; opacity: 0.8; margin-top: 5px;">
-                                ${levelInfo.nextPoints ? `Próximo: ${levelInfo.nextPoints} pts` : '¡Máximo Nivel!'}
-                            </p>
+                        <div class="g-level-info">
+                            <h3>${levelInfo.icon} ${levelInfo.name}</h3>
+                            <p>${levelInfo.nextPoints ? `Faltan ${levelInfo.nextPoints - user.points} para el siguiente` : '¡Nivel Máximo!'}</p>
                         </div>
                     </div>
                     
-                    <div class="premium-progress-container">
-                        <div class="premium-progress-bar" style="width: ${levelInfo.progress}%">
-                            <div class="progress-glow"></div>
+                    <div class="g-progress-wrapper">
+                        <div class="g-progress-track">
+                            <div class="g-progress-fill" style="width: ${levelInfo.progress}%">
+                                <div class="fill-glow"></div>
+                            </div>
+                        </div>
+                        <div class="g-progress-stats">
+                            <span>${Math.floor(levelInfo.progress)}%</span>
+                            <span>${levelInfo.nextPoints || 'Max'} pts</span>
                         </div>
                     </div>
-                    <p class="progress-flavor-text">${levelInfo.progress === 100 ? '¡Eres una leyenda!' : `Estás al ${Math.floor(levelInfo.progress)}% de tu siguiente reto.`}</p>
                 </div>
 
-                <div class="quick-grid">
-                    <div class="quick-card card-anim" data-goto="memories">
-                        <span class="q-icon">📸</span>
-                        <h4>Recuerdos</h4>
-                        <p>Mis fotos</p>
+                <div class="profile-action-grid">
+                    <div class="action-card-glass" data-goto="memories">
+                        <div class="a-icon">📸</div>
+                        <div class="a-text">
+                            <h4>Recuerdos</h4>
+                            <p>Mis fotos</p>
+                        </div>
                     </div>
-                    <div class="quick-card card-anim" id="share-app-btn">
-                        <span class="q-icon">🎁</span>
-                        <h4>Invitar</h4>
-                        <p>+100 pts</p>
+                    <div class="action-card-glass" id="share-app-btn">
+                        <div class="a-icon">🎁</div>
+                        <div class="a-text">
+                            <h4>Invitar</h4>
+                            <p>+100 pts</p>
+                        </div>
                     </div>
                 </div>
 
@@ -212,6 +243,17 @@ window.GoHappyProfile = {
                 }
             };
         });
+
+        // --- REACTIVE SYNC ---
+        // Listener global para actualizar perfil si cambian puntos en otra página
+        const syncListener = (e) => {
+            if (window.GoHappyApp.currentPage === 'profile') {
+                console.log("[Profile] Sincronizando puntos en tiempo real...");
+                window.GoHappyProfile.render(container);
+            }
+        };
+        window.addEventListener('GoHappy-points-sync', syncListener);
+        // Guardar para remover si es necesario en futuras navegaciones si diera problemas de duplicados
 
         // Generate QR
         setTimeout(() => {

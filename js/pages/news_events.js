@@ -77,28 +77,18 @@ window.GoHappyNewsEvents = {
             content.innerHTML = '';
             items.forEach(item => {
                 const card = document.createElement('div');
-                card.className = 'news-card entry-anim';
-                card.style.width = '92%';
-                card.style.maxWidth = '500px';
-                card.style.background = 'white';
-                card.style.padding = '18px';
-                card.style.borderRadius = '24px';
-                card.style.marginBottom = '12px';
-                card.style.boxShadow = 'var(--shadow-soft)';
-
+                card.className = 'news-mag-card entry-anim';
                 card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <span style="font-size: 10px; color: var(--primary-cobalt); font-weight: 800; text-transform: uppercase; background: rgba(11, 113, 252, 0.1); padding: 4px 10px; border-radius: 20px;">📰 Noticia Local</span>
-                        <span style="font-size: 10px; color: #94a3b8; font-weight: 600;">${item.date || 'Hoy'}</span>
+                    <div class="news-mag-header">
+                        <span class="news-mag-tag">📰 Noticia Local</span>
+                        <h3 class="news-mag-title">${item.title}</h3>
                     </div>
-                    <h3 style="color: var(--primary-cobalt); margin: 0 0 12px 0; font-size: 1.25rem; line-height: 1.3; font-weight: 800;">${item.title}</h3>
-                    <p style="font-size: 0.95rem; color: #475569; line-height: 1.5; margin-bottom: 18px;">${item.summary}</p>
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 15px;">
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                            <span style="font-size: 12px;">🔗</span>
-                            <small style="color: #64748b; font-weight: 600;">Fuente: ${item.sourceName || 'Oficial'}</small>
+                    <div class="news-mag-body">
+                        <p class="news-mag-text">${item.summary}</p>
+                        <div class="news-mag-footer">
+                            <span class="news-mag-source">${item.sourceName || 'Oficial'} • ${item.date || 'Hoy'}</span>
+                            <a href="${item.link || '#'}" target="_blank" class="news-mag-link">Leer más →</a>
                         </div>
-                        <a href="${item.link && item.link !== '#' ? item.link : 'javascript:void(0)'}" target="_blank" class="btn-text" style="color: var(--primary-cobalt); font-weight: 700; text-decoration: none; font-size: 13px;">Leer más →</a>
                     </div>
                 `;
                 content.appendChild(card);
@@ -119,7 +109,7 @@ window.GoHappyNewsEvents = {
                 card.style.boxShadow = 'var(--shadow-soft)';
 
                 card.innerHTML = `
-                    <div style="font-size: 11px; font-weight: 800; color: #F28C28; margin-bottom: 5px;">📍 ${item.location}</div>
+                    <div class="news-mag-tag" style="margin-bottom: 5px;">📍 ${item.location}</div>
                     <h3 style="color: var(--primary-navy); margin: 0 0 10px 0;">${item.title}</h3>
                     <div style="display: flex; gap: 15px; margin-bottom: 15px;">
                         <span style="font-size: 12px; color: #666;">🕒 ${item.date}</span>

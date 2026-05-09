@@ -183,37 +183,62 @@ window.GoHappyAI = {
         return await window.GoHappyAI.chat(userMessage);
     },
 
-    // Helper para llamadas a Gemini
+    // Helper para llamadas a Gemini — siempre via proxy autenticado
     _callGemini: async (prompt, expectJson = true) => {
-        if (!window.GEMINI_KEY || window.GEMINI_KEY.includes('PEGAR_AQUI')) {
+        // Si el proxy no está activo, usar datos de demo
+        if (!window.GEMINI_PROXY_ACTIVE || !window.GEMINI_PROXY_URL) {
             return window.GoHappyAI._getMockData(prompt);
         }
 
         try {
-            const requestBody = {
-                contents: [{ parts: [{ text: prompt }] }]
-            };
-
-            if (expectJson) {
-                requestBody.generationConfig = { response_mime_type: "application/json" };
+            // Obtener token de Firebase Auth para autenticar la llamada al proxy
+            let idToken = null;
+            try {
+                const currentUser = window.GoHappyAuthReal.currentUser;
+                if (currentUser) {
+                    idToken = await currentUser.getIdToken(false); // false = no forzar refresco
+                }
+            } catch (e) {
+                console.warn('[GoHappyAI] No se pudo obtener token:', e);
             }
 
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${window.GEMINI_KEY}`, {
+            if (!idToken) {
+                // Sin token = sin IA real. Usar datos de demo.
+                return window.GoHappyAI._getMockData(prompt);
+            }
+
+            const response = await fetch(window.GEMINI_PROXY_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody)
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
+                body: JSON.stringify({ prompt, expectJson }),
+                signal: AbortSignal.timeout(28000) // 28s timeout
             });
 
+            // Rate limit superado
+            if (response.status === 429) {
+                const err = await response.json().catch(() => ({}));
+                window.GoHappyToast && window.GoHappyToast.warning(
+                    err.error || 'Límite de consultas IA alcanzado por hoy. Vuelve mañana. 🌙', 5000
+                );
+                return window.GoHappyAI._getMockData(prompt);
+            }
+
+            // Error de auth
+            if (response.status === 401) {
+                return window.GoHappyAI._getMockData(prompt);
+            }
+
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error("Gemini API Error:", response.status, errorText);
+                console.error('[GoHappyAI] Proxy error:', response.status);
                 return window.GoHappyAI._getMockData(prompt);
             }
 
             const data = await response.json();
 
-            if (!data.candidates || !data.candidates[0].content) {
-                console.error("Gemini returned no content:", data);
+            if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
                 return window.GoHappyAI._getMockData(prompt);
             }
 
@@ -221,34 +246,27 @@ window.GoHappyAI = {
 
             if (expectJson) {
                 try {
-                    let cleanText = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-                    const firstBrace = cleanText.indexOf('{');
-                    const firstBracket = cleanText.indexOf('[');
-                    const lastBrace = cleanText.lastIndexOf('}');
-                    const lastBracket = cleanText.lastIndexOf(']');
-
-                    let startIndex = Math.min(
-                        firstBrace !== -1 ? firstBrace : Infinity,
-                        firstBracket !== -1 ? firstBracket : Infinity
+                    let clean = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+                    const s = Math.min(
+                        clean.indexOf('{') !== -1 ? clean.indexOf('{') : Infinity,
+                        clean.indexOf('[') !== -1 ? clean.indexOf('[') : Infinity
                     );
-                    let endIndex = Math.max(
-                        lastBrace !== -1 ? lastBrace : -1,
-                        lastBracket !== -1 ? lastBracket : -1
-                    );
-
-                    if (startIndex !== Infinity && endIndex !== -1) {
-                        cleanText = cleanText.substring(startIndex, endIndex + 1);
-                    }
-
-                    return JSON.parse(cleanText);
+                    const e = Math.max(clean.lastIndexOf('}'), clean.lastIndexOf(']'));
+                    if (s !== Infinity && e !== -1) clean = clean.substring(s, e + 1);
+                    return JSON.parse(clean);
                 } catch (e) {
-                    console.error("Error parsing Gemini JSON:", text, e);
+                    console.error('[GoHappyAI] JSON parse error:', e);
                     return window.GoHappyAI._getMockData(prompt);
                 }
             }
             return text.trim();
+
         } catch (e) {
-            console.error("Network or execution error en GoHappyAI:", e);
+            if (e.name === 'TimeoutError') {
+                console.warn('[GoHappyAI] Timeout — usando datos de demo');
+            } else {
+                console.error('[GoHappyAI] Error de red:', e);
+            }
             return window.GoHappyAI._getMockData(prompt);
         }
     },

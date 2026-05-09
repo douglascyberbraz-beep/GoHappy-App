@@ -1,0 +1,17 @@
+{
+  "name": "gohappy-functions",
+  "version": "1.0.0",
+  "description": "GoHappy Firebase Cloud Functions — Gemini secure proxy",
+  "main": "index.js",
+  "engines": { "node": "18" },
+  "scripts": {
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "firebase-functions": "^5.0.0",
+    "node-fetch": "^2.7.0"
+  },
+  "private": true
+}

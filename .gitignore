@@ -1,11 +1,46 @@
-# IDEs
+# ─── IDE & OS ─────────────────────────────────────────────────────
 .vscode/
 .idea/
-
-# OS files
 .DS_Store
 Thumbs.db
+*.swp
+*~
 
-# Project specific
+# ─── Dependencies ─────────────────────────────────────────────────
 node_modules/
+functions/node_modules/
+
+# ─── SECRETS — NUNCA SUBIR AL REPO ────────────────────────────────
 .env
+.env.*
+*.local
+*.pem
+*.key
+*.p8
+*.p12
+*.keystore
+google-services.json
+GoogleService-Info.plist
+serviceAccountKey.json
+firebase-adminsdk*.json
+.firebase/
+.firebaserc.local
+
+# ─── Build outputs ────────────────────────────────────────────────
+dist/
+build/
+android/
+ios/
+
+# ─── Capacitor native (se regeneran con cap sync) ─────────────────
+android/
+ios/
+
+# ─── Logs ─────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+firebase-debug.log
+
+# ─── Assets sensibles / privados ──────────────────────────────────
+assets/logo_source.png
+assets/kidoa-premium-final.png
