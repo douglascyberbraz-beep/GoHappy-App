@@ -1,208 +1,427 @@
-/* =======================================================
-   GoHappy Premium Layer — Brand v3.0
-   Cobalt #0B4C8F · Cyan #17C8D4 · Tu camino a la alegría
-   ======================================================= */
+/* ================================================================
+   GoHappy — iOS 18 Liquid Glass Design System  v3.0
+   Cobalt #0B4C8F · Cyan #17C8D4 · "Tu camino a la alegría"
+   Feels native on iPhone & Android. Zero compromises.
+   ================================================================ */
 
-/* ── 1. Brand Tokens ── */
+/* ── 0. System font stack (renders like native on every device) ── */
 :root {
-    --primary-cobalt:  #0B4C8F;
-    --primary-dark:    #062B55;
-    --accent-cyan:     #17C8D4;
-    --cyan-soft:       #E0F8FA;
-    --cyan-mid:        #A8EDF2;
-    --brand-gradient:  linear-gradient(135deg, #0B4C8F 0%, #0E7CBE 50%, #17C8D4 100%);
-    --brand-gradient-v: linear-gradient(180deg, #0B4C8F 0%, #17C8D4 100%);
-    --brand-gradient-r: linear-gradient(135deg, #17C8D4 0%, #0B4C8F 100%);
+    /* Brand */
+    --cobalt:          #0B4C8F;
+    --cobalt-dark:     #062B55;
+    --cobalt-deep:     #041D3A;
+    --cyan:            #17C8D4;
+    --cyan-light:      #6FE2EA;
+    --cyan-soft:       rgba(23,200,212,0.12);
+    --brand-gradient:  linear-gradient(135deg, #0B4C8F 0%, #0E82C8 55%, #17C8D4 100%);
+    --brand-gradient-v:linear-gradient(180deg, #0B4C8F 0%, #17C8D4 100%);
 
-    --accent-pink:     #FF6B6B;
-    --accent-amber:    #FFB830;
+    /* iOS System Colors */
+    --ios-bg:          #F2F2F7;
+    --ios-bg2:         #FFFFFF;
+    --ios-sep:         rgba(60,60,67,0.13);
+    --ios-label:       rgba(0,0,0,0.85);
+    --ios-label2:      rgba(60,60,67,0.6);
+    --ios-label3:      rgba(60,60,67,0.36);
+    --ios-fill:        rgba(120,120,128,0.2);
+    --ios-fill2:       rgba(120,120,128,0.16);
+    --ios-red:         #FF3B30;
+    --ios-green:       #34C759;
+    --ios-amber:       #FF9F0A;
+    --ios-blue:        #007AFF;
+    --ios-teal:        #30B0C7;
 
-    --glass-card:      rgba(255,255,255,0.85);
-    --glass-blur:      blur(28px) saturate(180%);
-    --shadow-brand:    0 20px 50px rgba(11,76,143,0.12);
-    --shadow-lift:     0 30px 70px rgba(11,76,143,0.18);
-    --shadow-nav:      0 -8px 32px rgba(11,76,143,0.08);
+    /* Liquid Glass layers */
+    --glass-bg:        rgba(255,255,255,0.72);
+    --glass-bg-dark:   rgba(255,255,255,0.55);
+    --glass-blur:      blur(50px) saturate(180%) brightness(1.08);
+    --glass-blur-md:   blur(30px) saturate(160%) brightness(1.05);
+    --glass-blur-sm:   blur(16px) saturate(140%);
+    --glass-border:    0.5px solid rgba(255,255,255,0.85);
+    --glass-border-sep:0.5px solid rgba(60,60,67,0.1);
+    --glass-shadow:    0 2px 8px rgba(0,0,0,0.04), 0 8px 28px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.8);
+    --glass-shadow-lg: 0 4px 16px rgba(0,0,0,0.06), 0 20px 50px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9);
 
-    --radius-xl:       28px;
-    --radius-2xl:      40px;
-    --radius-pill:     999px;
+    /* Radii (iOS uses 10-22px for most elements, 13px for small) */
+    --r-xs:  10px;
+    --r-sm:  13px;
+    --r-md:  18px;
+    --r-lg:  22px;
+    --r-xl:  28px;
+    --r-2xl: 38px;
+    --r-pill:999px;
 
-    --font-brand:      'Poppins', sans-serif;
-    --nav-height:      82px;
+    /* Safe Areas */
+    --safe-top:    env(safe-area-inset-top,    44px);
+    --safe-bottom: env(safe-area-inset-bottom, 20px);
+    --safe-left:   env(safe-area-inset-left,   0px);
+    --safe-right:  env(safe-area-inset-right,  0px);
+
+    /* Nav */
+    --nav-height: 83px;
+    --nav-total:  calc(83px + env(safe-area-inset-bottom, 20px));
 }
 
-/* ── 2. Base ── */
+/* ── 1. Base reset & iOS scroll ── */
+*, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+
+html {
+    height: 100%;
+    /* iOS momentum scroll on the whole page */
+    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
+}
+
 body {
-    background: #F4F8FF;
+    font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', 'Inter', sans-serif;
+    background: var(--ios-bg);
+    color: var(--ios-label);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Prevent iOS text inflate */
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior: none;
 }
 
+h1, h2, h3, h4, h5,
+.brand-font,
+.q-title, .plan-title, .ranking-title,
+.today-welcome-title, .profile-name-main {
+    font-family: -apple-system, 'SF Pro Display', 'Poppins', 'Helvetica Neue', sans-serif !important;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+/* Scrollable areas — iOS momentum */
+#main-content,
+.ranking-display-area,
+.news-content,
+.stagger-list,
+.quests-page {
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain !important;
+    scroll-behavior: smooth;
+}
+
+/* Remove tap highlight on iOS */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* Scrollbars invisible */
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; -ms-overflow-style: none; }
+
+/* ── 2. App container ── */
 #app {
-    background: #F4F8FF;
-    box-shadow: 0 0 60px rgba(11,76,143,0.06);
+    background: var(--ios-bg);
+    max-width: 430px; /* iPhone 16 Pro Max width */
+    box-shadow:
+        0 0 0 0.5px rgba(0,0,0,0.08),
+        0 20px 80px rgba(0,0,0,0.12);
+    border-radius: 0;
+    overflow: hidden;
 }
 
-h1, h2, h3, h4, .brand-font { font-family: var(--font-brand) !important; }
-
-/* ── 3. Splash Screen — Premium ── */
+/* ── 3. Splash Screen — iOS-native entry ── */
 .splash-screen {
-    background: linear-gradient(160deg, #FFFFFF 0%, #E8F4FF 60%, #D0EEFA 100%) !important;
-}
-
-.splash-logo-img {
-    width: 260px;
-    max-width: 85%;
-    filter: drop-shadow(0 20px 40px rgba(11,76,143,0.18));
-    animation: splashEnter 1.4s cubic-bezier(0.16,1,0.3,1) both;
-}
-
-@keyframes splashEnter {
-    0%  { opacity:0; transform: scale(0.88) translateY(20px); filter: blur(12px) drop-shadow(0 0 0 transparent); }
-    100%{ opacity:1; transform: scale(1)    translateY(0);    filter: blur(0)    drop-shadow(0 20px 40px rgba(11,76,143,0.18)); }
-}
-
-/* Pulse dot loader below logo */
-.splash-screen .logo-container::before {
-    content: '';
+    background: linear-gradient(160deg,
+        #FFFFFF          0%,
+        #EBF6FF         40%,
+        rgba(23,200,212,0.08) 100%) !important;
     position: absolute;
-    bottom: -32px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 120px;
-    height: 3px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
-    animation: splashBar 2s ease-in-out infinite 0.8s;
-}
-
-@keyframes splashBar {
-    0%   { opacity:0; width:30px;  }
-    30%  { opacity:1; width:120px; }
-    70%  { opacity:1; width:120px; }
-    100% { opacity:0; width:30px;  }
-}
-
-/* ── 4. Bottom Navigation — Glass Pill ── */
-.bottom-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    position: fixed;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    max-width: 600px;
-    height: var(--nav-height);
-    padding-bottom: env(safe-area-inset-bottom, 12px);
-    padding-top: 0;
-    background: rgba(255,255,255,0.88);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    border-top: 1px solid rgba(255,255,255,0.9);
-    box-shadow: var(--shadow-nav);
-    z-index: 1000;
-}
-
-.nav-item {
+    inset: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 8px 6px 4px;
-    border-radius: 18px;
-    min-width: 44px;
-    gap: 2px;
-    color: #94a3b8;
-    transition: color 0.25s ease, transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 9999;
+}
+
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    background: transparent !important;
+    box-shadow: none !important;
     position: relative;
+    animation: none !important;
+}
+
+.splash-logo-img {
+    width: 240px;
+    max-width: 80%;
+    object-fit: contain;
+    animation: iosLaunch 1.2s cubic-bezier(0.19,1,0.22,1) both;
+    filter: drop-shadow(0 12px 32px rgba(11,76,143,0.2));
+}
+
+@keyframes iosLaunch {
+    0%  { opacity:0; transform:scale(0.85); filter: blur(16px) drop-shadow(0 0 0 transparent); }
+    60% { opacity:1; transform:scale(1.03); filter: blur(0) drop-shadow(0 12px 32px rgba(11,76,143,0.18)); }
+    100%{ opacity:1; transform:scale(1);    filter: blur(0) drop-shadow(0 12px 32px rgba(11,76,143,0.2)); }
+}
+
+/* Loading bar */
+.splash-screen::after {
+    content: '';
+    position: absolute;
+    bottom: calc(var(--safe-bottom) + 30px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 130px;
+    height: 4px;
+    border-radius: var(--r-pill);
+    background: rgba(11,76,143,0.1);
+    overflow: hidden;
+}
+
+.splash-screen::before {
+    content: '';
+    position: absolute;
+    bottom: calc(var(--safe-bottom) + 30px);
+    left: calc(50% - 65px);
+    width: 0;
+    height: 4px;
+    border-radius: var(--r-pill);
+    background: var(--brand-gradient);
+    animation: splashProgress 2.2s cubic-bezier(0.4,0,0.2,1) forwards 0.6s;
+    z-index: 1;
+}
+
+@keyframes splashProgress {
+    0%  { width: 0; }
+    40% { width: 80px; }
+    80% { width: 110px; }
+    100%{ width: 130px; opacity:0; }
+}
+
+/* ── 4. Bottom Tab Bar — iOS Liquid Glass ── */
+.bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 100% !important;
+    max-width: 430px !important;
+    height: var(--nav-total) !important;
+    padding-bottom: env(safe-area-inset-bottom, 20px) !important;
+    padding-top: 10px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-around !important;
+
+    /* iOS Tab Bar glass — exact values */
+    background: rgba(249,249,249,0.78) !important;
+    backdrop-filter: blur(50px) saturate(180%) brightness(1.12) !important;
+    -webkit-backdrop-filter: blur(50px) saturate(180%) brightness(1.12) !important;
+    border-top: 0.5px solid rgba(0,0,0,0.12) !important;
+    box-shadow: none !important;
+    z-index: 1000 !important;
+}
+
+/* Nav items */
+.nav-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    padding: 0 4px !important;
+    background: none !important;
+    border: none !important;
+    cursor: pointer !important;
+    color: var(--ios-label3) !important;
+    transition: color 0.18s ease, transform 0.18s cubic-bezier(0.34,1.56,0.64,1) !important;
+    position: relative !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    min-height: 44px !important; /* iOS minimum touch target */
 }
 
 .nav-item .icon {
-    font-size: 1.3rem;
-    line-height: 1;
-    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    font-size: 22px !important;
+    line-height: 1 !important;
+    display: block !important;
+    transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
 }
 
 .nav-item .label {
-    font-size: 0.55rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-family: var(--font-brand);
+    font-size: 9px !important;
+    font-weight: 700 !important;
+    font-family: -apple-system, 'SF Pro Text', sans-serif !important;
+    letter-spacing: 0.2px !important;
+    text-transform: none !important;
+    line-height: 1 !important;
+    transition: color 0.18s ease !important;
 }
 
+/* Active state */
 .nav-item.active {
-    color: var(--primary-cobalt);
+    color: var(--cobalt) !important;
 }
 
 .nav-item.active .icon {
-    transform: scale(1.15) translateY(-2px);
+    transform: scale(1.12) translateY(-1px) !important;
 }
 
-/* Active pill indicator */
-.nav-item.active::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 24px;
-    height: 3px;
-    border-radius: 0 0 4px 4px;
-    background: var(--brand-gradient);
+/* No colored bar — iOS uses tinted icon only */
+.nav-item.active::before { display: none !important; }
+
+/* Active tap springback */
+.nav-item:active {
+    transform: scale(0.84) !important;
 }
 
-/* Map Orb — enhanced */
+/* ── Map Orb (center) — elevated sphere ── */
+.nav-item[data-page="map"] {
+    padding: 0 !important;
+    overflow: visible !important;
+    margin-top: -18px !important;
+}
+
 .map-orb {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: white;
-    margin-top: -28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 50% !important;
+    background: var(--glass-bg) !important;
+    backdrop-filter: var(--glass-blur-md) !important;
+    -webkit-backdrop-filter: var(--glass-blur-md) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     box-shadow:
-        0 10px 30px rgba(11,76,143,0.22),
-        0 4px 8px rgba(11,76,143,0.1),
-        inset 0 1px 3px rgba(255,255,255,0.9);
-    border: 2.5px solid rgba(255,255,255,0.95);
-    transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
-    position: relative;
+        0 6px 20px rgba(11,76,143,0.20),
+        0 2px 6px rgba(11,76,143,0.12),
+        inset 0 1.5px 0 rgba(255,255,255,0.95),
+        inset 0 -1px 0 rgba(0,0,0,0.06) !important;
+    border: 0.5px solid rgba(255,255,255,0.9) !important;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1),
+                box-shadow 0.3s ease !important;
+    margin-top: 0 !important;
 }
 
-.map-orb::after {
-    content: '';
-    position: absolute;
-    inset: -3px;
-    border-radius: 50%;
-    background: var(--brand-gradient);
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.nav-item.active .map-orb {
-    transform: translateY(-6px) scale(1.08);
+/* Gradient ring on active */
+.nav-item[data-page="map"].active .map-orb {
+    background: white !important;
     box-shadow:
-        0 16px 40px rgba(11,76,143,0.28),
-        0 6px 12px rgba(11,76,143,0.15);
+        0 10px 32px rgba(11,76,143,0.28),
+        0 4px 10px rgba(11,76,143,0.15),
+        inset 0 1.5px 0 rgba(255,255,255,1),
+        0 0 0 2.5px var(--cobalt) !important;
+    transform: scale(1.06) translateY(-4px) !important;
 }
 
-.nav-item.active .map-orb::after {
-    opacity: 1;
+.nav-item[data-page="map"]:active .map-orb {
+    transform: scale(0.88) !important;
 }
 
-.nav-item:active { transform: scale(0.88); }
-.nav-item[data-page="map"]:active { transform: none; }
-.nav-item[data-page="map"]:active .map-orb { transform: translateY(-6px) scale(0.92); }
+.map-icon-svg { display: block !important; }
 
-/* ── 5. Page Heroes — Brand Gradient ── */
+/* ── 5. Status bar / notch safe areas ── */
+#main-content {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: var(--nav-total) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain !important;
+}
+
+/* Heroes need top padding for status bar */
+.today-hero-premium,
+.q-header-premium,
+.ranking-hero-premium,
+.safe-hero,
+.news-hero {
+    padding-top: calc(var(--safe-top) + 20px) !important;
+}
+
+/* ── 6. Liquid Glass Card System ── */
+
+/* Base glass card */
+.liquid-card,
+.card,
+.plan-card-premium,
+.gamification-card-premium,
+.ai-capsule-card,
+.action-card-glass,
+.news-mag-card {
+    background: var(--glass-bg) !important;
+    backdrop-filter: var(--glass-blur-md) !important;
+    -webkit-backdrop-filter: var(--glass-blur-md) !important;
+    border: var(--glass-border) !important;
+    border-radius: var(--r-xl) !important;
+    box-shadow: var(--glass-shadow) !important;
+    transition:
+        transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
+        box-shadow 0.22s ease !important;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: transform;
+}
+
+.card:active,
+.plan-card-premium:active,
+.action-card-glass:active,
+.news-mag-card:active {
+    transform: scale(0.975) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+}
+
+/* White-only cards (solid, not glass) */
+.quest-card-smart,
+.ranking-row,
+.q-stats-floating-bar,
+.profile-action-card {
+    background: rgba(255,255,255,0.96) !important;
+    border-radius: var(--r-lg) !important;
+    border: 0.5px solid rgba(0,0,0,0.06) !important;
+    box-shadow:
+        0 1px 3px rgba(0,0,0,0.04),
+        0 4px 16px rgba(0,0,0,0.06) !important;
+    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+
+.quest-card-smart:active,
+.ranking-row:active {
+    transform: scale(0.97) !important;
+}
+
+/* Done quest */
+.quest-card-smart.done {
+    background: linear-gradient(135deg,
+        rgba(23,200,212,0.05) 0%,
+        rgba(11,76,143,0.03) 100%) !important;
+    border-color: rgba(23,200,212,0.18) !important;
+}
+
+/* Podium */
+.podium-card {
+    background: rgba(255,255,255,0.9) !important;
+    backdrop-filter: var(--glass-blur-sm) !important;
+    -webkit-backdrop-filter: var(--glass-blur-sm) !important;
+    border: var(--glass-border) !important;
+    border-radius: var(--r-xl) !important;
+    box-shadow: var(--glass-shadow) !important;
+}
+
+.podium-card.large {
+    background: linear-gradient(160deg,
+        rgba(255,255,255,0.95) 0%,
+        rgba(23,200,212,0.06) 100%) !important;
+    box-shadow: var(--glass-shadow-lg) !important;
+}
+
+/* ── 7. Page Heroes — Brand Gradient ── */
 .today-hero-premium,
 .q-header-premium,
 .ranking-hero-premium,
@@ -210,337 +429,514 @@ h1, h2, h3, h4, .brand-font { font-family: var(--font-brand) !important; }
 .news-hero {
     background: var(--brand-gradient) !important;
     background-image: none !important;
-    position: relative;
-    overflow: hidden;
+    position: relative !important;
+    overflow: hidden !important;
 }
 
-/* Floating brand pattern */
-.today-hero-premium::before,
-.q-header-premium::before,
-.ranking-hero-premium::before,
-.safe-hero::before,
-.news-hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-        radial-gradient(circle at 20% 50%, rgba(255,255,255,0.07) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(23,200,212,0.15) 0%, transparent 45%),
-        radial-gradient(circle at 60% 80%, rgba(255,255,255,0.04) 0%, transparent 40%);
-    pointer-events: none;
-}
-
-/* Smile accent wave at bottom of hero */
+/* Specular shine (iOS depth trick) */
 .today-hero-premium::after,
 .q-header-premium::after,
 .ranking-hero-premium::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 50px;
-    background: inherit;
-    border-radius: 0 0 60px 60px;
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important; left: 0 !important; right: 0 !important;
+    height: 50% !important;
+    background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%) !important;
+    pointer-events: none !important;
+    border-radius: inherit !important;
 }
 
-/* ── 6. Cards — Glass Premium ── */
-.card,
-.plan-card-premium,
-.gamification-card-premium,
-.ai-capsule-card,
-.news-mag-card,
-.action-card-glass {
-    background: var(--glass-card) !important;
-    backdrop-filter: var(--glass-blur) !important;
-    -webkit-backdrop-filter: var(--glass-blur) !important;
-    border: 1px solid rgba(255,255,255,0.9) !important;
-    box-shadow: var(--shadow-brand) !important;
-    border-radius: var(--radius-xl) !important;
-    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease !important;
+/* Ambient glow spots */
+.today-hero-premium::before,
+.q-header-premium::before,
+.ranking-hero-premium::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important;
+    background:
+        radial-gradient(ellipse 60% 40% at 15% 60%, rgba(23,200,212,0.22) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 85% 30%, rgba(255,255,255,0.06) 0%, transparent 55%) !important;
+    pointer-events: none !important;
 }
 
-.card:active,
-.plan-card-premium:active {
-    transform: scale(0.975);
-    box-shadow: 0 8px 20px rgba(11,76,143,0.08) !important;
+/* ── 8. iOS-style Typography ── */
+.today-welcome-title,
+.ranking-title,
+.profile-name-main {
+    font-size: clamp(1.8rem, 7vw, 2.2rem) !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.5px !important;
+    line-height: 1.1 !important;
 }
 
-/* Quest cards */
-.quest-card-smart {
-    background: white !important;
-    border-radius: var(--radius-xl) !important;
-    box-shadow: 0 6px 24px rgba(11,76,143,0.07) !important;
-    border: 1.5px solid rgba(23,200,212,0.1) !important;
-    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1) !important;
+.today-welcome-subtitle,
+.ranking-subtitle,
+.profile-email-sub {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    opacity: 0.75 !important;
+    letter-spacing: 0 !important;
 }
 
-.quest-card-smart:active { transform: scale(0.97) !important; }
-
-.quest-card-smart.done {
-    background: linear-gradient(135deg, rgba(23,200,212,0.06), rgba(11,76,143,0.04)) !important;
-    border-color: rgba(23,200,212,0.25) !important;
+/* Section titles */
+h3, h4 {
+    letter-spacing: -0.2px !important;
 }
 
-/* ── 7. Podium ── */
-.podium-card {
-    background: white !important;
-    border-radius: var(--radius-xl) !important;
-    box-shadow: 0 12px 36px rgba(11,76,143,0.1) !important;
-    border: 1.5px solid rgba(255,255,255,0.95) !important;
-}
+/* ── 9. Button System — iOS native ── */
 
-.podium-card.large {
-    background: linear-gradient(160deg, #fff 0%, rgba(23,200,212,0.08) 100%) !important;
-    box-shadow: 0 20px 50px rgba(11,76,143,0.15) !important;
-}
-
-/* ── 8. Buttons ── */
+/* Primary filled — brand gradient */
 .btn-primary,
 .btn-plan-primary,
+.q-btn-completar,
 .ai-magic-btn {
     background: var(--brand-gradient) !important;
-    border-radius: var(--radius-pill) !important;
-    box-shadow: 0 10px 28px rgba(11,76,143,0.28) !important;
-    font-family: var(--font-brand) !important;
-    font-weight: 800 !important;
-    border: none !important;
     color: white !important;
-    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease !important;
+    border: none !important;
+    border-radius: var(--r-pill) !important;
+    font-family: -apple-system, 'SF Pro Text', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 17px !important;
+    padding: 14px 28px !important;
+    min-height: 50px !important; /* iOS min touch target */
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.2) inset,
+        0 8px 24px rgba(11,76,143,0.24) !important;
+    transition:
+        transform 0.18s cubic-bezier(0.34,1.56,0.64,1),
+        box-shadow 0.18s ease,
+        opacity 0.12s ease !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
 }
 
 .btn-primary:active,
 .btn-plan-primary:active,
+.q-btn-completar:active,
 .ai-magic-btn:active {
-    transform: scale(0.93) !important;
-    box-shadow: 0 4px 12px rgba(11,76,143,0.2) !important;
+    transform: scale(0.94) !important;
+    opacity: 0.85 !important;
+    box-shadow: 0 2px 8px rgba(11,76,143,0.14) !important;
 }
 
-/* Quest complete button */
-.q-btn-completar {
-    background: var(--brand-gradient) !important;
-    border-radius: var(--radius-pill) !important;
-    font-family: var(--font-brand) !important;
-    font-weight: 800 !important;
-    box-shadow: 0 8px 20px rgba(11,76,143,0.2) !important;
-    color: white !important;
+/* Secondary outlined */
+.btn-plan-secondary {
+    background: var(--ios-fill) !important;
+    color: var(--cobalt) !important;
     border: none !important;
+    border-radius: var(--r-pill) !important;
+    font-weight: 700 !important;
+    min-height: 50px !important;
+    transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), opacity 0.12s ease !important;
+}
+.btn-plan-secondary:active { transform: scale(0.94) !important; opacity: 0.7 !important; }
+
+/* Danger (iOS red) */
+.btn-danger {
+    color: var(--ios-red) !important;
+    border-color: var(--ios-red) !important;
+    border-radius: var(--r-lg) !important;
 }
 
-/* Filter pills */
+/* Filter pills — iOS segment feel */
+.q-filter-btn,
+.filter-chip,
+.rank-toggle-btn {
+    border-radius: var(--r-pill) !important;
+    font-family: -apple-system, 'SF Pro Text', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    padding: 8px 16px !important;
+    min-height: 36px !important;
+    border: none !important;
+    background: var(--ios-fill) !important;
+    color: var(--ios-label2) !important;
+    transition: transform 0.16s cubic-bezier(0.34,1.56,0.64,1), background 0.2s ease !important;
+    cursor: pointer !important;
+}
+
 .q-filter-btn.active,
 .filter-chip.active,
 .rank-toggle-btn.active {
-    background: var(--brand-gradient) !important;
+    background: var(--cobalt) !important;
     color: white !important;
-    box-shadow: 0 6px 18px rgba(11,76,143,0.22) !important;
-    border: none !important;
+    box-shadow: 0 4px 16px rgba(11,76,143,0.22) !important;
 }
 
-/* ── 9. Progress bars ── */
-.g-progress-fill,
-.level-progress-bar {
-    background: var(--brand-gradient) !important;
-}
+.q-filter-btn:active,
+.filter-chip:active,
+.rank-toggle-btn:active { transform: scale(0.92) !important; }
 
-/* ── 10. Stats / Badges ── */
-.level-badge-premium,
-.level-badge,
-.q-pts-badge,
-.plan-badge {
-    background: linear-gradient(135deg, rgba(11,76,143,0.08), rgba(23,200,212,0.12)) !important;
-    color: var(--primary-cobalt) !important;
-    border: 1px solid rgba(23,200,212,0.2) !important;
-    border-radius: var(--radius-pill) !important;
-}
-
-/* Racha badge */
-.q-racha-capsule {
-    background: rgba(255,255,255,0.18) !important;
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.25) !important;
-    border-radius: var(--radius-pill) !important;
-}
-
-/* ── 11. Map UI ── */
-.map-search-container input,
-.ai-capsule-input-group input,
-.post-input,
-.review-input {
-    border: 1.5px solid rgba(11,76,143,0.12) !important;
-    border-radius: 16px !important;
-    background: white !important;
-    font-family: var(--font-brand) !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.map-search-container input:focus,
-.ai-capsule-input-group input:focus,
-.post-input:focus,
-.review-input:focus {
-    border-color: var(--accent-cyan) !important;
-    box-shadow: 0 0 0 3px rgba(23,200,212,0.15) !important;
+/* ── 10. Input System — iOS style ── */
+input, textarea, .post-input, .review-input {
+    font-family: -apple-system, 'SF Pro Text', sans-serif !important;
+    font-size: 17px !important; /* iOS default */
+    border-radius: var(--r-md) !important;
+    border: 1px solid rgba(60,60,67,0.2) !important;
+    background: rgba(255,255,255,0.92) !important;
+    padding: 13px 16px !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
     outline: none !important;
 }
 
-.filter-chip {
+input:focus, textarea:focus, .post-input:focus, .review-input:focus {
+    border-color: var(--cobalt) !important;
+    box-shadow: 0 0 0 3.5px rgba(11,76,143,0.12) !important;
+    background: white !important;
+}
+
+/* Search bar (iOS pill) */
+.map-search-container input {
+    border-radius: var(--r-pill) !important;
     background: rgba(255,255,255,0.92) !important;
-    border: 1.5px solid rgba(11,76,143,0.1) !important;
-    border-radius: var(--radius-pill) !important;
-    font-family: var(--font-brand) !important;
-    font-weight: 700 !important;
-    color: var(--primary-cobalt) !important;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.04) !important;
+    backdrop-filter: var(--glass-blur-sm) !important;
+    -webkit-backdrop-filter: var(--glass-blur-sm) !important;
+    font-size: 15px !important;
+    padding: 11px 18px !important;
+    box-shadow: var(--glass-shadow) !important;
 }
 
-/* ── 12. Toast Notifications ── */
-#toast-container > * {
-    border-radius: var(--radius-xl) !important;
-    font-family: var(--font-brand) !important;
-    font-weight: 700 !important;
-    box-shadow: 0 16px 40px rgba(11,76,143,0.18) !important;
+/* ── 11. Auth Modal — iOS bottom sheet ── */
+.modal {
+    background: rgba(0,0,0,0.48) !important;
     backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    align-items: flex-end !important; /* sheet from bottom */
+    padding: 0 !important;
 }
 
-/* Points toast special */
-.toast-points {
+.auth-container {
+    width: 100% !important;
+    max-width: 430px !important;
+    background: rgba(255,255,255,0.94) !important;
+    backdrop-filter: blur(40px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+    border-radius: 20px 20px 0 0 !important;
+    padding: 8px 32px calc(var(--safe-bottom) + 28px) !important;
+    box-shadow: 0 -4px 40px rgba(0,0,0,0.16) !important;
+    animation: sheetUp 0.45s cubic-bezier(0.19,1,0.22,1) both !important;
+}
+
+/* iOS sheet handle */
+.auth-container::before {
+    content: '' !important;
+    display: block !important;
+    width: 36px !important;
+    height: 4px !important;
+    border-radius: var(--r-pill) !important;
+    background: rgba(60,60,67,0.28) !important;
+    margin: 0 auto 24px !important;
+}
+
+@keyframes sheetUp {
+    0%  { transform: translateY(100%); }
+    100%{ transform: translateY(0); }
+}
+
+/* ── 12. Page transitions — iOS push/pop ── */
+.page-enter-premium {
+    animation: iosPageIn 0.48s cubic-bezier(0.19,1,0.22,1) both !important;
+}
+
+@keyframes iosPageIn {
+    0%  { opacity:0; transform: translateY(24px) scale(0.97); }
+    100%{ opacity:1; transform: translateY(0)    scale(1); }
+}
+
+.entry-anim { animation: iosPageIn 0.42s cubic-bezier(0.19,1,0.22,1) both; }
+.card-anim  { animation: iosPageIn 0.36s cubic-bezier(0.19,1,0.22,1) both; }
+
+/* Stagger group */
+.stagger-group > * {
+    opacity: 0;
+    animation: iosPageIn 0.5s cubic-bezier(0.19,1,0.22,1) both;
+}
+.stagger-group > *:nth-child(1){ animation-delay: 0.05s; }
+.stagger-group > *:nth-child(2){ animation-delay: 0.10s; }
+.stagger-group > *:nth-child(3){ animation-delay: 0.15s; }
+.stagger-group > *:nth-child(4){ animation-delay: 0.20s; }
+.stagger-group > *:nth-child(5){ animation-delay: 0.25s; }
+.stagger-group > *:nth-child(n+6){ animation-delay: 0.30s; }
+
+/* ── 13. Progress bars ── */
+.g-progress-fill,
+.level-progress-bar {
+    background: var(--brand-gradient) !important;
+    border-radius: var(--r-pill) !important;
+}
+
+.g-progress-track,
+.level-progress-container {
+    background: rgba(120,120,128,0.16) !important;
+    border-radius: var(--r-pill) !important;
+    height: 6px !important;
+}
+
+/* ── 14. Level & Points badges ── */
+.level-badge-premium {
     background: var(--brand-gradient) !important;
     color: white !important;
+    border: none !important;
+    border-radius: var(--r-pill) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    padding: 5px 14px !important;
+    box-shadow: 0 4px 14px rgba(11,76,143,0.22) !important;
 }
 
-/* ── 13. Scroll & main content ── */
-#main-content {
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
+.q-pts-badge {
+    background: var(--cyan-soft) !important;
+    color: var(--cobalt) !important;
+    border: none !important;
+    border-radius: var(--r-pill) !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
 }
 
-/* ── 14. Transitions — spring physics ── */
-.page-enter-premium {
-    animation: premiumSpringIn 0.65s cubic-bezier(0.16,1,0.3,1) both !important;
+/* ── 15. Profile ── */
+.profile-avatar-large {
+    box-shadow:
+        0 0 0 3px white,
+        0 0 0 5px var(--cobalt),
+        0 16px 50px rgba(11,76,143,0.22) !important;
+    border-radius: 50% !important;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.profile-avatar-large:active { transform: scale(0.92) !important; }
+
+.profile-hero-premium {
+    background: white !important;
+    padding-top: calc(var(--safe-top) + 20px) !important;
 }
 
-@keyframes premiumSpringIn {
-    0%  { opacity:0; transform: translateY(28px) scale(0.96); filter: blur(8px); }
-    100%{ opacity:1; transform: translateY(0)    scale(1);    filter: blur(0); }
+/* ── 16. Racha capsule (quests header) ── */
+.q-racha-capsule {
+    background: rgba(255,255,255,0.18) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 0.5px solid rgba(255,255,255,0.3) !important;
+    border-radius: var(--r-pill) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3) !important;
 }
 
-.entry-anim { animation: premiumSpringIn 0.5s cubic-bezier(0.16,1,0.3,1) both; }
-.card-anim  { animation: premiumSpringIn 0.4s cubic-bezier(0.16,1,0.3,1) both; }
-
-/* ── 15. Premium Micro-interactions ── */
-@keyframes cyanPulse {
-    0%  { box-shadow: 0 0 0 0 rgba(23,200,212,0.35); }
-    70% { box-shadow: 0 0 0 12px rgba(23,200,212,0); }
-    100%{ box-shadow: 0 0 0 0 rgba(23,200,212,0); }
+/* ── 17. Stats floating bar ── */
+.q-stats-floating-bar {
+    background: rgba(255,255,255,0.88) !important;
+    backdrop-filter: var(--glass-blur-sm) !important;
+    -webkit-backdrop-filter: var(--glass-blur-sm) !important;
+    border-radius: var(--r-xl) !important;
+    border: var(--glass-border-sep) !important;
+    box-shadow: var(--glass-shadow) !important;
 }
 
-.pulse-cyan { animation: cyanPulse 2s infinite; }
-
-/* Gradient text (brand name) */
-.gradient-text {
-    background: var(--brand-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+/* ── 18. Toasts / Notifications ── */
+#toast-container > *,
+.toast {
+    border-radius: var(--r-xl) !important;
+    font-family: -apple-system, 'SF Pro Text', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.6) !important;
+    padding: 14px 20px !important;
 }
 
-/* ── 16. Utility ── */
-.center-text { text-align: center; }
-.p-40 { padding: 40px; }
-.p-20 { padding: 20px; }
-
-.typing-dots span {
-    display: inline-block;
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--accent-cyan);
-    margin: 0 3px;
-    animation: dotBounce 1.2s infinite ease-in-out;
-}
-.typing-dots span:nth-child(1) { animation-delay: 0s; }
-.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes dotBounce {
-    0%,80%,100%{ transform: scale(0.7); opacity:0.5; }
-    40%        { transform: scale(1.2); opacity:1;   }
+.toast-points,
+.toast-success {
+    background: var(--brand-gradient) !important;
+    color: white !important;
+    border: none !important;
 }
 
-/* Magic loader */
-.magic-loader {
-    font-size: 32px;
-    animation: magicSpin 2s linear infinite;
-    display: inline-block;
-}
-@keyframes magicSpin {
-    0%  { transform: rotate(0deg)  scale(1);   }
-    50% { transform: rotate(180deg) scale(1.2); }
-    100%{ transform: rotate(360deg) scale(1);   }
-}
-
-/* Gradient avatar placeholder */
+/* ── 19. Gradient avatar placeholder ── */
 .gradient-bg {
     background: var(--brand-gradient) !important;
     color: white !important;
 }
 
-/* ── 17. Ranking rows ── */
+/* ── 20. Typing dots (cian) ── */
+.typing-dots span {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--cyan);
+    margin: 0 3px;
+    animation: dotBounce 1.2s infinite ease-in-out;
+}
+.typing-dots span:nth-child(1){ animation-delay: 0s; }
+.typing-dots span:nth-child(2){ animation-delay: 0.18s; }
+.typing-dots span:nth-child(3){ animation-delay: 0.36s; }
+
+@keyframes dotBounce {
+    0%,80%,100%{ transform: scale(0.65); opacity:0.45; }
+    40%        { transform: scale(1.2);  opacity:1; }
+}
+
+/* Magic spinner */
+.magic-loader {
+    font-size: 30px;
+    display: inline-block;
+    animation: magicSpin 1.8s linear infinite;
+}
+@keyframes magicSpin {
+    0%  { transform: rotate(0deg)   scale(1); }
+    50% { transform: rotate(180deg) scale(1.18); }
+    100%{ transform: rotate(360deg) scale(1); }
+}
+
+/* ── 21. Map search & chip filters ── */
+.filter-chip {
+    background: rgba(255,255,255,0.9) !important;
+    backdrop-filter: var(--glass-blur-sm) !important;
+    -webkit-backdrop-filter: var(--glass-blur-sm) !important;
+    border: 0.5px solid rgba(0,0,0,0.08) !important;
+    border-radius: var(--r-pill) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--cobalt) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+    padding: 8px 16px !important;
+}
+
+.filter-chip.active {
+    background: var(--cobalt) !important;
+    color: white !important;
+    border-color: transparent !important;
+    box-shadow: 0 4px 16px rgba(11,76,143,0.24) !important;
+}
+
+/* ── 22. Ranking toggle ── */
+.ranking-toggle-pills {
+    background: rgba(255,255,255,0.14) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 0.5px solid rgba(255,255,255,0.2) !important;
+    border-radius: var(--r-pill) !important;
+    padding: 5px !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2) !important;
+}
+
+.rank-toggle-btn.active {
+    background: rgba(255,255,255,0.92) !important;
+    color: var(--cobalt) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+
+/* ── 23. Ranking rows ── */
 .ranking-row {
-    background: white !important;
-    border-radius: 20px !important;
-    box-shadow: 0 4px 16px rgba(11,76,143,0.05) !important;
-    border: 1.5px solid rgba(23,200,212,0.08) !important;
-    transition: transform 0.2s ease !important;
-}
-.ranking-row:active { transform: scale(0.97) !important; }
-
-/* ── 18. Profile avatar ring ── */
-.profile-avatar-large {
-    box-shadow:
-        0 0 0 3px white,
-        0 0 0 5px var(--accent-cyan),
-        0 20px 50px rgba(11,76,143,0.18) !important;
+    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1) !important;
 }
 
-/* ── 19. Safe page ── */
-.safe-report-card,
-.report-item {
-    border-radius: var(--radius-xl) !important;
-    border: 1.5px solid rgba(255,107,107,0.1) !important;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.04) !important;
-}
-
-/* ── 20. News cards ── */
-.news-mag-card {
-    border-radius: 28px !important;
-    overflow: hidden !important;
-}
-
-/* ── 21. Floating Stats bar (quests) ── */
-.q-stats-floating-bar {
-    background: white !important;
-    border-radius: var(--radius-xl) !important;
-    box-shadow: 0 8px 28px rgba(11,76,143,0.08) !important;
-    border: 1px solid rgba(23,200,212,0.12) !important;
-}
-
-/* ── 22. Action grid (profile) ── */
-.action-card-glass {
-    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1) !important;
-}
-.action-card-glass:active { transform: scale(0.93) !important; }
-
-/* ── 23. "is-me" highlight ── */
+/* "Is-me" highlight */
 .is-me {
-    background: linear-gradient(135deg, rgba(23,200,212,0.08), rgba(11,76,143,0.05)) !important;
-    border: 1.5px solid rgba(23,200,212,0.3) !important;
+    background: linear-gradient(135deg,
+        rgba(23,200,212,0.08) 0%,
+        rgba(11,76,143,0.04) 100%) !important;
+    border: 1px solid rgba(23,200,212,0.25) !important;
 }
 
-/* ── 24. Stars rating ── */
-.star.active { color: var(--accent-amber) !important; }
+/* ── 24. AI capsule card ── */
+.ai-magic-btn {
+    background: var(--cobalt) !important;
+    border-radius: var(--r-md) !important;
+    width: 48px !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    padding: 0 !important;
+    box-shadow: 0 6px 20px rgba(11,76,143,0.2) !important;
+}
 
-/* ── 25. Scrollbar (hidden) ── */
-* { scrollbar-width: none; -ms-overflow-style: none; }
-*::-webkit-scrollbar { display: none; }
+/* ── 25. Safe zone spacer at bottom of scrollable pages ── */
+.quests-page > div:last-child,
+[style*="height:140px"] {
+    height: calc(140px + env(safe-area-inset-bottom, 20px)) !important;
+}
+
+/* ── 26. Utilities ── */
+.center-text { text-align: center; }
+.p-40 { padding: 40px; }
+.p-20 { padding: 20px; }
+.truncate { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+
+/* Gradient text utility */
+.gradient-text {
+    background: var(--brand-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* iOS-style separator */
+.ios-sep {
+    height: 0.5px;
+    background: var(--ios-sep);
+    margin: 0 16px;
+}
+
+/* Pulsing ring (used on map active marker) */
+@keyframes gpsPulse {
+    0%  { transform: translate(-50%,-50%) scale(1); opacity:0.6; }
+    100%{ transform: translate(-50%,-50%) scale(2.8); opacity:0; }
+}
+
+/* Review badge on map */
+[style*="reseñado"] {
+    font-family: -apple-system, 'SF Pro Text', sans-serif !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.2px !important;
+}
+
+/* ── 27. Dark mode (minimal — iOS auto) ── */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ios-bg:    #1C1C1E;
+        --ios-bg2:   #2C2C2E;
+        --ios-sep:   rgba(255,255,255,0.15);
+        --ios-label: rgba(255,255,255,0.92);
+        --ios-label2:rgba(235,235,245,0.6);
+        --ios-label3:rgba(235,235,245,0.36);
+        --ios-fill:  rgba(118,118,128,0.24);
+        --glass-bg:  rgba(44,44,46,0.72);
+        --glass-border: 0.5px solid rgba(255,255,255,0.1);
+    }
+
+    body { background: #000000; }
+    #app { background: #1C1C1E; }
+
+    .bottom-nav {
+        background: rgba(28,28,30,0.82) !important;
+        border-top-color: rgba(255,255,255,0.12) !important;
+    }
+
+    .quest-card-smart,
+    .ranking-row { background: rgba(44,44,46,0.96) !important; }
+
+    input, textarea, .post-input, .review-input {
+        background: rgba(44,44,46,0.9) !important;
+        border-color: rgba(255,255,255,0.1) !important;
+        color: rgba(255,255,255,0.92) !important;
+    }
+
+    .auth-container {
+        background: rgba(28,28,30,0.96) !important;
+    }
+
+    .filter-chip {
+        background: rgba(58,58,60,0.9) !important;
+        color: rgba(255,255,255,0.8) !important;
+    }
+}
+
+/* ── 28. Android-specific overrides ── */
+/* Remove iOS rubber-band on Android Chrome */
+@supports not (-webkit-overflow-scrolling: touch) {
+    #main-content {
+        overscroll-behavior-y: none;
+    }
+}

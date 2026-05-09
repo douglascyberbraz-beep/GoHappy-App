@@ -3,31 +3,46 @@
 
 <head>
     <meta charset="UTF-8">
+    <!-- viewport-fit=cover: esencial para notch/Dynamic Island/punch-hole -->
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GOHAPPY - Live. Share. Family.</title>
+    <title>GoHappy Family</title>
 
-    <!-- Fonts: Inter for premium look -->
+    <!-- iOS PWA — chrome native -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GoHappy">
+
+    <!-- Android PWA -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0B4C8F" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#000000"   media="(prefers-color-scheme: dark)">
+
+    <!-- iOS touch icons (todas las resoluciones) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/logo.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="assets/logo.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="assets/logo.png">
+    <link rel="apple-touch-startup-image" href="assets/ESLOGAN.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Poppins (brand headings only — body usa system font) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800;900&display=swap"
+          rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800;900&display=swap" rel="stylesheet">
+    </noscript>
 
-    <!-- MapLibre GL JS CSS for 3D Support -->
+    <!-- MapLibre GL -->
     <link href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css' rel='stylesheet' />
 
     <!-- App CSS -->
     <link rel="stylesheet" href="css/main.css?v=3.0.0">
     <link rel="stylesheet" href="css/premium.css?v=3.0.0">
-
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0B4C8F">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="GoHappy">
-    <link rel="apple-touch-icon" href="assets/logo.png">
-    <link rel="apple-touch-startup-image" href="assets/logo.png">
-    <link rel="icon" type="image/png" href="assets/logo.png">
 </head>
 
 <body>
