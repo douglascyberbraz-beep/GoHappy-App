@@ -10,21 +10,21 @@ window.GoHappyToday = {
                 </div>
             </div>
             
-            <div id="today-content" class="stagger-group" style="padding: 0 20px 140px 20px; margin-top: -30px;">
+            <div id="today-content" class="stagger-group" style="padding: 0 16px calc(var(--nav-total, 110px) + 24px); position: relative; z-index: 2;">
                 <!-- TARJETA ASISTENTE MÁGICO (Liquid Glass AI) -->
-                <div class="ai-capsule-card premium-glass">
-                    <div class="ai-capsule-header">
-                        <div class="ai-orb-mini pulse-glow">🤖</div>
+                <div class="ai-capsule-card premium-glass" style="padding: 20px; border-radius: 28px; margin-bottom: 16px;">
+                    <div class="ai-capsule-header" style="display:flex; align-items:center; gap:14px; margin-bottom:14px;">
+                        <div class="ai-orb-mini pulse-glow" style="font-size:28px;">🤖</div>
                         <div class="ai-text">
-                            <h3>¿Qué buscamos hoy?</h3>
-                            <p>Tu asistente GoHappy está listo</p>
+                            <h3 style="font-size:15px; color:var(--cobalt); margin:0; font-weight:800;">¿Qué buscamos hoy?</h3>
+                            <p style="font-size:12px; color:var(--text-secondary); margin:2px 0 0; font-weight:500;">Tu asistente GoHappy está listo</p>
                         </div>
                     </div>
-                    <div class="ai-capsule-input-group">
-                        <input id="ai-quick-input" type="text" placeholder="Dime algo divertido o una idea..." spellcheck="false">
+                    <div class="ai-capsule-input-group" style="display:flex; gap:10px; align-items:center;">
+                        <input id="ai-quick-input" type="text" placeholder="Dime algo divertido o una idea..." spellcheck="false" style="flex:1; margin:0;">
                         <button id="btn-ai-magic" class="ai-magic-btn">🪄</button>
                     </div>
-                    <div id="ai-quick-response" class="ai-capsule-response" style="display: none;"></div>
+                    <div id="ai-quick-response" class="ai-capsule-response" style="display: none; margin-top:12px; padding:12px; background:rgba(11,76,143,0.05); border-radius:14px; font-size:14px; color:var(--cobalt);"></div>
                 </div>
 
                 ${storedPrefs ? '<div class="center-text p-40"><div class="typing-dots"><span></span><span></span><span></span></div><p style="margin-top:15px; color:#64748b; font-weight:600;">Sincronizando magia...</p></div>' : ''}
@@ -39,20 +39,8 @@ window.GoHappyToday = {
         }
 
         const fetchAndRender = async (coords, preferences) => {
-            // Check limits for free users
-            const limitInfo = window.GoHappyAI.checkTodayLimit();
-            if (!limitInfo.canRequest) {
-                content.innerHTML = `
-                    <div class="usage-limit-banner entry-anim">
-                        <span style="font-size: 1.5rem; display:block; margin-bottom:10px;">⏳</span>
-                        <strong>Has alcanzado el límite diario (3/3)</strong><br>
-                        Vuelve mañana para más planes o hazte <b>Premium</b> para consultas ilimitadas.
-                        <button class="btn-primary-gradient" style="margin-top:15px; width:100%;" onclick="alert('Funcionalidad Premium próximamente')">Saber más sobre Premium</button>
-                    </div>
-                `;
-                return;
-            }
-
+            // El control de límite real lo hace el server (cloud function rate limit por plan).
+            // El cliente solo informa al usuario, no bloquea.
             console.log("TODAY: Fetching for", coords, preferences);
             content.innerHTML = `
                 <div class="center-text p-40 entry-anim">

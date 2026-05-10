@@ -75,18 +75,11 @@ window.GoHappyQuestsPage = {
             style.textContent = `
                 .quests-page { width:100%; box-sizing:border-box; overflow-x:hidden; background: #f8fafc; min-height: 100vh; }
                 
-                /* Header Liquid Glass */
-                .q-header-premium { 
-                    width:100%; padding: 60px 25px 50px; 
-                    background: linear-gradient(135deg, #0B4C8F 0%, #051937 100%);
-                    background-image: var(--brand-pattern);
-                    border-radius: 0 0 40px 40px;
-                    position: relative;
-                }
-                .q-header-content { display: flex; justify-content: space-between; align-items: center; }
-                .q-title-group h2 { color: white; font-size: 1.8rem; font-weight: 900; margin: 0; letter-spacing: -1px; }
-                .q-subtitle { color: rgba(255,255,255,0.7); font-size: 13px; margin: 4px 0 0; font-weight: 500; }
-                .q-subtitle span { color: var(--accent-cyan); font-weight: 700; }
+                /* Header Liquid Glass — premium.css controla el background y padding-top */
+                .q-header-content { display: flex; justify-content: space-between; align-items: center; gap: 12px; position: relative; z-index: 2; }
+                .q-title-group { flex: 1; min-width: 0; }
+                .q-subtitle { color: rgba(255,255,255,0.92); font-size: 13px; margin: 4px 0 0; font-weight: 500; }
+                .q-subtitle span { color: #B8F0F4; font-weight: 700; }
                 
                 .q-racha-capsule {
                     background: rgba(255,255,255,0.1);
