@@ -474,57 +474,186 @@ body {
     font-weight: 500 !important;
 }
 
-/* ── 7. Liquid Glass Cards ─────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════
+   SISTEMA UNIFICADO DE TARJETAS — Liquid Glass v3.8
+   Una sola fuente de verdad para TODAS las cards de la app.
+   Selectores con [class*=] para forzar override sobre styles inline.
+   ════════════════════════════════════════════════════════════════ */
+
+/* Variables del sistema de cards */
+:root {
+    --card-bg:        rgba(255,255,255,0.78);
+    --card-bg-strong: rgba(255,255,255,0.92);
+    --card-border:    0.5px solid rgba(255,255,255,0.95);
+    --card-border-sep:0.5px solid rgba(11,76,143,0.10);
+    --card-radius:    24px;
+    --card-radius-lg: 28px;
+    --card-radius-sm: 20px;
+    --card-padding:   18px;
+    --card-padding-lg:22px;
+    --card-padding-sm:14px;
+    --card-margin:    0 0 14px 0;
+    --card-shadow:    inset 0 1px 0 rgba(255,255,255,0.95),
+                      0 6px 22px rgba(11,76,143,0.08),
+                      0 2px 6px rgba(11,76,143,0.04);
+    --card-shadow-hover: inset 0 1px 0 rgba(255,255,255,0.95),
+                         0 14px 36px rgba(11,76,143,0.12),
+                         0 4px 10px rgba(11,76,143,0.06);
+}
+
+/* TODAS las cards conocidas — base común */
 .card,
 .plan-card-premium,
 .gamification-card-premium,
 .ai-capsule-card,
 .action-card-glass,
 .news-mag-card,
-.podium-card {
-    background: var(--bg-card) !important;
-    backdrop-filter: var(--glass-blur) !important;
-    -webkit-backdrop-filter: var(--glass-blur) !important;
-    border: var(--glass-border) !important;
-    border-radius: var(--r-xl) !important;
-    box-shadow: var(--glass-shadow) !important;
-    transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease !important;
+.event-card-premium,
+.beca-item,
+.tribu-card,
+.alert-card,
+.memory-summary-card,
+.memory-reflection,
+.timeline-content,
+.podium-card,
+.quest-card-smart,
+.ranking-row {
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(30px) saturate(180%) brightness(1.05) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.05) !important;
+    border: var(--card-border) !important;
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--card-shadow) !important;
+    padding: var(--card-padding) !important;
+    margin: var(--card-margin) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
+                box-shadow 0.22s ease !important;
+    position: relative !important;
+    color: var(--text-primary) !important;
 }
 
-.card:active, .plan-card-premium:active, .action-card-glass:active, .news-mag-card:active {
+/* Tap feedback uniforme */
+.card:active,
+.plan-card-premium:active,
+.action-card-glass:active,
+.news-mag-card:active,
+.event-card-premium:active,
+.beca-item:active,
+.tribu-card:active,
+.alert-card:active,
+.quest-card-smart:active,
+.ranking-row:active {
     transform: scale(0.975) !important;
     box-shadow: 0 2px 8px rgba(11,76,143,0.06) !important;
 }
 
-.quest-card-smart {
-    background: rgba(255,255,255,0.85) !important;
-    backdrop-filter: var(--glass-blur-sm) !important;
-    -webkit-backdrop-filter: var(--glass-blur-sm) !important;
-    border: var(--glass-border) !important;
-    border-radius: var(--r-lg) !important;
-    box-shadow: var(--glass-shadow) !important;
-    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1) !important;
-}
-.quest-card-smart:active { transform: scale(0.97) !important; }
+/* ── Variantes especiales que mantienen el sistema base ── */
+
+/* Quest completada — verde sutil */
 .quest-card-smart.done {
-    background: linear-gradient(135deg, rgba(23,200,212,0.10) 0%, rgba(11,113,252,0.05) 100%) !important;
-    border-color: rgba(23,200,212,0.35) !important;
+    background: linear-gradient(135deg, rgba(34,197,94,0.06), rgba(23,200,212,0.04)) !important;
+    border-color: rgba(34,197,94,0.20) !important;
+    opacity: 0.92 !important;
 }
 
-.ranking-row {
-    background: rgba(255,255,255,0.85) !important;
-    backdrop-filter: var(--glass-blur-sm) !important;
-    -webkit-backdrop-filter: var(--glass-blur-sm) !important;
-    border-radius: var(--r-lg) !important;
-    border: var(--glass-border) !important;
-    box-shadow: var(--glass-shadow) !important;
-    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1) !important;
+/* Quest stripe lateral por categoría — recolocada como border-left subtle */
+.quest-card-smart {
+    border-left-width: 4px !important;
+    border-left-style: solid !important;
+    border-left-color: var(--cobalt-bright) !important;
 }
-.ranking-row:active { transform: scale(0.97) !important; }
+.quest-card-smart.cat-fisica    { border-left-color: #3498db !important; }
+.quest-card-smart.cat-familiar  { border-left-color: #f1c40f !important; }
+.quest-card-smart.cat-creativa  { border-left-color: #e91e63 !important; }
+.quest-card-smart.cat-educativa { border-left-color: #9b59b6 !important; }
+.quest-card-smart.cat-bienestar { border-left-color: #27AE60 !important; }
+.quest-card-smart.cat-social    { border-left-color: #16A085 !important; }
+.quest-card-smart.done          { border-left-color: #27AE60 !important; }
 
+/* Quitar la pseudo-stripe vieja que algunos styles inyectados ponían */
+.quest-card-smart::before { display: none !important; }
+
+/* Ranking podium ganador */
 .podium-card.large {
-    background: linear-gradient(160deg, rgba(255,255,255,0.95) 0%, rgba(184,240,244,0.4) 100%) !important;
-    box-shadow: var(--glass-shadow-lg) !important;
+    background: linear-gradient(160deg, rgba(255,255,255,0.95), rgba(184,240,244,0.5)) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.95),
+                0 18px 40px rgba(11,76,143,0.16) !important;
+    border: 0.5px solid rgba(23,200,212,0.4) !important;
+}
+
+/* Ranking row "soy yo" */
+.ranking-row.is-me, .quest-card-smart.is-me {
+    background: linear-gradient(135deg, rgba(23,200,212,0.10), rgba(11,113,252,0.06)) !important;
+    border: 1px solid rgba(23,200,212,0.45) !important;
+}
+
+/* Premium plan card (Today) — gradient cobalt sutil */
+.plan-card-premium.featured {
+    background: linear-gradient(135deg, rgba(11,113,252,0.08), rgba(23,200,212,0.10)) !important;
+    border: 0.5px solid rgba(11,113,252,0.20) !important;
+}
+
+/* Tribu AI card — destacada con gradient sutil */
+.tribu-card.ai-sponsored-card,
+.tribu-card[style*="ai"] {
+    background: linear-gradient(135deg, rgba(11,113,252,0.06), rgba(23,200,212,0.10)) !important;
+    border: 0.5px solid rgba(23,200,212,0.30) !important;
+}
+
+/* Alert card de Safe — border-left por tipo (mantiene coherencia) */
+.alert-card {
+    display: flex !important;
+    gap: 12px !important;
+    border-left-width: 4px !important;
+    border-left-style: solid !important;
+}
+
+/* ── PADDING especial por tipo ── */
+.gamification-card-premium,
+.memory-summary-card,
+.memory-reflection,
+.podium-card.large {
+    padding: var(--card-padding-lg) !important;
+}
+
+.ranking-row,
+.quest-card-smart,
+.alert-card {
+    padding: var(--card-padding-sm) !important;
+}
+
+/* ── BORDER-RADIUS especial por tipo ── */
+.podium-card,
+.gamification-card-premium,
+.memory-summary-card,
+.memory-reflection {
+    border-radius: var(--card-radius-lg) !important;
+}
+
+.ranking-row,
+.quest-card-smart {
+    border-radius: var(--card-radius-sm) !important;
+}
+
+/* ── LISTA / WRAPPERS coherentes ── */
+.content-list,
+.alerts-list,
+.ranking-display-area,
+.becas-list,
+.stagger-list,
+.memory-timeline {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
 }
 
 /* ── 8. Botones ────────────────────────────────────────────────── */

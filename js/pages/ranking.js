@@ -168,7 +168,7 @@ window.GoHappyRanking = {
             html += '<div class="ranking-rows">';
             others.forEach((user, i) => {
                 html += `
-                    <div class="ranking-row card-anim ${user.special ? 'is-me' : ''}" style="border-radius: 18px; margin-bottom: 10px; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                    <div class="ranking-row card-anim ${user.special ? 'is-me' : ''}">
                         <span class="row-rank" style="font-weight: 800; color: #94a3b8; width: 35px;">#${i + 4}</span>
                         <div class="row-avatar gradient-bg small" style="width: 40px; height: 40px; font-size: 16px;">${user.avatar || '👤'}</div>
                         <div class="row-info">

@@ -68,7 +68,7 @@ window.GoHappySafePage = {
                 const typeInfo = window.GoHappySafe.ALERT_TYPES[alert.type] || window.GoHappySafe.ALERT_TYPES.INFO;
                 const card = document.createElement('div');
                 card.className = 'alert-card entry-anim';
-                card.style.cssText = 'display:flex; gap:12px; padding:16px; background:white; border-radius:20px; margin:0 15px 12px; box-shadow:0 4px 16px rgba(11,76,143,0.06); border-left:4px solid ' + typeInfo.color;
+                card.style.borderLeftColor = typeInfo.color;
                 card.innerHTML = `
                     <div class="alert-icon" style="background:${typeInfo.color}15; color:${typeInfo.color}; font-size:1.5rem; width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                         ${typeInfo.icon}

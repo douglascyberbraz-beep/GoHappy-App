@@ -167,10 +167,7 @@ window.GoHappyTribu = {
         postList.forEach(post => {
             const card = document.createElement('div');
             card.className = `tribu-card entry-anim ${post.isAI ? 'ai-sponsored-card' : ''}`;
-            if (post.isAI) {
-                card.style.background = 'linear-gradient(135deg, rgba(11, 113, 252, 0.05), rgba(6, 254, 254, 0.15))';
-                card.style.border = '1px solid var(--accent-cyan)';
-            }
+            // El estilo lo da premium.css — ya no inyectamos inline
 
             // Sanitizar todo el contenido de usuario antes de inyectar en DOM
             const safeAvatar  = sec ? sec.safe(post.avatar)  : (post.avatar  || '😊');

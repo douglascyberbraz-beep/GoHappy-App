@@ -104,13 +104,6 @@ window.GoHappyNewsEvents = {
             items.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'event-card-premium entry-anim';
-                card.style.width = '92%';
-                card.style.maxWidth = '500px';
-                card.style.background = 'white';
-                card.style.padding = '20px';
-                card.style.borderRadius = '24px';
-                card.style.marginBottom = '15px';
-                card.style.boxShadow = 'var(--shadow-soft)';
 
                 card.innerHTML = `
                     <div class="news-mag-tag" style="margin-bottom: 5px;">📍 ${item.location}</div>
@@ -125,16 +118,12 @@ window.GoHappyNewsEvents = {
         };
 
         const renderBecas = (items) => {
-            content.innerHTML = '<div class="becas-list" style="width: 92%; max-width: 500px;"></div>';
+            content.innerHTML = '<div class="becas-list"></div>';
             const listContainer = content.querySelector('.becas-list');
 
             items.forEach((item, idx) => {
                 const card = document.createElement('div');
-                card.className = 'beca-item premium-glass entry-anim';
-                card.style.padding = '20px';
-                card.style.borderRadius = '20px';
-                card.style.marginBottom = '15px';
-                card.style.border = '1px solid #eee';
+                card.className = 'beca-item entry-anim';
 
                 card.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
