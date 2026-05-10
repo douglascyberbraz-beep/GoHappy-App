@@ -27,7 +27,7 @@ window.GoHappyProfile = {
                 <div class="profile-hero-premium">
                     <div class="profile-avatar-wrapper" id="open-avatar-editor">
                         <div class="profile-avatar-large profile-glow">${user.photo || '👤'}</div>
-                        <div class="level-badge-premium">Nivel ${user.level || '1'}</div>
+                        <div class="level-badge-premium">${levelInfo.icon} ${levelInfo.name}</div>
                     </div>
                     <div class="profile-meta-header">
                         <h2 class="profile-name-main">${user.nickname || 'Explorador'}</h2>

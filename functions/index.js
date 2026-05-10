@@ -15,8 +15,14 @@ const db = getFirestore();
 // Clave Gemini como Secret de Firebase (nunca en código)
 const GEMINI_KEY = defineSecret('GEMINI_KEY');
 
-// gemini-1.5-flash: 1500 RPD free vs gemini-2.0-flash (200 RPD). 10x más capacidad
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
+// Modelos en orden de preferencia. Si uno falla con 429/503, intentamos el siguiente.
+// Verificado 2026-05-10: gemini-1.5-* RETIRADOS (404). 2.0-flash agotado (429).
+// gemini-2.5-flash y gemini-flash-latest son los únicos vivos en free tier.
+const GEMINI_MODELS = [
+    'gemini-2.5-flash',
+    'gemini-flash-latest'
+];
+const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 // Cache TTL — respuestas idénticas se sirven desde caché
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hora
@@ -164,31 +170,60 @@ exports.geminiProxy = onRequest(
             };
             if (expectJson) body.generationConfig = { response_mime_type: 'application/json' };
 
-            const r = await fetch(`${GEMINI_URL}?key=${GEMINI_KEY.value()}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body),
-                signal: AbortSignal.timeout(25000)
-            });
+            // Intentar cada modelo en orden hasta encontrar uno disponible
+            let r = null;
+            let usedModel = null;
+            let lastError = null;
 
-            // Manejo específico de errores upstream
-            if (r.status === 429) {
-                const errBody = await r.text();
-                console.warn('[Gemini] Quota exceeded (429):', errBody.slice(0, 200));
-                return res.status(429).json({
-                    error: 'Límite de IA temporal alcanzado. Intenta en 1 minuto.',
-                    retryAfter: 60
+            for (const model of GEMINI_MODELS) {
+                try {
+                    r = await fetch(`${GEMINI_BASE}/${model}:generateContent?key=${GEMINI_KEY.value()}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body),
+                        signal: AbortSignal.timeout(25000)
+                    });
+
+                    if (r.ok) {
+                        usedModel = model;
+                        break;
+                    }
+
+                    // 429 (rate limit) o 503 (no disponible) → intentar siguiente modelo
+                    if (r.status === 429 || r.status === 503) {
+                        const errBody = await r.text();
+                        lastError = { status: r.status, body: errBody.slice(0, 200) };
+                        console.warn(`[Gemini] ${model} → ${r.status}, intentando siguiente`);
+                        continue;
+                    }
+
+                    // 400, 401, otros → error real, no retry
+                    const errBody = await r.text();
+                    lastError = { status: r.status, body: errBody.slice(0, 200) };
+                    console.error(`[Gemini] ${model} → ${r.status}: ${errBody.slice(0, 200)}`);
+                    break;
+                } catch (fetchErr) {
+                    console.warn(`[Gemini] ${model} fetch error:`, fetchErr?.message);
+                    lastError = { status: 0, body: fetchErr?.message };
+                    continue;
+                }
+            }
+
+            // Ningún modelo funcionó
+            if (!r || !r.ok) {
+                if (lastError?.status === 429) {
+                    return res.status(429).json({
+                        error: 'Todos los modelos IA están saturados. Reintenta en 1 minuto.',
+                        retryAfter: 60
+                    });
+                }
+                if (lastError?.status === 400) {
+                    return res.status(400).json({ error: 'Petición a IA inválida.' });
+                }
+                return res.status(502).json({
+                    error: 'IA no disponible temporalmente. Intenta de nuevo.',
+                    debug: lastError?.status || 'unknown'
                 });
-            }
-            if (r.status === 400) {
-                const errBody = await r.text();
-                console.error('[Gemini] Bad request:', errBody.slice(0, 200));
-                return res.status(400).json({ error: 'Petición a IA inválida.' });
-            }
-            if (!r.ok) {
-                const errBody = await r.text();
-                console.error('[Gemini] Error', r.status, ':', errBody.slice(0, 200));
-                return res.status(502).json({ error: 'IA no disponible temporalmente. Intenta de nuevo.' });
             }
 
             const data = await r.json();
@@ -203,12 +238,13 @@ exports.geminiProxy = onRequest(
             }
 
             db.collection('_ailogs').add({
-                uid, model: 'gemini-1.5-flash', expectJson, success: true,
+                uid, model: usedModel, expectJson, success: true,
                 remainingToday: rate.remaining,
                 timestamp: FieldValue.serverTimestamp()
             }).catch(() => {});
 
             res.set('X-Cache', 'MISS');
+            res.set('X-Model', usedModel);
             res.set('X-RateLimit-Remaining', rate.remaining);
             return res.status(200).json(data);
 

@@ -64,16 +64,20 @@ window.GoHappyToday = {
 
             try {
                 const activities = await window.GoHappyAI.getTodayActivities(coords, preferences);
-                window.GoHappyAI.incrementTodayUsage();
+                const sourceLabel = window.GoHappyAI._lastSource;
+
+                // Solo contar uso si fue una llamada NUEVA a IA (no cache, no demo)
+                if (sourceLabel === 'real') {
+                    window.GoHappyAI.incrementTodayUsage();
+                }
+
                 renderActivities(activities);
 
-                // Indicador visual IA real / cache / demo
-                const sourceLabel = window.GoHappyAI._lastSource;
-                if (sourceLabel === 'real' || sourceLabel === 'cache') {
-                    window.GoHappyToast && window.GoHappyToast.success(
-                        sourceLabel === 'real' ? '✨ Planes generados por IA real' : '⚡ Planes desde caché',
-                        2500
-                    );
+                // Indicador visual del origen
+                if (sourceLabel === 'real') {
+                    window.GoHappyToast && window.GoHappyToast.success('✨ Planes generados por IA real', 2500);
+                } else if (sourceLabel === 'cache') {
+                    window.GoHappyToast && window.GoHappyToast.info('⚡ Planes desde caché', 2000);
                 }
             } catch (err) {
                 console.error("TODAY Load Error:", err);
