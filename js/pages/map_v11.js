@@ -108,61 +108,98 @@ window.GoHappyMap = {
                     window._navContext = null;
                 }
                 
-                // Waze Style Colors - More Premium and Clean
+                // ── WAZE-STYLE COLORS — claro, vivo, navegador premium ──
                 const layersToColor = [
-                    { id: 'water', color: '#B3E5FC', opacity: 0.8 },
-                    { id: 'landuse-natural', color: '#E8F5E9', opacity: 1 },
-                    { id: 'landuse-park', color: '#C8E6C9', opacity: 1 },
-                    { id: 'land', color: '#F5F5F5', opacity: 1 }
+                    { id: 'water',           color: '#A6D9F7', opacity: 1 },     // azul claro Waze
+                    { id: 'landuse-natural', color: '#DDF1D5', opacity: 1 },     // verde pastel
+                    { id: 'landuse-park',    color: '#B8E6B5', opacity: 1 },     // parque más saturado
+                    { id: 'land',            color: '#F5F8FA', opacity: 1 },     // fondo limpio
+                    { id: 'landuse-residential', color: '#EEF2F7', opacity: 1 },
+                    { id: 'landuse-commercial',  color: '#F0EAF7', opacity: 1 },
+                    { id: 'landcover-grass',     color: '#D4ECCB', opacity: 1 },
+                    { id: 'landcover-wood',      color: '#C5E0B8', opacity: 1 }
                 ];
 
                 layersToColor.forEach(l => {
-                    if (window.GoHappyMap.instance.getLayer(l.id)) {
-                        window.GoHappyMap.instance.setPaintProperty(l.id, 'fill-color', l.color);
-                        window.GoHappyMap.instance.setPaintProperty(l.id, 'fill-opacity', l.opacity);
-                    }
+                    try {
+                        if (window.GoHappyMap.instance.getLayer(l.id)) {
+                            window.GoHappyMap.instance.setPaintProperty(l.id, 'fill-color', l.color);
+                            window.GoHappyMap.instance.setPaintProperty(l.id, 'fill-opacity', l.opacity);
+                        }
+                    } catch (e) {}
                 });
 
-                // Waze-Style 3D Buildings - Transparent Cobalt
+                // ── 3D BUILDINGS — gradiente cobalto vivo con altura ──
                 try {
                     const buildingLayer = window.GoHappyMap.instance.getLayer('building');
                     if (buildingLayer) {
-                        // Hide original 2D flat building layer
                         window.GoHappyMap.instance.setPaintProperty('building', 'fill-opacity', 0);
-                        
-                        // Inject true 3D extrusion layer using the same data source
+
                         window.GoHappyMap.instance.addLayer({
                             'id': 'waze-3d-buildings',
                             'source': buildingLayer.source,
                             'source-layer': buildingLayer.sourceLayer,
                             'type': 'fill-extrusion',
-                            'minzoom': 15,
+                            'minzoom': 14,
                             'paint': {
-                                'fill-extrusion-color': '#0B4C8F',
-                                'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 20],
+                                // Color por altura: edificios bajos cyan claro, altos cobalt
+                                'fill-extrusion-color': [
+                                    'interpolate', ['linear'],
+                                    ['coalesce', ['get', 'render_height'], 10],
+                                    0,   '#B8E0FA',
+                                    20,  '#7DC4F0',
+                                    50,  '#3A9CE0',
+                                    100, '#0B71FC',
+                                    200, '#0B4C8F'
+                                ],
+                                'fill-extrusion-height': [
+                                    'interpolate', ['linear'], ['zoom'],
+                                    14, 0,
+                                    15.5, ['coalesce', ['get', 'render_height'], 18]
+                                ],
                                 'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
-                                'fill-extrusion-opacity': 0.4
+                                'fill-extrusion-opacity': 0.62,
+                                'fill-extrusion-vertical-gradient': true
                             }
                         });
                     }
                 } catch (e) {
-                    console.warn("Could not inject 3D buildings:", e);
+                    console.warn("3D buildings injection skipped:", e);
                 }
 
-                // Waze-Style Roads (Clean & Premium)
-                const roadLayers = window.GoHappyMap.instance.getStyle().layers
-                    .filter(l => l.id.includes('road') || l.id.includes('street') || l.id.includes('way') || l.id.includes('bridge') || l.id.includes('tunnel'))
+                // ── ROADS estilo Waze — blancos limpios con casing ──
+                const allLayers = window.GoHappyMap.instance.getStyle().layers;
+                const roadLayers = allLayers
+                    .filter(l => /road|street|way|bridge|tunnel|highway/i.test(l.id))
                     .map(l => l.id);
 
                 roadLayers.forEach(layer => {
-                    if (window.GoHappyMap.instance.getLayer(layer)) {
-                        try {
-                            const isPrimary = layer.includes('primary') || layer.includes('motorway') || layer.includes('trunk');
-                            window.GoHappyMap.instance.setPaintProperty(layer, 'line-color', isPrimary ? '#ffffff' : '#f0f0f0');
-                            window.GoHappyMap.instance.setPaintProperty(layer, 'line-opacity', 1);
-                        } catch(e){}
-                    }
+                    try {
+                        const lyr = window.GoHappyMap.instance.getLayer(layer);
+                        if (!lyr || lyr.type !== 'line') return;
+                        const isPrimary = /primary|motorway|trunk|main/i.test(layer);
+                        const isCasing  = /casing|outline|border/i.test(layer);
+
+                        if (isCasing) {
+                            window.GoHappyMap.instance.setPaintProperty(layer, 'line-color', '#D8E4F0');
+                        } else if (isPrimary) {
+                            window.GoHappyMap.instance.setPaintProperty(layer, 'line-color', '#FFFFFF');
+                        } else {
+                            window.GoHappyMap.instance.setPaintProperty(layer, 'line-color', '#F4F8FC');
+                        }
+                        window.GoHappyMap.instance.setPaintProperty(layer, 'line-opacity', 1);
+                    } catch (e) {}
                 });
+
+                // Iluminación de luz ambiental (efecto sol Waze)
+                try {
+                    window.GoHappyMap.instance.setLight({
+                        anchor: 'viewport',
+                        color: '#FFF5E6',
+                        intensity: 0.35,
+                        position: [1.5, 90, 80]
+                    });
+                } catch (e) {}
 
                 window.GoHappyMap.injectUI(container);
                 

@@ -5,8 +5,9 @@ window.GoHappyTribu = {
 
     render: async (container) => {
         container.innerHTML = `
-            <div class="page-header sticky-header">
-                <h2 id="tribu-title" style="color: var(--primary-cobalt); font-weight: 800;">🏘️ TRIBU</h2>
+            <div class="unified-hero">
+                <h2 id="tribu-title">🏘️ Tribu</h2>
+                <p>Comparte y conecta con familias como la tuya</p>
             </div>
             
             <div id="tribu-content" class="content-list stagger-group" style="padding-bottom: 100px; width: 100%; display: flex; flex-direction: column; align-items: center;">

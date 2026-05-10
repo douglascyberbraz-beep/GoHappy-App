@@ -2,9 +2,9 @@ window.GoHappySafePage = {
     render: async (container) => {
         container.innerHTML = `
             <div class="safe-page stagger-group">
-                <div class="page-header center-text">
-                    <h2 style="color: var(--primary-cobalt); font-weight: 800;">🛡️ SAFE</h2>
-                    <p style="color: #888; font-size: 13px;">Alertas de seguridad en tu zona</p>
+                <div class="unified-hero">
+                    <h2>🛡️ Safe</h2>
+                    <p>Alertas de seguridad en tu zona</p>
                 </div>
 
                 <div id="ai-safe-insight" class="info-alert" style="margin: 0 15px 15px 15px; padding: 12px; background: linear-gradient(135deg, rgba(11, 113, 252, 0.05), rgba(6, 254, 254, 0.1)); border-radius: 12px; border-left: 4px solid var(--primary-cobalt); font-size: 13px; color: var(--primary-cobalt); line-height: 1.4; display: none;">

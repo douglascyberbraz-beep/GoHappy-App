@@ -33,10 +33,22 @@ window.GoHappySound = (() => {
             playTone(880, 'sine', 0.08, 0.08);
         },
 
-        // App start - magical chime sequence
+        // App start - arpegio alegre mayor (Do-Mi-Sol-Do-Mi alto) tipo "felicidad"
         start: () => {
-            [[523, 0], [659, 0.1], [784, 0.2], [1047, 0.35]].forEach(([f, d]) => {
-                playTone(f, 'sine', 0.35, 0.1, d);
+            // Arpegio principal con timbre suave
+            [[523, 0], [659, 0.08], [784, 0.16], [1047, 0.26], [1319, 0.38]].forEach(([f, d]) => {
+                playTone(f, 'sine', 0.4, 0.10, d);
+            });
+            // Campanilleo brillante superpuesto (más agudo, volumen bajo)
+            [[2093, 0.1], [2637, 0.3]].forEach(([f, d]) => {
+                playTone(f, 'sine', 0.18, 0.04, d);
+            });
+        },
+
+        // Magic shimmer — para transición de splash a app
+        magic: () => {
+            [[1568, 0], [2093, 0.05], [2637, 0.12]].forEach(([f, d]) => {
+                playTone(f, 'sine', 0.25, 0.06, d);
             });
         },
 

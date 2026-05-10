@@ -9,9 +9,9 @@ window.GoHappyMemories = {
 
         container.innerHTML = `
             <div class="memories-page">
-                <div class="page-header center-text">
-                    <h2 style="color: var(--primary-navy); font-weight: 800;">📖 Memories</h2>
-                    <p style="color: #888; font-size: 13px;">Tu diario familiar de aventuras</p>
+                <div class="unified-hero">
+                    <h2>📖 Memories</h2>
+                    <p>Tu diario familiar de aventuras</p>
                 </div>
 
                 <!-- Monthly Summary Card -->

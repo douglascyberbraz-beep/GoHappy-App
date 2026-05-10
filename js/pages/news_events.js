@@ -1,16 +1,19 @@
 window.GoHappyNewsEvents = {
     render: async (container) => {
         container.innerHTML = `
-            <div class="page-header sticky-header" style="flex-direction: column; align-items: stretch; gap: 15px; padding-bottom: 5px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2 style="color: var(--primary-navy); font-weight: 800; letter-spacing: 1px;">NEWS</h2>
-                    <span id="loc-status" style="font-size: 10px; color: #888; background: #eee; padding: 4px 8px; border-radius: 10px;">📍 Detectando ubicación...</span>
+            <div class="unified-hero">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                    <div style="flex:1;">
+                        <h2>🗞️ News</h2>
+                        <p>Noticias, eventos y becas de tu zona</p>
+                    </div>
+                    <span id="loc-status" style="font-size:10px; color:white; background:rgba(255,255,255,0.18); backdrop-filter:blur(10px); padding:5px 10px; border-radius:999px; font-weight:600; white-space:nowrap; align-self:center;">📍 Detectando…</span>
                 </div>
-                
-                <div class="tab-scroller">
-                    <button class="tab-btn active" data-tab="news">Noticias Locales</button>
-                    <button class="tab-btn" data-tab="events">Eventos Próximos</button>
-                    <button class="tab-btn" data-tab="becas">Becas y Ayudas</button>
+
+                <div class="tab-scroller" style="display:flex; gap:8px; margin-top:18px; overflow-x:auto; padding:4px;">
+                    <button class="tab-btn active" data-tab="news" style="background:white; color:var(--cobalt-bright); border:none; padding:8px 16px; border-radius:999px; font-weight:700; font-size:12px; white-space:nowrap; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.1);">Noticias</button>
+                    <button class="tab-btn" data-tab="events" style="background:rgba(255,255,255,0.15); color:white; border:none; padding:8px 16px; border-radius:999px; font-weight:700; font-size:12px; white-space:nowrap; cursor:pointer; backdrop-filter:blur(10px);">Eventos</button>
+                    <button class="tab-btn" data-tab="becas" style="background:rgba(255,255,255,0.15); color:white; border:none; padding:8px 16px; border-radius:999px; font-weight:700; font-size:12px; white-space:nowrap; cursor:pointer; backdrop-filter:blur(10px);">Becas</button>
                 </div>
             </div>
             
@@ -169,11 +172,26 @@ window.GoHappyNewsEvents = {
             });
         };
 
-        // Tab Logic
+        // Tab Logic — actualiza estilos inline al cambiar
+        const updateTabStyles = () => {
+            container.querySelectorAll('.tab-btn').forEach(b => {
+                if (b.classList.contains('active')) {
+                    b.style.background = 'white';
+                    b.style.color = 'var(--cobalt-bright)';
+                    b.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                } else {
+                    b.style.background = 'rgba(255,255,255,0.15)';
+                    b.style.color = 'white';
+                    b.style.boxShadow = 'none';
+                }
+            });
+        };
+
         container.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('click', () => {
                 container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
+                updateTabStyles();
                 loadContent(btn.dataset.tab);
             });
         });

@@ -20,12 +20,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.info("[GoHappy] Gemini proxy desactivado — usando datos demo.");
     }
 
+    // Sonido de felicidad al cargar el splash (intentamos cuanto antes)
+    setTimeout(() => {
+        try { window.GoHappySound && window.GoHappySound.play('start'); } catch (e) {}
+    }, 200);
+
     // Splash Screen con timing premium
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         if (!splash) return;
+        splash.style.transition = 'opacity 0.6s cubic-bezier(0.4,0,0.2,1)';
         splash.style.opacity = '0';
-        window.GoHappySound.play('start');
+        // Sonido secundario "magic" al desvelar la app
+        try { window.GoHappySound && window.GoHappySound.play('magic'); } catch (e) {}
         setTimeout(() => {
             splash.style.display = 'none';
             const nav = document.getElementById('bottom-nav');
@@ -34,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 nav.style.animation = 'navSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards';
             }
         }, 600);
-    }, 1800);
+    }, 2200);
 
     // Firebase Auth init
     window.GoHappyAuth.init((user) => {
