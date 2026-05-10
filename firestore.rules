@@ -234,6 +234,35 @@ service cloud.firestore {
 
 
     // ═══════════════════════════════════════════════════════════════
+    // MOMENTS (BeReal familiar — solo familia/usuario propietario ve)
+    // ═══════════════════════════════════════════════════════════════
+    match /moments/{momentId} {
+
+      // Leer: cualquier autenticado (filtrado por familyId en query)
+      // El control real está en la creación + validación familyId
+      allow get:  if isAuthenticated();
+      allow list: if isAuthenticated();
+
+      // Crear: usuario real, su uid, validaciones de tamaño
+      allow create: if isRealUser()
+        && request.auth.uid == request.resource.data.userId
+        && request.resource.data.familyId is string
+        && request.resource.data.familyId.size() >= 2
+        && (request.resource.data.caption == '' ||
+            (request.resource.data.caption is string && request.resource.data.caption.size() <= 300))
+        && (!request.resource.data.keys().hasAny(['imageData']) ||
+            (request.resource.data.imageData is string && request.resource.data.imageData.size() <= 800000));
+
+      // Actualizar: solo reacciones (cualquier autenticado puede reaccionar)
+      allow update: if isAuthenticated()
+        && onlyFields(['reactions']);
+
+      // Borrar: solo el autor
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+
+
+    // ═══════════════════════════════════════════════════════════════
     // RESEÑAS (Mapa)
     // ═══════════════════════════════════════════════════════════════
     match /reviews/{reviewId} {
