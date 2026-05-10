@@ -7,13 +7,13 @@ window.GoHappyNewsEvents = {
                         <h2>🗞️ News</h2>
                         <p>Noticias, eventos y becas de tu zona</p>
                     </div>
-                    <span id="loc-status" style="font-size:10px; color:white; background:rgba(255,255,255,0.18); backdrop-filter:blur(10px); padding:5px 10px; border-radius:999px; font-weight:600; white-space:nowrap; align-self:center;">📍 Detectando…</span>
+                    <span id="loc-status" style="font-size:10px; color:var(--cobalt); background:rgba(11,76,143,0.08); backdrop-filter:blur(10px); padding:6px 12px; border-radius:999px; font-weight:700; white-space:nowrap; align-self:center; border:0.5px solid rgba(11,76,143,0.12);">📍 Detectando…</span>
                 </div>
 
                 <div class="tab-scroller" style="display:flex; gap:8px; margin-top:18px; overflow-x:auto; padding:4px;">
-                    <button class="tab-btn active" data-tab="news" style="background:white; color:var(--cobalt-bright); border:none; padding:8px 16px; border-radius:999px; font-weight:700; font-size:12px; white-space:nowrap; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.1);">Noticias</button>
-                    <button class="tab-btn" data-tab="events" style="background:rgba(255,255,255,0.15); color:white; border:none; padding:8px 16px; border-radius:999px; font-weight:700; font-size:12px; white-space:nowrap; cursor:pointer; backdrop-filter:blur(10px);">Eventos</button>
-                    <button class="tab-btn" data-tab="becas" style="background:rgba(255,255,255,0.15); color:white; border:none; padding:8px 16px; border-radius:999px; font-weight:700; font-size:12px; white-space:nowrap; cursor:pointer; backdrop-filter:blur(10px);">Becas</button>
+                    <button class="tab-btn active" data-tab="news" style="background:linear-gradient(135deg,#0B71FC,#17C8D4); color:white; border:none; padding:9px 18px; border-radius:999px; font-weight:700; font-size:12px; white-space:nowrap; cursor:pointer; box-shadow:0 6px 16px rgba(11,113,252,0.28);">Noticias</button>
+                    <button class="tab-btn" data-tab="events" style="background:rgba(11,76,143,0.08); color:var(--cobalt); border:0.5px solid rgba(11,76,143,0.12); padding:9px 18px; border-radius:999px; font-weight:700; font-size:12px; white-space:nowrap; cursor:pointer;">Eventos</button>
+                    <button class="tab-btn" data-tab="becas" style="background:rgba(11,76,143,0.08); color:var(--cobalt); border:0.5px solid rgba(11,76,143,0.12); padding:9px 18px; border-radius:999px; font-weight:700; font-size:12px; white-space:nowrap; cursor:pointer;">Becas</button>
                 </div>
             </div>
             
@@ -176,12 +176,14 @@ window.GoHappyNewsEvents = {
         const updateTabStyles = () => {
             container.querySelectorAll('.tab-btn').forEach(b => {
                 if (b.classList.contains('active')) {
-                    b.style.background = 'white';
-                    b.style.color = 'var(--cobalt-bright)';
-                    b.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-                } else {
-                    b.style.background = 'rgba(255,255,255,0.15)';
+                    b.style.background = 'var(--brand-bright)';
                     b.style.color = 'white';
+                    b.style.border = 'none';
+                    b.style.boxShadow = '0 6px 16px rgba(11,113,252,0.28)';
+                } else {
+                    b.style.background = 'rgba(11,76,143,0.08)';
+                    b.style.color = 'var(--cobalt)';
+                    b.style.border = '0.5px solid rgba(11,76,143,0.12)';
                     b.style.boxShadow = 'none';
                 }
             });
