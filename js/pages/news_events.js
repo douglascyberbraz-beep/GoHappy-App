@@ -26,13 +26,17 @@ window.GoHappyNewsEvents = {
         const locStatus = document.getElementById('loc-status');
         let currentTab = 'news';
 
-        // Reactive Sync
-        window.addEventListener('GoHappy-location-sync', () => {
+        // Reactive Sync — evitar memory leak: remover listener anterior si existe
+        if (window.GoHappyNewsEvents._locSyncListener) {
+            window.removeEventListener('GoHappy-location-sync', window.GoHappyNewsEvents._locSyncListener);
+        }
+        window.GoHappyNewsEvents._locSyncListener = () => {
             if (window.GoHappyApp.currentPage === 'news_events') {
                 locStatus.innerText = "📍 Información de tu zona sincronizada";
                 loadContent(currentTab);
             }
-        });
+        };
+        window.addEventListener('GoHappy-location-sync', window.GoHappyNewsEvents._locSyncListener);
 
         const loadContent = async (tab) => {
             currentTab = tab;

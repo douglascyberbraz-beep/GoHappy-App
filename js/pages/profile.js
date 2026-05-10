@@ -220,16 +220,16 @@ window.GoHappyProfile = {
             };
         });
 
-        // --- REACTIVE SYNC ---
-        // Listener global para actualizar perfil si cambian puntos en otra página
-        const syncListener = (e) => {
+        // --- REACTIVE SYNC --- evitar memory leak: remover listener anterior
+        if (window.GoHappyProfile._syncListener) {
+            window.removeEventListener('GoHappy-points-sync', window.GoHappyProfile._syncListener);
+        }
+        window.GoHappyProfile._syncListener = (e) => {
             if (window.GoHappyApp.currentPage === 'profile') {
-                console.log("[Profile] Sincronizando puntos en tiempo real...");
                 window.GoHappyProfile.render(container);
             }
         };
-        window.addEventListener('GoHappy-points-sync', syncListener);
-        // Guardar para remover si es necesario en futuras navegaciones si diera problemas de duplicados
+        window.addEventListener('GoHappy-points-sync', window.GoHappyProfile._syncListener);
 
         // Generate QR
         setTimeout(() => {

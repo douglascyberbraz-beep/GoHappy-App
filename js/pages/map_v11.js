@@ -348,15 +348,20 @@ window.GoHappyMap = {
             </div>
         `;
 
+        // Sanitizar contenido contra XSS antes de inyectar en HTML
+        const safeName = window.GoHappySecurity ? window.GoHappySecurity.safe(loc.name) : String(loc.name).replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+        const safeType = window.GoHappySecurity ? window.GoHappySecurity.safe(loc.type) : String(loc.type || '').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+        const safeImage = (loc.image && /^https?:\/\//.test(loc.image)) ? loc.image : '';
+
         const popupHTML = `
             <div class="popup-premium" style="min-width: 220px; border-radius: 20px; overflow: hidden;">
                 <div class="popup-img-container" style="position: relative; height: 100px; background: #eee;">
-                    ${loc.image ? `<img src="${loc.image}" style="width: 100%; height: 100%; object-fit: cover;">` : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--primary-blue); color: white; font-size: 2rem;">🌟</div>`}
+                    ${safeImage ? `<img src="${safeImage}" style="width: 100%; height: 100%; object-fit: cover;">` : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--primary-blue); color: white; font-size: 2rem;">🌟</div>`}
                 </div>
                 <div class="popup-body" style="padding: 12px; background: white;">
-                    <h3 style="margin: 0 0 5px 0; font-size: 1rem; font-weight: 800; color: var(--primary-navy);">${loc.name}</h3>
-                    <div style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">⭐ ${loc.rating || 4.5} | ${loc.type}</div>
-                    <button class="btn-primary-gradient" style="padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 700; width: 100%; border:none; color:white; cursor:pointer;" onclick="window.GoHappyMap.showAddSiteModal(${loc.lat}, ${loc.lng}, '${loc.name.replace(/'/g, "\\'")}')">
+                    <h3 style="margin: 0 0 5px 0; font-size: 1rem; font-weight: 800; color: var(--primary-navy);">${safeName}</h3>
+                    <div style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">⭐ ${parseFloat(loc.rating) || 4.5} | ${safeType}</div>
+                    <button class="popup-review-btn btn-primary-gradient" style="padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 700; width: 100%; border:none; color:white; cursor:pointer;" data-lat="${parseFloat(loc.lat)}" data-lng="${parseFloat(loc.lng)}">
                         📝 Escribir Reseña
                     </button>
                 </div>
@@ -364,6 +369,17 @@ window.GoHappyMap = {
         `;
 
         const popup = new maplibregl.Popup({ offset: 40, className: 'premium-popup-3d' }).setHTML(popupHTML);
+        // Bind sin onclick inline (evita XSS y CSP issues)
+        popup.on('open', () => {
+            const btn = document.querySelector('.maplibregl-popup-content .popup-review-btn');
+            if (btn) {
+                btn.onclick = () => window.GoHappyMap.showAddSiteModal(
+                    parseFloat(btn.dataset.lat),
+                    parseFloat(btn.dataset.lng),
+                    loc.name
+                );
+            }
+        });
 
         const marker = new maplibregl.Marker({ element: el, anchor: 'bottom', offset: [0, -10] })
             .setLngLat([loc.lng, loc.lat])
@@ -473,10 +489,15 @@ window.GoHappyMap = {
     startGPSWatch: () => {
         if (!navigator.geolocation) return;
 
+        // Evitar memory leak: limpiar watch anterior si existe
+        if (window.GoHappyMap._gpsWatchId !== null && window.GoHappyMap._gpsWatchId !== undefined) {
+            navigator.geolocation.clearWatch(window.GoHappyMap._gpsWatchId);
+        }
+
         let lastLat = null;
         let lastLng = null;
 
-        navigator.geolocation.watchPosition((pos) => {
+        window.GoHappyMap._gpsWatchId = navigator.geolocation.watchPosition((pos) => {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
             const newCoords = `${lat}, ${lng}`;

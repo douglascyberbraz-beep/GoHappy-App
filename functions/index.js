@@ -17,10 +17,12 @@ const GEMINI_KEY = defineSecret('GEMINI_KEY');
 
 // Modelos en orden de preferencia. Si uno falla con 429/503, intentamos el siguiente.
 // Verificado 2026-05-10: gemini-1.5-* RETIRADOS (404). 2.0-flash agotado (429).
-// gemini-2.5-flash y gemini-flash-latest son los únicos vivos en free tier.
+// LITE tienen MÁS cuota free tier (10x más TPM) → ideal como fallback.
 const GEMINI_MODELS = [
-    'gemini-2.5-flash',
-    'gemini-flash-latest'
+    'gemini-2.5-flash',           // calidad alta, primera opción
+    'gemini-flash-latest',         // alias estable
+    'gemini-2.5-flash-lite',       // más cuota (fallback rápido)
+    'gemini-flash-lite-latest'     // alias lite
 ];
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
