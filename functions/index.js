@@ -15,14 +15,29 @@ const db = getFirestore();
 // Clave Gemini como Secret de Firebase (nunca en código)
 const GEMINI_KEY = defineSecret('GEMINI_KEY');
 
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+// gemini-1.5-flash: 1500 RPD free vs gemini-2.0-flash (200 RPD). 10x más capacidad
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
 
-// Límites por plan
+// Cache TTL — respuestas idénticas se sirven desde caché
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hora
+
+// Límites por plan (más generosos ahora que tenemos caché)
 const LIMITS = {
-    guest:   { daily: 3,   monthly: 20  },
-    free:    { daily: 10,  monthly: 100 },
-    premium: { daily: 50,  monthly: 500 }
+    guest:   { daily: 8,   monthly: 50   },
+    free:    { daily: 30,  monthly: 300  },
+    premium: { daily: 200, monthly: 2000 }
 };
+
+// Hash simple para cachear por prompt+expectJson
+function promptHash(prompt, expectJson) {
+    const str = (expectJson ? 'J:' : 'T:') + prompt;
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+    }
+    return Math.abs(hash).toString(36);
+}
 
 // CORS — solo nuestros dominios
 const ALLOWED_ORIGINS = [
@@ -122,6 +137,21 @@ exports.geminiProxy = onRequest(
         const clean = sanitizePrompt(prompt);
         if (!clean) return res.status(400).json({ error: 'Prompt inválido.' });
 
+        // ── CACHE: buscar respuesta cacheada para este prompt ──
+        const cacheKey = promptHash(clean, expectJson);
+        try {
+            const cacheDoc = await db.collection('_aicache').doc(cacheKey).get();
+            if (cacheDoc.exists) {
+                const cached = cacheDoc.data();
+                const age = Date.now() - (cached.savedAt?.toMillis?.() || 0);
+                if (age < CACHE_TTL_MS && cached.response) {
+                    res.set('X-Cache', 'HIT');
+                    res.set('X-RateLimit-Remaining', rate.remaining);
+                    return res.status(200).json(cached.response);
+                }
+            }
+        } catch (e) { /* cache miss, continuar */ }
+
         try {
             const body = {
                 contents: [{ parts: [{ text: clean }] }],
@@ -141,23 +171,50 @@ exports.geminiProxy = onRequest(
                 signal: AbortSignal.timeout(25000)
             });
 
+            // Manejo específico de errores upstream
+            if (r.status === 429) {
+                const errBody = await r.text();
+                console.warn('[Gemini] Quota exceeded (429):', errBody.slice(0, 200));
+                return res.status(429).json({
+                    error: 'Límite de IA temporal alcanzado. Intenta en 1 minuto.',
+                    retryAfter: 60
+                });
+            }
+            if (r.status === 400) {
+                const errBody = await r.text();
+                console.error('[Gemini] Bad request:', errBody.slice(0, 200));
+                return res.status(400).json({ error: 'Petición a IA inválida.' });
+            }
             if (!r.ok) {
-                console.error('[Gemini] Error:', r.status, await r.text());
-                return res.status(502).json({ error: 'Error en IA. Intenta de nuevo.' });
+                const errBody = await r.text();
+                console.error('[Gemini] Error', r.status, ':', errBody.slice(0, 200));
+                return res.status(502).json({ error: 'IA no disponible temporalmente. Intenta de nuevo.' });
+            }
+
+            const data = await r.json();
+
+            // Guardar en caché solo respuestas válidas
+            if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+                db.collection('_aicache').doc(cacheKey).set({
+                    response: data,
+                    savedAt: FieldValue.serverTimestamp(),
+                    expectJson
+                }).catch(() => {});
             }
 
             db.collection('_ailogs').add({
-                uid, model: 'gemini-2.0-flash', expectJson, success: true,
+                uid, model: 'gemini-1.5-flash', expectJson, success: true,
                 remainingToday: rate.remaining,
                 timestamp: FieldValue.serverTimestamp()
             }).catch(() => {});
 
+            res.set('X-Cache', 'MISS');
             res.set('X-RateLimit-Remaining', rate.remaining);
-            return res.status(200).json(await r.json());
+            return res.status(200).json(data);
 
         } catch (e) {
-            console.error('[geminiProxy]', e);
-            return res.status(500).json({ error: 'Error interno.' });
+            console.error('[geminiProxy] Exception:', e?.message || e);
+            return res.status(500).json({ error: 'Error interno del servidor IA.' });
         }
     }
 );

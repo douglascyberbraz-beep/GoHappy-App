@@ -269,17 +269,42 @@ window.GoHappyMap = {
             chip.addEventListener('click', async () => {
                 chips.forEach(c => c.classList.remove('active'));
                 chip.classList.add('active');
-                
+                window.GoHappyMap.currentFilter = chip.dataset.type;
+
                 const type = chip.dataset.type;
                 const label = chip.innerText;
-                
+
                 if (type === 'all') {
+                    // Mostrar TODOS los marcadores
                     window.GoHappyMap.filterMarkers('all');
+                    return;
+                }
+
+                // 1. Filtrar marcadores locales primero (instantáneo)
+                const localOfType = window.GoHappyMap.markers.filter(m => m.type === type);
+
+                if (localOfType.length >= 2) {
+                    // Hay suficientes locales — filtrar
+                    window.GoHappyMap.filterMarkers(type);
+                    window.GoHappyToast && window.GoHappyToast.info(
+                        `${localOfType.length} ${label.toLowerCase()} en tu zona`, 2500
+                    );
                 } else {
-                    // IA Search for category if not enough local markers
-                    input.value = `Buscar ${label}...`;
+                    // Pocos o ninguno → pedir a la IA más
+                    window.GoHappyToast && window.GoHappyToast.info(`Buscando ${label.toLowerCase()}…`, 2000);
+                    const before = window.GoHappyMap.markers.length;
                     await window.GoHappyMap.handleSearch(`mejores ${label} para ir con niños`);
-                    input.value = "";
+                    const after = window.GoHappyMap.markers.length;
+
+                    // Tras búsqueda, aplicar filtro por tipo de nuevo
+                    if (after > before) {
+                        window.GoHappyMap.filterMarkers(type);
+                    } else if (window.GoHappyAI && !window.GoHappyAI._isReal()) {
+                        window.GoHappyToast && window.GoHappyToast.warning(
+                            `IA en modo demo. Mostrando todos los sitios.`, 3500
+                        );
+                        window.GoHappyMap.filterMarkers('all');
+                    }
                 }
             });
         });
@@ -383,44 +408,66 @@ window.GoHappyMap = {
     handleSearch: async (query) => {
         if (!query) return;
         const input = document.getElementById('map-search-input');
-        input.placeholder = "✨ IA pensando...";
-        input.disabled = true;
+        if (input) {
+            input.placeholder = "✨ IA buscando...";
+            input.disabled = true;
+        }
 
         try {
-            const results = await window.GoHappyData.searchLocations(query, window.GoHappyMap.lastKnownCoords);
+            const coords = window.lastKnownCoords || window.GoHappyMap.lastKnownCoords;
+            const results = await window.GoHappyData.searchLocations(query, coords);
+
             if (results && results.length > 0) {
-                window.GoHappyMap.clearMarkers();
+                // Añadir nuevos sin borrar — el usuario quiere ver más opciones
+                const existingNames = new Set(window.GoHappyMap.markers.map(m => m.data?.name));
                 const bounds = new maplibregl.LngLatBounds();
-                
+                let added = 0;
+
                 results.forEach(loc => {
+                    if (!loc.lat || !loc.lng || existingNames.has(loc.name)) return;
                     window.GoHappyMap.createMarker(loc);
                     bounds.extend([loc.lng, loc.lat]);
+                    added++;
                 });
-                
-                if (window.GoHappyMap.userMarker) {
-                    bounds.extend(window.GoHappyMap.userMarker.getLngLat());
-                }
 
-                window.GoHappyMap.instance.fitBounds(bounds, {
-                    padding: {top: 100, bottom: 100, left: 50, right: 50},
-                    maxZoom: 15,
-                    pitch: 0,
-                    speed: 1.0
-                });
+                if (added > 0) {
+                    if (window.GoHappyMap.userMarker) {
+                        bounds.extend(window.GoHappyMap.userMarker.getLngLat());
+                    }
+                    try {
+                        window.GoHappyMap.instance.fitBounds(bounds, {
+                            padding: { top: 100, bottom: 140, left: 40, right: 40 },
+                            maxZoom: 15,
+                            pitch: 0,
+                            speed: 1.2
+                        });
+                    } catch (e) {}
+                }
             } else {
-                // geocoding fallback
-                const resp = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1`);
-                const data = await resp.json();
-                if (data.features && data.features.length > 0) {
-                    const c = data.features[0].geometry.coordinates;
-                    window.GoHappyMap.instance.flyTo({ center: c, zoom: 17, pitch: 0 });
+                // Geocoding fallback (Photon)
+                try {
+                    const resp = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1`);
+                    const data = await resp.json();
+                    if (data?.features?.length > 0) {
+                        const c = data.features[0].geometry.coordinates;
+                        window.GoHappyMap.instance.flyTo({ center: c, zoom: 17, pitch: 0 });
+                    } else {
+                        window.GoHappyToast && window.GoHappyToast.info(`Sin resultados para "${query}"`, 3000);
+                    }
+                } catch (e) {
+                    console.warn('Geocoding fallback error:', e);
                 }
             }
-        } catch (e) { console.warn("Search error:", e); }
+        } catch (e) {
+            console.warn("Search error:", e);
+            window.GoHappyToast && window.GoHappyToast.error('Error en la búsqueda. Intenta de nuevo.');
+        }
 
-        input.placeholder = "Pregunta a Gemini...";
-        input.disabled = false;
-        input.value = "";
+        if (input) {
+            input.placeholder = "Pregunta a Gemini...";
+            input.disabled = false;
+            input.value = "";
+        }
     },
 
     startGPSWatch: () => {

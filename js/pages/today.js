@@ -66,9 +66,17 @@ window.GoHappyToday = {
                 const activities = await window.GoHappyAI.getTodayActivities(coords, preferences);
                 window.GoHappyAI.incrementTodayUsage();
                 renderActivities(activities);
+
+                // Indicador visual IA real / cache / demo
+                const sourceLabel = window.GoHappyAI._lastSource;
+                if (sourceLabel === 'real' || sourceLabel === 'cache') {
+                    window.GoHappyToast && window.GoHappyToast.success(
+                        sourceLabel === 'real' ? '✨ Planes generados por IA real' : '⚡ Planes desde caché',
+                        2500
+                    );
+                }
             } catch (err) {
                 console.error("TODAY Load Error:", err);
-                // Fallback direct to mock if AI fails hard
                 const mock = window.GoHappyAI._getMockData('today');
                 renderActivities(mock);
             }

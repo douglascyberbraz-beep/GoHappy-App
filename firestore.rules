@@ -284,6 +284,7 @@ service cloud.firestore {
     match /_ratelimits/{uid}  { allow read, write: if false; }
     match /_ailogs/{docId}    { allow read, write: if false; }
     match /_referrals/{docId} { allow read, write: if false; }
+    match /_aicache/{docId}   { allow read, write: if false; }
 
 
     // ═══════════════════════════════════════════════════════════════

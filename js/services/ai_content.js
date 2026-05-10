@@ -183,27 +183,74 @@ window.GoHappyAI = {
         return await window.GoHappyAI.chat(userMessage);
     },
 
-    // Helper para llamadas a Gemini — siempre via proxy autenticado
+    // Estado del último call: 'real' | 'cache' | 'demo' | 'rate-limited'
+    _lastSource: 'demo',
+    _isReal: () => window.GoHappyAI._lastSource === 'real' || window.GoHappyAI._lastSource === 'cache',
+
+    // Cache client-side localStorage (2 horas)
+    _CLIENT_CACHE_TTL: 2 * 60 * 60 * 1000,
+
+    _cacheKey: (prompt, expectJson) => {
+        // Hash simple sincrono
+        const str = (expectJson ? 'J:' : 'T:') + prompt;
+        let h = 0;
+        for (let i = 0; i < str.length; i++) {
+            h = ((h << 5) - h) + str.charCodeAt(i);
+            h |= 0;
+        }
+        return 'ai_' + Math.abs(h).toString(36);
+    },
+
+    _getCached: (key) => {
+        try {
+            const raw = localStorage.getItem(key);
+            if (!raw) return null;
+            const obj = JSON.parse(raw);
+            if (Date.now() - obj.t > window.GoHappyAI._CLIENT_CACHE_TTL) {
+                localStorage.removeItem(key);
+                return null;
+            }
+            return obj.v;
+        } catch (e) { return null; }
+    },
+
+    _setCached: (key, value) => {
+        try {
+            localStorage.setItem(key, JSON.stringify({ t: Date.now(), v: value }));
+        } catch (e) { /* quota exceeded, ignorar */ }
+    },
+
+    // Helper para llamadas a Gemini — proxy autenticado + caché client-side
     _callGemini: async (prompt, expectJson = true) => {
+        // Cache client-side primero
+        const cacheKey = window.GoHappyAI._cacheKey(prompt, expectJson);
+        const cached = window.GoHappyAI._getCached(cacheKey);
+        if (cached !== null) {
+            window.GoHappyAI._lastSource = 'cache';
+            return cached;
+        }
+
         // Si el proxy no está activo, usar datos de demo
         if (!window.GEMINI_PROXY_ACTIVE || !window.GEMINI_PROXY_URL) {
+            window.GoHappyAI._lastSource = 'demo';
             return window.GoHappyAI._getMockData(prompt);
         }
 
         try {
-            // Obtener token de Firebase Auth para autenticar la llamada al proxy
+            // Token Firebase Auth (esperar hasta que esté disponible)
             let idToken = null;
-            try {
-                const currentUser = window.GoHappyAuthReal.currentUser;
-                if (currentUser) {
-                    idToken = await currentUser.getIdToken(false); // false = no forzar refresco
+            const currentUser = window.GoHappyAuthReal && window.GoHappyAuthReal.currentUser;
+            if (currentUser) {
+                try {
+                    idToken = await currentUser.getIdToken(false);
+                } catch (e) {
+                    console.warn('[GoHappyAI] Token error:', e?.message);
                 }
-            } catch (e) {
-                console.warn('[GoHappyAI] No se pudo obtener token:', e);
             }
 
             if (!idToken) {
-                // Sin token = sin IA real. Usar datos de demo.
+                console.info('[GoHappyAI] Sin sesión — usando demos');
+                window.GoHappyAI._lastSource = 'demo';
                 return window.GoHappyAI._getMockData(prompt);
             }
 
@@ -214,35 +261,43 @@ window.GoHappyAI = {
                     'Authorization': `Bearer ${idToken}`
                 },
                 body: JSON.stringify({ prompt, expectJson }),
-                signal: AbortSignal.timeout(28000) // 28s timeout
+                signal: AbortSignal.timeout(30000)
             });
 
-            // Rate limit superado
+            // Rate limit
             if (response.status === 429) {
                 const err = await response.json().catch(() => ({}));
+                window.GoHappyAI._lastSource = 'rate-limited';
                 window.GoHappyToast && window.GoHappyToast.warning(
-                    err.error || 'Límite de consultas IA alcanzado por hoy. Vuelve mañana. 🌙', 5000
+                    err.error || 'IA ocupada. Reintenta en 1 minuto. 🌙', 5000
                 );
                 return window.GoHappyAI._getMockData(prompt);
             }
 
-            // Error de auth
             if (response.status === 401) {
+                console.warn('[GoHappyAI] Auth rechazado por proxy');
+                window.GoHappyAI._lastSource = 'demo';
                 return window.GoHappyAI._getMockData(prompt);
             }
 
             if (!response.ok) {
-                console.error('[GoHappyAI] Proxy error:', response.status);
+                const errText = await response.text().catch(() => '');
+                console.error('[GoHappyAI] Proxy', response.status, errText.slice(0, 100));
+                window.GoHappyAI._lastSource = 'demo';
                 return window.GoHappyAI._getMockData(prompt);
             }
 
             const data = await response.json();
+            const fromCache = response.headers.get('X-Cache') === 'HIT';
 
             if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
+                console.warn('[GoHappyAI] Respuesta IA vacía');
+                window.GoHappyAI._lastSource = 'demo';
                 return window.GoHappyAI._getMockData(prompt);
             }
 
             const text = data.candidates[0].content.parts[0].text;
+            let result;
 
             if (expectJson) {
                 try {
@@ -253,20 +308,29 @@ window.GoHappyAI = {
                     );
                     const e = Math.max(clean.lastIndexOf('}'), clean.lastIndexOf(']'));
                     if (s !== Infinity && e !== -1) clean = clean.substring(s, e + 1);
-                    return JSON.parse(clean);
-                } catch (e) {
-                    console.error('[GoHappyAI] JSON parse error:', e);
+                    result = JSON.parse(clean);
+                } catch (parseErr) {
+                    console.error('[GoHappyAI] JSON parse error:', parseErr?.message);
+                    window.GoHappyAI._lastSource = 'demo';
                     return window.GoHappyAI._getMockData(prompt);
                 }
+            } else {
+                result = text.trim();
             }
-            return text.trim();
+
+            // Cache client-side la respuesta exitosa
+            window.GoHappyAI._setCached(cacheKey, result);
+            window.GoHappyAI._lastSource = fromCache ? 'cache' : 'real';
+
+            return result;
 
         } catch (e) {
-            if (e.name === 'TimeoutError') {
-                console.warn('[GoHappyAI] Timeout — usando datos de demo');
+            if (e.name === 'TimeoutError' || e.name === 'AbortError') {
+                console.warn('[GoHappyAI] Timeout — fallback demo');
             } else {
-                console.error('[GoHappyAI] Error de red:', e);
+                console.error('[GoHappyAI] Error de red:', e?.message || e);
             }
+            window.GoHappyAI._lastSource = 'demo';
             return window.GoHappyAI._getMockData(prompt);
         }
     },
