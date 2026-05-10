@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>GoHappy Family — Tu camino a la alegría en familia</title>
+    <meta name="description" content="La app premium para familias modernas. Mapa 3D con planes locales, misiones familiares con IA, alertas de seguridad comunitarias y tribu de padres. Descarga gratis.">
+    <meta name="keywords" content="app familias, planes en familia, ocio familiar, padres, niños, mapa familiar, misiones familia, GoHappy">
+    <meta name="theme-color" content="#0B4C8F">
+
+    <!-- Open Graph / Social -->
+    <meta property="og:title" content="GoHappy Family — Tu camino a la alegría">
+    <meta property="og:description" content="Stop searching. Start living. La app que une a las familias modernas con planes reales, IA inteligente y comunidad.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="assets/ESLOGAN.png">
+    <meta property="og:locale" content="es_ES">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="apple-touch-icon" href="assets/logo.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- QR Code library para CTA final -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js" defer></script>
+
+    <style>
+        /* ─── Brand Tokens ──────────────────────────────────────── */
+        :root {
+            --cobalt:           #0B4C8F;
+            --cobalt-bright:    #0B71FC;
+            --cyan:             #17C8D4;
+            --cyan-bright:      #00D4E0;
+            --cyan-pastel:      #B8F0F4;
+            --brand-gradient:   linear-gradient(135deg, #0B4C8F 0%, #0B71FC 50%, #17C8D4 100%);
+            --brand-bright:     linear-gradient(135deg, #0B71FC 0%, #17C8D4 100%);
+
+            --bg-app:           #F4F8FF;
+            --bg-card:          rgba(255,255,255,0.72);
+            --glass-blur:       blur(40px) saturate(180%) brightness(1.05);
+            --glass-shadow:     0 8px 32px rgba(11,76,143,0.08);
+            --glass-shadow-lg:  0 20px 50px rgba(11,76,143,0.12);
+
+            --text-primary:     #0F172A;
+            --text-secondary:   rgba(15,23,42,0.65);
+            --text-tertiary:    rgba(15,23,42,0.4);
+            --border-light:     rgba(11,76,143,0.08);
+
+            --r-md: 20px;
+            --r-lg: 28px;
+            --r-xl: 36px;
+            --r-pill: 999px;
+
+            --container: 1200px;
+            --section-pad-y: clamp(60px, 10vw, 120px);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Helvetica Neue', sans-serif;
+            background: var(--bg-app);
+            color: var(--text-primary);
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .brand-font {
+            font-family: 'Poppins', -apple-system, sans-serif;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        a { color: inherit; text-decoration: none; }
+        img { max-width: 100%; display: block; }
+        button { font-family: inherit; cursor: pointer; border: none; }
+
+        .container {
+            max-width: var(--container);
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ─── BACKGROUND ORBS (decorative) ─────────────────────── */
+        .bg-orbs {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .bg-orbs::before,
+        .bg-orbs::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+        }
+        .bg-orbs::before {
+            top: -200px; left: -200px;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(11,113,252,0.18) 0%, transparent 70%);
+            animation: orbFloat1 20s ease-in-out infinite;
+        }
+        .bg-orbs::after {
+            bottom: -200px; right: -200px;
+            width: 700px; height: 700px;
+            background: radial-gradient(circle, rgba(23,200,212,0.22) 0%, transparent 70%);
+            animation: orbFloat2 24s ease-in-out infinite;
+        }
+        @keyframes orbFloat1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50%      { transform: translate(80px, 100px) scale(1.1); }
+        }
+        @keyframes orbFloat2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50%      { transform: translate(-80px, -60px) scale(0.95); }
+        }
+
+        /* ─── NAVBAR (Floating Glass Pill) ──────────────────────── */
+        .nav {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 32px);
+            max-width: 1100px;
+            z-index: 100;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(40px) saturate(200%);
+            -webkit-backdrop-filter: blur(40px) saturate(200%);
+            border: 0.5px solid rgba(255,255,255,0.85);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(11,76,143,0.08);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: padding 0.3s ease;
+        }
+        .nav.scrolled { padding: 8px 20px; }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 900;
+            font-family: 'Poppins', sans-serif;
+            font-size: 18px;
+            color: var(--cobalt);
+            letter-spacing: -0.5px;
+        }
+        .nav-logo img {
+            height: 32px;
+            width: auto;
+            mix-blend-mode: multiply;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            list-style: none;
+        }
+        .nav-links a {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: color 0.2s ease;
+        }
+        .nav-links a:hover { color: var(--cobalt-bright); }
+
+        .nav-cta {
+            background: var(--brand-gradient);
+            color: white;
+            padding: 10px 22px;
+            border-radius: var(--r-pill);
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 6px 18px rgba(11,113,252,0.28);
+            transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .nav-cta:hover { transform: scale(1.05); }
+        .nav-cta:active { transform: scale(0.95); }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+        }
+
+        /* ─── BUTTONS ────────────────────────────────────────────── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 32px;
+            border-radius: var(--r-pill);
+            font-family: 'Poppins', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease;
+            cursor: pointer;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary {
+            background: var(--brand-gradient);
+            color: white;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.25),
+                0 12px 32px rgba(11,113,252,0.32);
+        }
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 100%);
+            border-radius: inherit;
+            pointer-events: none;
+        }
+        .btn-primary:hover { transform: scale(1.04); }
+        .btn-primary:active { transform: scale(0.96); }
+        .btn-secondary {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: var(--glass-blur);
+            color: var(--cobalt);
+            border: 0.5px solid var(--border-light);
+            box-shadow: var(--glass-shadow);
+        }
+        .btn-secondary:hover { transform: scale(1.04); background: white; }
+
+        /* ─── HERO ────────────────────────────────────────────────── */
+        .hero {
+            position: relative;
+            padding: 140px 0 var(--section-pad-y);
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 60px;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: var(--glass-blur);
+            border: 0.5px solid rgba(255,255,255,0.9);
+            padding: 7px 14px;
+            border-radius: var(--r-pill);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--cobalt);
+            margin-bottom: 24px;
+            box-shadow: var(--glass-shadow);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .hero-eyebrow .dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #22C55E;
+            box-shadow: 0 0 8px #22C55E;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .hero-title {
+            font-size: clamp(2.4rem, 6vw, 4.4rem);
+            line-height: 1.05;
+            margin-bottom: 24px;
+        }
+        .hero-title .gradient {
+            background: var(--brand-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+            color: var(--text-secondary);
+            margin-bottom: 36px;
+            max-width: 540px;
+            line-height: 1.6;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 32px;
+        }
+
+        .hero-trust {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: var(--text-tertiary);
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .hero-trust .check { color: #22C55E; font-weight: 800; }
+
+        /* ─── PHONE MOCKUP ───────────────────────────────────────── */
+        .hero-mockup {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+        .phone {
+            position: relative;
+            width: 280px;
+            height: 580px;
+            background: #1a1a1a;
+            border-radius: 48px;
+            padding: 12px;
+            box-shadow:
+                0 0 0 2px #2a2a2a,
+                0 50px 100px -20px rgba(11,76,143,0.35),
+                0 30px 60px -30px rgba(11,76,143,0.5),
+                inset 0 0 0 0.5px rgba(255,255,255,0.1);
+            animation: phoneFloat 6s ease-in-out infinite;
+        }
+        @keyframes phoneFloat {
+            0%, 100% { transform: translateY(0) rotate(-2deg); }
+            50%      { transform: translateY(-15px) rotate(0deg); }
+        }
+        .phone::before {
+            content: '';
+            position: absolute;
+            top: 24px; left: 50%;
+            transform: translateX(-50%);
+            width: 100px; height: 28px;
+            background: #1a1a1a;
+            border-radius: 18px;
+            z-index: 10;
+        }
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(160deg, #F4F8FF 0%, #E8F1FB 100%);
+            border-radius: 36px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .phone-content {
+            flex: 1;
+            padding: 56px 16px 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .phone-header {
+            background: var(--brand-gradient);
+            margin: -56px -16px 0;
+            padding: 60px 18px 24px;
+            border-radius: 0 0 28px 28px;
+            color: white;
+            position: relative;
+        }
+        .phone-header h3 {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+        .phone-header p {
+            font-size: 11px;
+            opacity: 0.9;
+        }
+        .phone-card {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(16px);
+            border-radius: 16px;
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(11,76,143,0.06);
+            border: 0.5px solid rgba(255,255,255,0.9);
+            font-size: 11px;
+        }
+        .phone-card-title {
+            font-weight: 800;
+            color: var(--cobalt);
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+        .phone-card-meta {
+            font-size: 9px;
+            color: var(--text-tertiary);
+        }
+        .phone-nav {
+            position: absolute;
+            bottom: 12px; left: 12px; right: 12px;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(20px);
+            border: 0.5px solid rgba(255,255,255,0.85);
+            border-radius: 22px;
+            padding: 8px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            font-size: 14px;
+            box-shadow: 0 8px 20px rgba(11,76,143,0.12);
+        }
+        .phone-nav span { opacity: 0.5; }
+        .phone-nav span.active { opacity: 1; }
+        .phone-nav .orb {
+            background: white;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(11,113,252,0.3);
+            margin-top: -16px;
+            border: 2px solid var(--cobalt-bright);
+        }
+
+        @media (max-width: 900px) {
+            .hero {
+                grid-template-columns: 1fr;
+                text-align: center;
+                padding: 120px 0 60px;
+            }
+            .hero-actions { justify-content: center; }
+            .hero-trust { justify-content: center; flex-wrap: wrap; }
+            .hero-subtitle { margin-left: auto; margin-right: auto; }
+            .phone { width: 240px; height: 500px; }
+        }
+
+        /* ─── SECTIONS ─────────────────────────────────────────── */
+        section {
+            position: relative;
+            padding: var(--section-pad-y) 0;
+            z-index: 1;
+        }
+        .section-eyebrow {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--cobalt-bright);
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            line-height: 1.1;
+            margin-bottom: 18px;
+            max-width: 800px;
+        }
+        .section-title .gradient {
+            background: var(--brand-bright);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .section-subtitle {
+            font-size: clamp(1rem, 1.3vw, 1.15rem);
+            color: var(--text-secondary);
+            max-width: 700px;
+            line-height: 1.6;
+            margin-bottom: 56px;
+        }
+        .section-header.center {
+            text-align: center;
+        }
+        .section-header.center .section-title,
+        .section-header.center .section-subtitle {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ─── PROBLEMA SECTION ─────────────────────────────────── */
+        .problem {
+            background: linear-gradient(180deg, transparent 0%, rgba(11,76,143,0.03) 100%);
+        }
+        .problem-quote {
+            font-family: 'Poppins', sans-serif;
+            font-size: clamp(1.6rem, 3vw, 2.4rem);
+            font-weight: 800;
+            line-height: 1.3;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto 48px;
+            color: var(--text-primary);
+        }
+        .problem-quote .strike {
+            color: var(--text-tertiary);
+            text-decoration: line-through;
+            text-decoration-color: rgba(231,76,60,0.5);
+            text-decoration-thickness: 3px;
+        }
+        .problem-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 60px;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            border: 0.5px solid rgba(255,255,255,0.9);
+            border-radius: var(--r-lg);
+            padding: 32px 24px;
+            text-align: center;
+            box-shadow: var(--glass-shadow);
+        }
+        .stat-num {
+            font-family: 'Poppins', sans-serif;
+            font-size: clamp(2.4rem, 5vw, 3.4rem);
+            font-weight: 900;
+            background: var(--brand-bright);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        @media (max-width: 700px) {
+            .problem-stats { grid-template-columns: 1fr; }
+        }
+
+        /* ─── FEATURES (7 tabs as cards) ───────────────────────── */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .feature-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            border: 0.5px solid rgba(255,255,255,0.9);
+            border-radius: var(--r-xl);
+            padding: 32px 28px;
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--glass-shadow-lg);
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: var(--brand-bright);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .feature-card:hover::before { opacity: 1; }
+        .feature-icon {
+            font-size: 38px;
+            line-height: 1;
+            margin-bottom: 18px;
+            display: block;
+        }
+        .feature-title {
+            font-size: 19px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--cobalt);
+        }
+        .feature-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ─── HOW IT WORKS (3 steps) ────────────────────────────── */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            position: relative;
+        }
+        .step {
+            text-align: center;
+            position: relative;
+        }
+        .step-num {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px;
+            background: var(--brand-gradient);
+            border-radius: 50%;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 24px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.25),
+                0 10px 30px rgba(11,113,252,0.28);
+        }
+        .step-title {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--cobalt);
+        }
+        .step-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        @media (max-width: 768px) {
+            .steps { grid-template-columns: 1fr; }
+        }
+
+        /* ─── PRICING ────────────────────────────────────────────── */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            max-width: 850px;
+            margin: 0 auto;
+        }
+        .price-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            border: 0.5px solid rgba(255,255,255,0.9);
+            border-radius: var(--r-xl);
+            padding: 40px 32px;
+            box-shadow: var(--glass-shadow);
+            position: relative;
+        }
+        .price-card.premium {
+            background: var(--brand-gradient);
+            color: white;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.2),
+                0 30px 60px rgba(11,113,252,0.3);
+            transform: scale(1.03);
+        }
+        .price-card.premium .price-name,
+        .price-card.premium .price-tag,
+        .price-card.premium .price-features li { color: white; }
+        .price-card.premium .price-features li::before { background: white; }
+        .price-badge {
+            position: absolute;
+            top: 16px; right: 16px;
+            background: rgba(255,255,255,0.18);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 4px 12px;
+            border-radius: var(--r-pill);
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .price-name {
+            font-family: 'Poppins', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--cobalt);
+            margin-bottom: 12px;
+        }
+        .price-tag {
+            font-family: 'Poppins', sans-serif;
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--cobalt);
+            margin-bottom: 4px;
+            line-height: 1;
+        }
+        .price-tag small {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .price-card.premium .price-tag small { color: rgba(255,255,255,0.85); }
+        .price-period {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 28px;
+        }
+        .price-features {
+            list-style: none;
+            margin-bottom: 32px;
+        }
+        .price-features li {
+            font-size: 14px;
+            color: var(--text-primary);
+            padding: 8px 0 8px 28px;
+            position: relative;
+            line-height: 1.4;
+        }
+        .price-features li::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 14px;
+            width: 18px; height: 18px;
+            background: var(--brand-bright);
+            border-radius: 50%;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z'/%3E%3C/svg%3E");
+            background-size: 14px;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .price-card.premium .price-features li::before {
+            background-color: rgba(255,255,255,0.25);
+        }
+        .price-cta {
+            display: block;
+            text-align: center;
+            padding: 14px;
+            border-radius: var(--r-pill);
+            font-weight: 700;
+            font-size: 15px;
+            background: var(--brand-bright);
+            color: white;
+            transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+            box-shadow: 0 6px 18px rgba(11,113,252,0.25);
+        }
+        .price-card.premium .price-cta {
+            background: white;
+            color: var(--cobalt);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+        }
+        .price-cta:hover { transform: scale(1.04); }
+        @media (max-width: 700px) {
+            .pricing-grid { grid-template-columns: 1fr; }
+            .price-card.premium { transform: none; }
+        }
+
+        /* ─── FAQ ────────────────────────────────────────────────── */
+        .faq-list {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .faq-item {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            border: 0.5px solid rgba(255,255,255,0.9);
+            border-radius: var(--r-md);
+            padding: 4px 24px;
+            margin-bottom: 12px;
+            box-shadow: var(--glass-shadow);
+            overflow: hidden;
+            transition: box-shadow 0.2s ease;
+        }
+        .faq-item[open] { box-shadow: var(--glass-shadow-lg); }
+        .faq-item summary {
+            cursor: pointer;
+            padding: 18px 0;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--cobalt);
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .faq-item summary::-webkit-details-marker { display: none; }
+        .faq-item summary::after {
+            content: '+';
+            font-family: 'Poppins', sans-serif;
+            font-size: 24px;
+            color: var(--cobalt-bright);
+            transition: transform 0.3s ease;
+            line-height: 1;
+        }
+        .faq-item[open] summary::after { transform: rotate(45deg); }
+        .faq-item p {
+            padding: 0 0 18px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ─── CTA FINAL ──────────────────────────────────────────── */
+        .cta-final {
+            background: var(--brand-gradient);
+            border-radius: var(--r-xl);
+            padding: 64px 40px;
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.2),
+                0 30px 80px rgba(11,113,252,0.3);
+        }
+        .cta-final::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 50% at 20% 30%, rgba(255,255,255,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 70% 60% at 85% 80%, rgba(23,200,212,0.3) 0%, transparent 55%);
+            pointer-events: none;
+        }
+        .cta-final h2 {
+            color: white;
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        .cta-final p {
+            font-size: 17px;
+            color: rgba(255,255,255,0.92);
+            margin-bottom: 32px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            z-index: 1;
+        }
+        .cta-final .btn {
+            background: white;
+            color: var(--cobalt);
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+        }
+        .cta-qr {
+            display: inline-block;
+            background: white;
+            padding: 16px;
+            border-radius: 16px;
+            margin-top: 32px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+            position: relative;
+            z-index: 1;
+        }
+        .cta-qr canvas, .cta-qr img { display: block; }
+        .cta-qr-label {
+            font-size: 11px;
+            color: var(--cobalt);
+            margin-top: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ─── FOOTER ─────────────────────────────────────────────── */
+        footer {
+            background: var(--text-primary);
+            color: rgba(255,255,255,0.7);
+            padding: 60px 0 32px;
+            margin-top: 80px;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 48px;
+            margin-bottom: 48px;
+        }
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 22px;
+            font-weight: 900;
+            color: white;
+            margin-bottom: 12px;
+        }
+        .footer-brand img {
+            height: 36px;
+            filter: brightness(0) invert(1);
+        }
+        .footer-tag {
+            font-size: 14px;
+            line-height: 1.6;
+            max-width: 320px;
+        }
+        .footer-col h4 {
+            color: white;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 18px;
+            font-weight: 800;
+        }
+        .footer-col ul {
+            list-style: none;
+        }
+        .footer-col li {
+            padding: 6px 0;
+            font-size: 14px;
+        }
+        .footer-col a:hover { color: white; }
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 13px;
+        }
+        .footer-bottom .made {
+            color: rgba(255,255,255,0.5);
+        }
+        .footer-bottom .made span {
+            color: var(--cyan-bright);
+            font-weight: 700;
+        }
+        @media (max-width: 768px) {
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+            .footer-brand-col { grid-column: 1 / -1; }
+        }
+
+        /* ─── ANIMATIONS ─────────────────────────────────────────── */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s cubic-bezier(0.19,1,0.22,1), transform 0.7s cubic-bezier(0.19,1,0.22,1);
+        }
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .fade-up[data-delay="1"] { transition-delay: 0.1s; }
+        .fade-up[data-delay="2"] { transition-delay: 0.2s; }
+        .fade-up[data-delay="3"] { transition-delay: 0.3s; }
+        .fade-up[data-delay="4"] { transition-delay: 0.4s; }
+        .fade-up[data-delay="5"] { transition-delay: 0.5s; }
+
+        /* ─── UTIL ──────────────────────────────────────────────── */
+        .text-center { text-align: center; }
+        .mt-32 { margin-top: 32px; }
+    </style>
+</head>
+<body>
+    <div class="bg-orbs"></div>
+
+    <!-- ════════════ NAV ════════════ -->
+    <nav class="nav" id="nav">
+        <a href="#" class="nav-logo">
+            <img src="assets/logo.png" alt="GoHappy">
+            <span>GoHappy</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="#features">Funcionalidades</a></li>
+            <li><a href="#how">Cómo funciona</a></li>
+            <li><a href="#pricing">Precio</a></li>
+            <li><a href="#faq">FAQ</a></li>
+        </ul>
+        <a href="https://kindr-8d660.web.app" target="_blank" rel="noopener" class="nav-cta">Probar gratis →</a>
+    </nav>
+
+    <!-- ════════════ HERO ════════════ -->
+    <header class="hero container">
+        <div>
+            <div class="hero-eyebrow fade-up">
+                <span class="dot"></span>
+                BETA ABIERTA · ESPAÑA
+            </div>
+            <h1 class="hero-title fade-up" data-delay="1">
+                Tu camino a la
+                <span class="gradient">alegría en familia.</span>
+            </h1>
+            <p class="hero-subtitle fade-up" data-delay="2">
+                Stop searching, start living. La app premium que une a las familias modernas con planes reales, IA inteligente y una comunidad que sí cuida de los suyos.
+            </p>
+            <div class="hero-actions fade-up" data-delay="3">
+                <a href="https://kindr-8d660.web.app" target="_blank" rel="noopener" class="btn btn-primary">
+                    Probar gratis ahora →
+                </a>
+                <a href="#how" class="btn btn-secondary">Ver cómo funciona</a>
+            </div>
+            <div class="hero-trust fade-up" data-delay="4">
+                <span><span class="check">✓</span> Sin tarjeta de crédito</span>
+                <span><span class="check">✓</span> Funciona en iOS y Android</span>
+                <span><span class="check">✓</span> 100% en español</span>
+            </div>
+        </div>
+
+        <div class="hero-mockup fade-up" data-delay="2">
+            <div class="phone">
+                <div class="phone-screen">
+                    <div class="phone-content">
+                        <div class="phone-header">
+                            <h3>✨ Tu día hoy</h3>
+                            <p>Planes 'Done for You' para tu tribu</p>
+                        </div>
+                        <div class="phone-card">
+                            <div class="phone-card-title">🎨 Taller infantil de pintura</div>
+                            <div>Una tarde creativa en el Museo Patio Herreriano.</div>
+                            <div class="phone-card-meta">📍 A 5 min · 🕒 17h · 💰 Gratis</div>
+                        </div>
+                        <div class="phone-card">
+                            <div class="phone-card-title">🌳 Pícnic en Campo Grande</div>
+                            <div>Perfecto si hace sol. Pavos reales libres.</div>
+                            <div class="phone-card-meta">📍 A 10 min · 🕒 16-19h · 💰 0€</div>
+                        </div>
+                        <div class="phone-card">
+                            <div class="phone-card-title">🏛️ Museo de la Ciencia</div>
+                            <div>Planetario y sala interactiva 4-12 años.</div>
+                            <div class="phone-card-meta">📍 A 15 min · 🎟️ 5€</div>
+                        </div>
+                    </div>
+                    <div class="phone-nav">
+                        <span>⚔️</span>
+                        <span>🛡️</span>
+                        <span class="active">✨</span>
+                        <span class="orb">📍</span>
+                        <span>🏆</span>
+                        <span>🗞️</span>
+                        <span>👤</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ════════════ PROBLEMA ════════════ -->
+    <section class="problem">
+        <div class="container">
+            <div class="section-header center fade-up">
+                <span class="section-eyebrow">El problema real</span>
+                <h2 class="section-title">Pasáis horas buscando planes en familia.<br><span class="gradient">Y casi siempre acabáis en casa.</span></h2>
+            </div>
+            <p class="problem-quote fade-up" data-delay="1">
+                <span class="strike">"¿Qué hacemos hoy con los niños?"</span><br>
+                Apuntad esa pregunta. <strong>GoHappy la responde por ti.</strong>
+            </p>
+            <div class="problem-stats">
+                <div class="stat-card fade-up" data-delay="1">
+                    <div class="stat-num">73%</div>
+                    <div class="stat-label">de las familias dice no encontrar planes para su edad/zona</div>
+                </div>
+                <div class="stat-card fade-up" data-delay="2">
+                    <div class="stat-num">2,5h</div>
+                    <div class="stat-label">a la semana buscando ocio familiar en Google y redes</div>
+                </div>
+                <div class="stat-card fade-up" data-delay="3">
+                    <div class="stat-num">68%</div>
+                    <div class="stat-label">acaba quedándose en casa por no decidir a tiempo</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════ FEATURES (las 7 pestañas) ════════════ -->
+    <section id="features">
+        <div class="container">
+            <div class="section-header center fade-up">
+                <span class="section-eyebrow">Todo en una app</span>
+                <h2 class="section-title">7 superpoderes para <span class="gradient">familias modernas.</span></h2>
+                <p class="section-subtitle">Cada pestaña resuelve un problema real. Sin anuncios, sin perderse en menús infinitos.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card fade-up">
+                    <span class="feature-icon">⚔️</span>
+                    <h3 class="feature-title">Quests Familiares</h3>
+                    <p class="feature-desc">Misiones diarias, semanales y mensuales que unen a la familia. Pasea sin pantallas, prepara cocina nueva, abrazos de 20 segundos. Ganáis puntos juntos.</p>
+                </div>
+                <div class="feature-card fade-up" data-delay="1">
+                    <span class="feature-icon">🛡️</span>
+                    <h3 class="feature-title">Safe — Comunidad alerta</h3>
+                    <p class="feature-desc">Avisos de seguridad reales reportados por otros padres en tu zona: obras en parques, peligros, rutas cortadas. Tu barrio cuidando del tuyo.</p>
+                </div>
+                <div class="feature-card fade-up" data-delay="2">
+                    <span class="feature-icon">✨</span>
+                    <h3 class="feature-title">Today — IA Concierge</h3>
+                    <p class="feature-desc">Tu asistente IA diseña 3 planes "Done for You" personalizados cada día: edad de los niños, clima, presupuesto y distancia. Sin elegir entre 100 opciones.</p>
+                </div>
+                <div class="feature-card fade-up" data-delay="3">
+                    <span class="feature-icon">📍</span>
+                    <h3 class="feature-title">Mapa 3D estilo Waze</h3>
+                    <p class="feature-desc">Edificios en 3D, parques, ludotecas, cines. Reseñas reales de la comunidad. Más útil que Google Maps para familias.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <span class="feature-icon">🏆</span>
+                    <h3 class="feature-title">Top — Gamificación real</h3>
+                    <p class="feature-desc">Ranking semanal de los lugares más reseñados y los miembros más activos de la tribu. Compite sano por puntos y nivel.</p>
+                </div>
+                <div class="feature-card fade-up" data-delay="1">
+                    <span class="feature-icon">🗞️</span>
+                    <h3 class="feature-title">News locales</h3>
+                    <p class="feature-desc">Noticias, eventos culturales y becas/ayudas familiares de tu provincia, filtradas por IA. Sin spam ni clickbait.</p>
+                </div>
+                <div class="feature-card fade-up" data-delay="2">
+                    <span class="feature-icon">👨‍👩‍👧</span>
+                    <h3 class="feature-title">Tribu privada (Premium)</h3>
+                    <p class="feature-desc">Tu grupo familiar privado con código de invitación. Hasta 6 miembros comparten progreso, recuerdos y misiones. Como un WhatsApp con propósito.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════ HOW IT WORKS ════════════ -->
+    <section id="how" style="background: linear-gradient(180deg, transparent, rgba(11,76,143,0.04));">
+        <div class="container">
+            <div class="section-header center fade-up">
+                <span class="section-eyebrow">Empieza en 60 segundos</span>
+                <h2 class="section-title">Cómo funciona.</h2>
+                <p class="section-subtitle">Sin tutoriales infinitos. Te registras, dices cómo es tu familia y empiezas a vivir.</p>
+            </div>
+            <div class="steps">
+                <div class="step fade-up">
+                    <div class="step-num">1</div>
+                    <h3 class="step-title">Crea tu tribu</h3>
+                    <p class="step-desc">Te registras gratis en 30 segundos y eliges si creas una familia o te unes con un código de 6 letras.</p>
+                </div>
+                <div class="step fade-up" data-delay="1">
+                    <div class="step-num">2</div>
+                    <h3 class="step-title">Cuéntanos quiénes sois</h3>
+                    <p class="step-desc">Edades de los niños, presupuesto, distancia. La IA aprende y te propone planes que de verdad encajan.</p>
+                </div>
+                <div class="step fade-up" data-delay="2">
+                    <div class="step-num">3</div>
+                    <h3 class="step-title">Vivid en familia</h3>
+                    <p class="step-desc">Cada día, 3 planes premium listos para hacer. Completa misiones, gana puntos y comparte recuerdos.</p>
+                </div>
+            </div>
+            <div class="text-center mt-32 fade-up" data-delay="3">
+                <a href="https://kindr-8d660.web.app" target="_blank" rel="noopener" class="btn btn-primary">Empezar ahora gratis</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════ PRICING ════════════ -->
+    <section id="pricing">
+        <div class="container">
+            <div class="section-header center fade-up">
+                <span class="section-eyebrow">Precios honestos</span>
+                <h2 class="section-title">Empieza gratis.<br><span class="gradient">Crece cuando quieras.</span></h2>
+                <p class="section-subtitle">Sin anuncios. Sin venta de datos. Solo dos planes claros.</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="price-card fade-up">
+                    <div class="price-name">Gratis</div>
+                    <div class="price-tag">0€</div>
+                    <div class="price-period">Para siempre, sin tarjeta</div>
+                    <ul class="price-features">
+                        <li>Mapa 3D y reseñas de la comunidad</li>
+                        <li>3 planes IA al día (Today)</li>
+                        <li>3 misiones familiares activas</li>
+                        <li>Alertas de seguridad ilimitadas</li>
+                        <li>Ranking y gamificación completa</li>
+                        <li>News y becas locales</li>
+                    </ul>
+                    <a href="https://kindr-8d660.web.app" target="_blank" rel="noopener" class="price-cta">Empezar gratis</a>
+                </div>
+                <div class="price-card premium fade-up" data-delay="1">
+                    <span class="price-badge">Más popular</span>
+                    <div class="price-name">Premium</div>
+                    <div class="price-tag">4,99€ <small>/mes</small></div>
+                    <div class="price-period">Cancela cuando quieras</div>
+                    <ul class="price-features">
+                        <li>Todo lo del plan Gratis</li>
+                        <li><strong>Tribu privada</strong> con hasta 6 familiares</li>
+                        <li><strong>Planes IA ilimitados</strong> en Today</li>
+                        <li><strong>Misiones ilimitadas</strong> + mensuales 500pts</li>
+                        <li>Chat con GoHappy IA personal</li>
+                        <li>Memorias en alta resolución sin límites</li>
+                        <li>Soporte prioritario</li>
+                    </ul>
+                    <a href="https://kindr-8d660.web.app" target="_blank" rel="noopener" class="price-cta">Probar Premium</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════ FAQ ════════════ -->
+    <section id="faq">
+        <div class="container">
+            <div class="section-header center fade-up">
+                <span class="section-eyebrow">Dudas frecuentes</span>
+                <h2 class="section-title">Lo que se pregunta todo el mundo.</h2>
+            </div>
+            <div class="faq-list">
+                <details class="faq-item fade-up">
+                    <summary>¿Necesito instalar algo de las tiendas?</summary>
+                    <p>No. GoHappy es una PWA (Progressive Web App): se instala desde el navegador directamente como una app nativa. En iPhone, abres Safari y le das a "Añadir a pantalla de inicio". En Android, Chrome te lo propone automáticamente. Funciona offline.</p>
+                </details>
+                <details class="faq-item fade-up" data-delay="1">
+                    <summary>¿La IA es real o son respuestas pre-grabadas?</summary>
+                    <p>Es 100% real. Usamos Gemini 2.5 Flash de Google, accedido a través de un proxy seguro propio. Cada plan que ves en Today está generado en vivo basándose en tu ubicación, edad de los niños, clima y preferencias.</p>
+                </details>
+                <details class="faq-item fade-up" data-delay="2">
+                    <summary>¿Mis datos están seguros?</summary>
+                    <p>Sí. GoHappy nunca vende ni comparte tus datos. Almacenamos en Firebase (Google Cloud, GDPR-compliant, servidores en Europa). La IA solo recibe tu ubicación aproximada y preferencias, nunca datos personales identificativos.</p>
+                </details>
+                <details class="faq-item fade-up" data-delay="3">
+                    <summary>¿Funciona en mi ciudad?</summary>
+                    <p>GoHappy funciona en toda España y Latinoamérica de habla hispana. La IA conoce parques, museos, eventos y becas locales de cualquier ciudad. Si vives en zona rural, prueba a poner el municipio mayor más cercano.</p>
+                </details>
+                <details class="faq-item fade-up" data-delay="4">
+                    <summary>¿Cómo cancelo Premium?</summary>
+                    <p>Desde tu perfil → Suscripción → Cancelar. Sin formularios, sin llamadas, sin retenciones. Mantienes el acceso hasta el final del período pagado.</p>
+                </details>
+                <details class="faq-item fade-up" data-delay="5">
+                    <summary>¿Tenéis app para Android e iOS?</summary>
+                    <p>Sí. Estamos preparando los APK firmados para Google Play y la build TestFlight para iOS. Mientras, la PWA ofrece exactamente la misma experiencia, instalándose como app nativa en ambos sistemas.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════ CTA FINAL ════════════ -->
+    <section>
+        <div class="container">
+            <div class="cta-final fade-up">
+                <h2>Empezad hoy.</h2>
+                <p>Vuestra próxima aventura familiar está a un clic. Sin tarjeta. Sin spam. 100% gratis para empezar.</p>
+                <a href="https://kindr-8d660.web.app" target="_blank" rel="noopener" class="btn">📱 Abrir GoHappy ahora</a>
+                <div class="cta-qr" id="qr-container">
+                    <div id="qrcode"></div>
+                    <div class="cta-qr-label">Escanea con tu móvil</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════ FOOTER ════════════ -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand-col">
+                    <div class="footer-brand">
+                        <img src="assets/logo.png" alt="GoHappy">
+                        <span>GoHappy Family</span>
+                    </div>
+                    <p class="footer-tag">La comunidad real para familias modernas. Tu camino a la alegría empieza aquí.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Producto</h4>
+                    <ul>
+                        <li><a href="#features">Funcionalidades</a></li>
+                        <li><a href="#how">Cómo funciona</a></li>
+                        <li><a href="#pricing">Precio</a></li>
+                        <li><a href="https://kindr-8d660.web.app" target="_blank">Probar Beta</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Empresa</h4>
+                    <ul>
+                        <li><a href="#">Sobre nosotros</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="mailto:hola@gohappyfamily.app">Contacto</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Términos</a></li>
+                        <li><a href="#">Privacidad</a></li>
+                        <li><a href="#">Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div>© 2026 GoHappy Family. Hecho con ♥ en España.</div>
+                <div class="made">Powered by <span>Gemini IA</span> + <span>Firebase</span></div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Nav scroll effect
+        const nav = document.getElementById('nav');
+        window.addEventListener('scroll', () => {
+            nav.classList.toggle('scrolled', window.scrollY > 20);
+        });
+
+        // Fade-up animations on scroll
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    e.target.classList.add('visible');
+                    io.unobserve(e.target);
+                }
+            });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+
+        // QR code para CTA final
+        window.addEventListener('load', () => {
+            try {
+                const qr = qrcode(0, 'M');
+                qr.addData('https://kindr-8d660.web.app');
+                qr.make();
+                const qrEl = document.getElementById('qrcode');
+                if (qrEl) {
+                    qrEl.innerHTML = qr.createImgTag(5, 0);
+                }
+            } catch (e) { console.warn('QR error:', e); }
+        });
+
+        // Smooth scroll para links de nav
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', (e) => {
+                const id = a.getAttribute('href');
+                if (id.length > 1) {
+                    const target = document.querySelector(id);
+                    if (target) {
+                        e.preventDefault();
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
