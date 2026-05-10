@@ -4,28 +4,51 @@
 window.GoHappyData = {
 
     // -- LOCATIONS --
+    // Estrategia: SEED estático local (instantáneo, ~50 POIs reales) + IA opcional para enriquecer
     getLocations: async (coords = "41.6520, -4.7286") => {
+        // 1. Cargar SIEMPRE el seed pre-cargado (instantáneo, sin red)
+        const seed = window.GoHappyPOISeed || [];
+
+        // 2. Filtrar por proximidad geográfica (~50km del usuario)
+        const [userLat, userLng] = coords.split(',').map(s => parseFloat(s.trim()));
+        const nearbySeed = seed
+            .map(p => ({ ...p, _dist: Math.sqrt(Math.pow(p.lat - userLat, 2) + Math.pow(p.lng - userLng, 2)) }))
+            .sort((a, b) => a._dist - b._dist)
+            .filter(p => p._dist < 0.8) // ~50-80km
+            .slice(0, 20);
+
+        // Si hay POIs cerca, devolverlos inmediatamente
+        if (nearbySeed.length >= 5) {
+            // En background, intentar enriquecer con IA (no bloquea UI)
+            if (window.GEMINI_PROXY_ACTIVE && window.GoHappyAI) {
+                window.GoHappyAI.getDynamicLocations(coords)
+                    .then(extra => {
+                        if (extra?.length) {
+                            const seedNames = new Set(nearbySeed.map(s => s.name));
+                            const newOnes = extra.filter(e => !seedNames.has(e.name));
+                            if (newOnes.length && window.GoHappyMap?.instance) {
+                                newOnes.forEach(loc => window.GoHappyMap.createMarker(loc));
+                            }
+                        }
+                    }).catch(() => {});
+            }
+            return nearbySeed;
+        }
+
+        // Si no hay nada cerca (usuario en otra zona), pedir a la IA
         try {
-            // Priority: Dynamic AI Generation (via secure proxy)
             if (window.GEMINI_PROXY_ACTIVE) {
                 const dynamicLocs = await window.GoHappyAI.getDynamicLocations(coords);
-                if (dynamicLocs && dynamicLocs.length > 0) return dynamicLocs;
+                if (dynamicLocs?.length) return dynamicLocs;
             }
-
-            // Fallback: Firestore
             const snap = await window.GoHappyDB.collection('locations').get();
-            if (!snap.empty) {
-                return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            }
+            if (!snap.empty) return snap.docs.map(d => ({ id: d.id, ...d.data() }));
         } catch (e) {
-            console.warn("AI/Firestore getLocations fallback:", e);
+            console.warn("getLocations fallback:", e);
         }
-        // Fallback: Default Static (Real locations in Valladolid/Castilla)
-        return [
-            { id: 101, name: "Parque Campo Grande", type: "park", lat: 41.6444, lng: -4.7303, rating: 4.8, reviews: 245, image: "https://images.unsplash.com/photo-1596431718100-33671233075c?auto=format&fit=crop&w=400" },
-            { id: 102, name: "Museo de la Ciencia de Valladolid", type: "museum", lat: 41.6385, lng: -4.7431, rating: 4.6, reviews: 189, image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400" },
-            { id: 103, name: "Parque Ribera de Castilla", type: "park", lat: 41.6620, lng: -4.7250, rating: 4.7, reviews: 312, image: "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=400" }
-        ];
+
+        // Último fallback: devolver TODO el seed (mejor que vacío)
+        return seed.slice(0, 15);
     },
 
     searchLocations: async (query, coords = "41.6520, -4.7286") => {

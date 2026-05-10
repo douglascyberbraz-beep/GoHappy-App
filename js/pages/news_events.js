@@ -75,6 +75,13 @@ window.GoHappyNewsEvents = {
                     if (becas && becas.length > 0) renderBecas(becas);
                     else content.innerHTML = '<div class="p-40 center-text text-light">No hay becas activas en este momento. 💎</div>';
                 }
+                // Indicador de origen IA (solo si vino de IA real)
+                const src = window.GoHappyAI && window.GoHappyAI._lastSource;
+                if (src === 'real') {
+                    window.GoHappyToast && window.GoHappyToast.success('✨ Contenido generado por IA real', 2000);
+                } else if (src === 'cache') {
+                    // silencioso, ya está cacheado
+                }
             } catch (e) {
                 console.error("Error loading news content:", e);
                 content.innerHTML = '<div class="p-40 center-text text-light" style="color:red;">Error al cargar información personalizada.</div>';

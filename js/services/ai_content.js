@@ -46,34 +46,9 @@ window.GoHappyAI = {
         return await window.GoHappyAI._callGemini(prompt);
     },
 
-    // Check usage limits for free users
-    checkTodayLimit: () => {
-        const user = window.GoHappyAuth.checkAuth();
-        const isPremium = user && (user.level === 'Oro' || user.level === 'Premium' || user.isPremium);
-        if (isPremium) return { canRequest: true };
-
-        const today = new Date().toDateString();
-        const usage = JSON.parse(localStorage.getItem('GoHappy_today_usage') || '{}');
-
-        if (usage.date !== today) {
-            usage.date = today;
-            usage.count = 0;
-        }
-
-        if (usage.count >= 3) {
-            return { canRequest: false, limit: 3 };
-        }
-
-        return { canRequest: true, usage };
-    },
-
-    incrementTodayUsage: () => {
-        const today = new Date().toDateString();
-        const usage = JSON.parse(localStorage.getItem('GoHappy_today_usage') || '{}');
-        usage.date = today;
-        usage.count = (usage.count || 0) + 1;
-        localStorage.setItem('GoHappy_today_usage', JSON.stringify(usage));
-    },
+    // BETA TEST MODE: SIN límites — todos los usuarios disfrutan PREMIUM
+    checkTodayLimit: () => ({ canRequest: true }),
+    incrementTodayUsage: () => {},
 
     // Generador Dinámico de Mapa (Basado en Coordenadas)
     getDynamicLocations: async (coordinates = "41.6520, -4.7286") => {
@@ -264,13 +239,10 @@ window.GoHappyAI = {
                 signal: AbortSignal.timeout(30000)
             });
 
-            // Rate limit
+            // Rate limit (silencioso, sin toast — fallback transparente a demos)
             if (response.status === 429) {
-                const err = await response.json().catch(() => ({}));
                 window.GoHappyAI._lastSource = 'rate-limited';
-                window.GoHappyToast && window.GoHappyToast.warning(
-                    err.error || 'IA ocupada. Reintenta en 1 minuto. 🌙', 5000
-                );
+                console.warn('[GoHappyAI] Modelo IA saturado momentaneamente, usando datos cached');
                 return window.GoHappyAI._getMockData(prompt);
             }
 

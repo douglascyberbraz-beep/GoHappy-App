@@ -67,139 +67,46 @@ window.GoHappyQuestsPage = {
             </div>
         `;
 
-        // INYECCIÓN DE ESTILOS SMART (Garantiza que no haya bordes rotos)
-        const styleId = 'quests-smart-styles';
+        // Estilos mínimos específicos de quests (todo lo demás lo controla premium.css)
+        const styleId = 'quests-minimal-styles';
         if (!document.getElementById(styleId)) {
             const style = document.createElement('style');
             style.id = styleId;
             style.textContent = `
-                .quests-page { width:100%; box-sizing:border-box; overflow-x:hidden; background: #f8fafc; min-height: 100vh; }
-                
-                /* Header Liquid Glass — premium.css controla el background y padding-top */
-                .q-header-content { display: flex; justify-content: space-between; align-items: center; gap: 12px; position: relative; z-index: 2; }
-                .q-title-group { flex: 1; min-width: 0; }
-                .q-subtitle { color: rgba(255,255,255,0.92); font-size: 13px; margin: 4px 0 0; font-weight: 500; }
-                .q-subtitle span { color: #B8F0F4; font-weight: 700; }
-                
-                .q-racha-capsule {
-                    background: rgba(255,255,255,0.1);
-                    backdrop-filter: blur(12px);
-                    border: 1px solid rgba(255,255,255,0.2);
-                    padding: 8px 15px;
-                    border-radius: 20px;
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-                }
-                .racha-icon { font-size: 22px; filter: drop-shadow(0 0 5px #F39C12); }
-                .racha-info { display: flex; flex-direction: column; align-items: flex-start; }
-                #racha-num { color: white; font-size: 16px; font-weight: 900; line-height: 1; }
-                .racha-info label { color: rgba(255,255,255,0.6); font-size: 8px; font-weight: 800; text-transform: uppercase; margin-top: 2px; }
-
-                /* Stats Bar */
-                .q-stats-floating-bar {
-                    margin: -25px 20px 0;
-                    background: rgba(255, 255, 255, 0.95);
-                    backdrop-filter: blur(20px);
-                    padding: 18px;
-                    border-radius: 24px;
-                    display: flex;
-                    justify-content: space-around;
-                    align-items: center;
-                    box-shadow: 0 15px 35px rgba(11, 76, 143, 0.12);
-                    z-index: 10;
-                    position: relative;
-                    border: 1px solid white;
-                }
-                .stat-item { text-align: center; }
-                .stat-val { display: block; font-size: 1.2rem; font-weight: 900; color: var(--primary-cobalt); }
-                .stat-val.done { color: #27AE60; }
-                .stat-val.pts { color: #F39C12; }
-                .stat-label { font-size: 9px; color: #94a3b8; font-weight: 800; text-transform: uppercase; margin-top: 2px; }
-                .stat-divider { width: 1px; height: 25px; background: #f1f5f9; }
-
-                /* Filters */
-                .q-filters-container {
-                    display: flex; gap: 10px; padding: 25px 20px 10px; overflow-x: auto; scrollbar-width: none;
-                }
-                .q-filters-container::-webkit-scrollbar { display: none; }
-                .q-filter-btn {
-                    background: white; border: none; padding: 10px 20px; border-radius: 16px;
-                    font-size: 13px; font-weight: 700; color: #64748b;
-                    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-                    white-space: nowrap; cursor: pointer; transition: all 0.3s ease;
-                    border: 1px solid transparent;
-                }
-                .q-filter-btn.active {
-                    background: var(--primary-cobalt); color: white;
-                    box-shadow: 0 8px 20px rgba(11, 76, 143, 0.25);
-                    transform: translateY(-2px);
-                }
-
-                /* Quest Cards */
-                #quests-list { padding: 15px 20px; display: flex; flex-direction: column; gap: 14px; }
-                
-                .quest-card-smart {
-                    background: white; border-radius: 24px; padding: 16px;
-                    display: flex; align-items: center; gap: 16px;
-                    box-shadow: 0 8px 25px rgba(0,0,0,0.03);
-                    border: 1px solid rgba(255,255,255,1);
-                    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                    position: relative; overflow: hidden;
-                    animation: slideIn 0.5s ease-out forwards;
-                }
-                .quest-card-smart:active { transform: scale(0.97); }
-                
-                /* Category Stripes */
-                .quest-card-smart::before {
-                    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
-                    background: var(--primary-cobalt); opacity: 0.8;
-                }
-                .quest-card-smart.cat-fisica::before { background: #3498db; }
-                .quest-card-smart.cat-familiar::before { background: #f1c40f; }
-                .quest-card-smart.cat-creativa::before { background: #e91e63; }
-                .quest-card-smart.cat-educativa::before { background: #9b59b6; }
-                
-                .quest-card-smart.done { opacity: 0.8; background: #f1f5f9; filter: grayscale(0.5); }
-                .quest-card-smart.done::before { background: #27AE60; }
-                
+                .quests-page { width:100%; box-sizing:border-box; overflow-x:hidden; min-height: 100vh; }
+                .q-header-content { display:flex; justify-content:space-between; align-items:center; gap:12px; position:relative; z-index:2; }
+                .q-title-group { flex:1; min-width:0; }
+                .racha-icon { font-size:22px; filter: drop-shadow(0 0 6px #F39C12); }
+                .racha-info { display:flex; flex-direction:column; align-items:flex-start; }
+                .q-stats-floating-bar { display:flex; justify-content:space-around; align-items:center; }
+                .stat-item { text-align:center; }
+                .stat-val { display:block; font-size:1.3rem; font-weight:900; color:var(--cobalt); }
+                .stat-val.done { color:#27AE60; }
+                .stat-val.pts { color:#F39C12; }
+                .stat-label { font-size:9px; color:var(--text-tertiary); font-weight:800; text-transform:uppercase; margin-top:3px; letter-spacing:0.3px; }
+                .stat-divider { width:1px; height:28px; background:rgba(11,76,143,0.1); }
+                .q-filters-container { display:flex; gap:8px; padding:20px 16px 8px; overflow-x:auto; scrollbar-width:none; }
+                .q-filters-container::-webkit-scrollbar { display:none; }
                 .q-icon-box {
-                    width: 52px; height: 52px; background: #f8fafc; border-radius: 18px;
-                    display: flex; align-items: center; justify-content: center;
-                    font-size: 24px; flex-shrink: 0; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+                    width:52px; height:52px; background:linear-gradient(135deg,rgba(11,113,252,0.06),rgba(23,200,212,0.10)); border-radius:18px;
+                    display:flex; align-items:center; justify-content:center;
+                    font-size:24px; flex-shrink:0; box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
                 }
-                .q-content { flex: 1; min-width: 0; }
-                .q-title { font-weight: 800; font-size: 15px; color: #1e293b; margin: 0; }
-                .q-meta { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
-                .q-pts-badge { 
-                    font-size: 11px; font-weight: 800; color: #F39C12; 
-                    background: rgba(243, 156, 18, 0.1); padding: 2px 8px; border-radius: 8px;
-                }
-                .q-frec { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
-                
+                .quest-card-smart { display:flex; align-items:center; gap:14px; }
+                .q-content { flex:1; min-width:0; }
+                .q-title { font-weight:800; font-size:15px; color:var(--text-primary); margin:0; }
+                .q-meta { display:flex; align-items:center; gap:10px; margin-top:4px; }
+                .q-frec { font-size:10px; font-weight:700; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:0.3px; }
                 .q-check-circle {
-                    width: 40px; height: 40px; border-radius: 50%; border: 2px solid #e2e8f0;
-                    background: white; display: flex; align-items: center; justify-content: center;
-                    font-size: 18px; color: transparent; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-                    cursor: pointer;
+                    width:38px; height:38px; border-radius:50%; border:2px solid rgba(11,76,143,0.15);
+                    background:white; display:flex; align-items:center; justify-content:center;
+                    font-size:18px; color:transparent; transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+                    flex-shrink:0;
                 }
                 .quest-card-smart.done .q-check-circle {
-                    background: #27AE60; border-color: #27AE60; color: white;
-                    box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+                    background:#27AE60; border-color:#27AE60; color:white;
+                    box-shadow: 0 4px 12px rgba(39,174,96,0.3);
                 }
-                
-                @keyframes slideIn {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-
-                /* Staggered load */
-                .quest-card-smart:nth-child(1) { animation-delay: 0.1s; }
-                .quest-card-smart:nth-child(2) { animation-delay: 0.15s; }
-                .quest-card-smart:nth-child(3) { animation-delay: 0.2s; }
-                .quest-card-smart:nth-child(4) { animation-delay: 0.25s; }
-                .quest-card-smart:nth-child(5) { animation-delay: 0.3s; }
             `;
             document.head.appendChild(style);
         }

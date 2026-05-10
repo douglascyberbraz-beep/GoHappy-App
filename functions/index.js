@@ -29,11 +29,12 @@ const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 // Cache TTL — respuestas idénticas se sirven desde caché
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hora
 
-// Límites por plan (más generosos ahora que tenemos caché)
+// BETA TEST MODE: TODOS los usuarios disfrutan PREMIUM ilimitado
+// Al lanzar producción, restablecer límites por plan
 const LIMITS = {
-    guest:   { daily: 8,   monthly: 50   },
-    free:    { daily: 30,  monthly: 300  },
-    premium: { daily: 200, monthly: 2000 }
+    guest:   { daily: 9999, monthly: 99999 },
+    free:    { daily: 9999, monthly: 99999 },
+    premium: { daily: 9999, monthly: 99999 }
 };
 
 // Hash simple para cachear por prompt+expectJson

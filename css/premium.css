@@ -228,18 +228,20 @@ body {
 }
 
 .nav-item .icon {
-    font-size: 23px !important;
+    font-size: 24px !important;
     line-height: 1 !important;
-    height: 24px !important;
+    height: 26px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
+    transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), filter 0.2s ease !important;
+    /* Saturación mayor para que los emojis se vean vivos */
+    filter: saturate(1.4) brightness(1.05) !important;
 }
 
 .nav-item .label {
-    font-size: 9px !important;
-    font-weight: 700 !important;
+    font-size: 9.5px !important;
+    font-weight: 800 !important;
     font-family: -apple-system, 'SF Pro Text', sans-serif !important;
     letter-spacing: 0.1px !important;
     text-transform: none !important;
@@ -250,11 +252,27 @@ body {
     max-width: 100% !important;
 }
 
-.nav-item.active { color: var(--cobalt-bright) !important; }
-.nav-item.active .icon { transform: scale(1.18) translateY(-1px) !important; }
+/* Estado inactivo: vivo pero menor opacidad para que el activo destaque */
+.nav-item { color: var(--cobalt) !important; opacity: 0.55 !important; }
+.nav-item:not(.active) .icon { filter: saturate(1.5) brightness(1.05) !important; }
+
+/* Estado ACTIVO: brillo total + scale del icono */
+.nav-item.active {
+    color: var(--cobalt-bright) !important;
+    opacity: 1 !important;
+}
+.nav-item.active .icon {
+    transform: scale(1.2) translateY(-2px) !important;
+    filter: saturate(1.8) brightness(1.15) drop-shadow(0 4px 8px rgba(11,113,252,0.3)) !important;
+}
+.nav-item.active .label {
+    color: var(--cobalt-bright) !important;
+    font-weight: 900 !important;
+}
+
 .nav-item:active { transform: scale(0.86) !important; }
 
-/* Map Orb elevado */
+/* Map Orb elevado — SIEMPRE visible (no se oculta al estar activo) */
 .nav-item[data-page="map"] {
     padding: 0 !important;
     overflow: visible !important;
@@ -263,13 +281,15 @@ body {
     width: 60px !important;
     max-width: 60px !important;
     height: 60px !important;
+    /* IMPORTANTE: el orb del mapa siempre opacidad 1 (incluso inactivo) */
+    opacity: 1 !important;
 }
 
 .map-orb {
     width: 60px !important;
     height: 60px !important;
     border-radius: 50% !important;
-    background: rgba(255,255,255,0.95) !important;
+    background: linear-gradient(135deg, #FFFFFF 0%, #F0F7FF 100%) !important;
     backdrop-filter: blur(24px) saturate(180%) !important;
     -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
     display: flex !important;
@@ -280,9 +300,22 @@ body {
         inset 0 -1px 0 rgba(0,0,0,0.06),
         0 8px 24px rgba(11,76,143,0.22),
         0 3px 8px rgba(11,76,143,0.12) !important;
-    border: 0.5px solid rgba(255,255,255,0.9) !important;
-    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease !important;
+    border: 1.5px solid rgba(11,113,252,0.3) !important;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, border-color 0.3s ease !important;
     margin: 0 !important;
+    opacity: 1 !important;
+}
+
+/* SVG del orb siempre visible y bien coloreado */
+.map-orb svg, .map-icon-svg {
+    display: block !important;
+    width: 28px !important;
+    height: 28px !important;
+    opacity: 1 !important;
+}
+.map-orb svg path,
+.map-orb svg circle {
+    stroke: var(--cobalt-bright) !important;
 }
 
 .nav-item[data-page="map"].active .map-orb {
@@ -1201,21 +1234,147 @@ input:focus, textarea:focus, .post-input:focus, .review-input:focus, .auth-input
     padding-top: 0 !important;
 }
 .q-title-group h2 {
-    /* Hereda del bloque unificado de TÍTULOS, pero forzamos por si JS sobrescribe */
-    color: white !important;
+    /* Hereda del bloque unificado de TÍTULOS — cobalto con sistema unificado */
+    color: var(--cobalt) !important;
     font-weight: 900 !important;
-    text-shadow: 0 2px 12px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.10) !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-size: clamp(1.9rem, 7vw, 2.3rem) !important;
+    letter-spacing: -0.7px !important;
+    text-shadow: none !important;
+}
+.q-subtitle {
+    color: var(--text-secondary) !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    margin-top: 6px !important;
+}
+.q-subtitle span {
+    color: var(--cobalt-bright) !important;
+    font-weight: 800 !important;
 }
 
-/* Stats bar floating debajo del hero — mejor sombreado */
+/* Stats bar floating debajo del hero */
 .q-stats-floating-bar {
     margin: -22px 16px 0 !important;
-    background: rgba(255,255,255,0.92) !important;
-    backdrop-filter: blur(30px) saturate(180%) !important;
-    border-radius: 26px !important;
-    border: 0.5px solid rgba(255,255,255,0.9) !important;
-    box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.95),
-        0 12px 32px rgba(11,76,143,0.12) !important;
     z-index: 5 !important;
+    padding: 16px !important;
+}
+
+/* ── 18. RANKING — Podio responsive sin cortes ────────────────── */
+.podium-section {
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 0 16px !important;
+    margin-bottom: 24px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+.podium-card {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    max-width: 32% !important;
+    padding: 14px 8px !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+}
+.podium-card.medium {
+    height: 160px !important;
+}
+.podium-card.large {
+    height: 180px !important;
+    z-index: 2 !important;
+    transform: translateY(-12px) !important;
+}
+.podium-rank {
+    font-size: 22px !important;
+    margin-bottom: 6px !important;
+}
+.podium-image,
+.podium-avatar {
+    width: 44px !important;
+    height: 44px !important;
+    margin: 0 auto 8px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 20px !important;
+    box-shadow: 0 4px 12px rgba(11,76,143,0.12) !important;
+    overflow: hidden !important;
+}
+.podium-info h4 {
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    color: var(--cobalt) !important;
+    line-height: 1.2 !important;
+}
+.podium-info .stars,
+.podium-info .points {
+    display: block !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    color: var(--text-secondary) !important;
+    margin-top: 4px !important;
+}
+.ranking-rows {
+    padding: 0 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+}
+.ranking-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+.row-rank {
+    font-weight: 900 !important;
+    color: var(--text-tertiary) !important;
+    font-size: 14px !important;
+    min-width: 28px !important;
+    text-align: center !important;
+}
+.row-thumb,
+.row-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 18px !important;
+    overflow: hidden !important;
+    background-size: cover !important;
+    background-position: center !important;
+}
+.row-info {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+.row-info h4 {
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    color: var(--text-primary) !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+.row-type {
+    font-size: 11px !important;
+    color: var(--text-tertiary) !important;
+    font-weight: 600 !important;
+}
+.row-score {
+    font-weight: 800 !important;
+    color: var(--cobalt-bright) !important;
+    font-size: 14px !important;
+    flex-shrink: 0 !important;
 }
