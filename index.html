@@ -41,8 +41,8 @@
     <link href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css' rel='stylesheet' />
 
     <!-- App CSS -->
-    <link rel="stylesheet" href="css/main.css?v=4.1.0">
-    <link rel="stylesheet" href="css/premium.css?v=4.1.0">
+    <link rel="stylesheet" href="css/main.css?v=4.2.0">
+    <link rel="stylesheet" href="css/premium.css?v=4.2.0">
 </head>
 
 <body>
@@ -72,9 +72,9 @@
             <span class="icon">⚔️</span>
             <span class="label">Quests</span>
         </button>
-        <button class="nav-item" data-page="safe">
-            <span class="icon">🛡️</span>
-            <span class="label">Safe</span>
+        <button class="nav-item" data-page="care">
+            <span class="icon">🧡</span>
+            <span class="label">Care</span>
         </button>
         <button class="nav-item" data-page="today">
             <span class="icon">✨</span>
@@ -139,38 +139,39 @@
     <script src="js/lib/qrcode.min.js"></script>
 
     <!-- Datos pre-cargados (POIs Castilla y León + Inglaterra) -->
-    <script src="js/data/poi_seed.js?v=4.1.0"></script>
+    <script src="js/data/poi_seed.js?v=4.2.0"></script>
 
     <!-- Services (load order matters) -->
-    <script src="js/config.js?v=4.1.0"></script>
-    <script src="js/services/security.js?v=4.1.0"></script>
-    <script src="js/services/toast.js?v=4.1.0"></script>
-    <script src="js/services/sound.js?v=4.1.0"></script>
-    <script src="js/services/data.js?v=4.1.0"></script>
-    <script src="js/services/points.js?v=4.1.0"></script>
-    <script src="js/services/ai_content.js?v=4.1.0"></script>
-    <script src="js/services/auth.js?v=4.1.0"></script>
-    <script src="js/services/quests.js?v=4.1.0"></script>
-    <script src="js/services/safety.js?v=4.1.0"></script>
-    <script src="js/services/families.js?v=4.1.0"></script>
-    <script src="js/services/notifications.js?v=4.1.0"></script>
+    <script src="js/config.js?v=4.2.0"></script>
+    <script src="js/services/security.js?v=4.2.0"></script>
+    <script src="js/services/toast.js?v=4.2.0"></script>
+    <script src="js/services/sound.js?v=4.2.0"></script>
+    <script src="js/services/data.js?v=4.2.0"></script>
+    <script src="js/services/points.js?v=4.2.0"></script>
+    <script src="js/services/ai_content.js?v=4.2.0"></script>
+    <script src="js/services/auth.js?v=4.2.0"></script>
+    <script src="js/services/quests.js?v=4.2.0"></script>
+    <script src="js/services/safety.js?v=4.2.0"></script>
+    <script src="js/services/families.js?v=4.2.0"></script>
+    <script src="js/services/notifications.js?v=4.2.0"></script>
 
     <!-- Pages -->
-    <script src="js/pages/map_v11.js?v=4.1.0"></script>
-    <script src="js/pages/today.js?v=4.1.0"></script>
-    <script src="js/pages/quests.js?v=4.1.0"></script>
-    <script src="js/pages/ranking.js?v=4.1.0"></script>
-    <script src="js/pages/news_events.js?v=4.1.0"></script>
-    <script src="js/pages/moments.js?v=4.1.0"></script>
-    <script src="js/pages/safe.js?v=4.1.0"></script>
-    <script src="js/pages/profile.js?v=4.1.0"></script>
-    <script src="js/pages/tribu.js?v=4.1.0"></script>
-    <script src="js/pages/memories.js?v=4.1.0"></script>
-    <script src="js/pages/legal.js?v=4.1.0"></script>
-    <script src="js/pages/family_onboarding.js?v=4.1.0"></script>
+    <script src="js/pages/map_v11.js?v=4.2.0"></script>
+    <script src="js/pages/today.js?v=4.2.0"></script>
+    <script src="js/pages/quests.js?v=4.2.0"></script>
+    <script src="js/pages/ranking.js?v=4.2.0"></script>
+    <script src="js/pages/news_events.js?v=4.2.0"></script>
+    <script src="js/pages/moments.js?v=4.2.0"></script>
+    <script src="js/pages/coach.js?v=4.2.0"></script>
+    <script src="js/pages/safe.js?v=4.2.0"></script>
+    <script src="js/pages/profile.js?v=4.2.0"></script>
+    <script src="js/pages/tribu.js?v=4.2.0"></script>
+    <script src="js/pages/memories.js?v=4.2.0"></script>
+    <script src="js/pages/legal.js?v=4.2.0"></script>
+    <script src="js/pages/family_onboarding.js?v=4.2.0"></script>
 
     <!-- App Core (last) -->
-    <script src="js/app.js?v=4.1.0"></script>
+    <script src="js/app.js?v=4.2.0"></script>
 
     <!-- Service Worker Registration -->
     <script>
@@ -183,7 +184,7 @@
                     setTimeout(() => window.location.reload(true), 500);
                 };
 
-                navigator.serviceWorker.register('sw.js?v=4.1.0').then(reg => {
+                navigator.serviceWorker.register('sw.js?v=4.2.0').then(reg => {
                     console.log('[SW] GoHappy v2.8.0 registrado');
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;

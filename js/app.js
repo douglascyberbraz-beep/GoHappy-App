@@ -107,6 +107,7 @@ const PAGE_RENDERERS = {
     'today':       () => window.GoHappyToday,
     'ranking':     () => window.GoHappyRanking,
     'moments':     () => window.GoHappyMoments,
+    'care':        () => window.GoHappyCare,
     'news_events': () => window.GoHappyNewsEvents,
     'profile':     () => window.GoHappyProfile,
     'legal':       () => window.GoHappyLegal,
