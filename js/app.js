@@ -23,6 +23,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // Banner de cookies (GDPR/UK GDPR) — primera visita
+    if (window.GoHappyCookies) {
+        try { window.GoHappyCookies.init(); } catch (e) { console.warn('cookies init:', e); }
+    }
+
     // Desbloquear AudioContext en primer gesto del usuario
     document.addEventListener('touchstart', () => window.GoHappySound.unlock(), { once: true });
     document.addEventListener('click', () => window.GoHappySound.unlock(), { once: true });
