@@ -1056,6 +1056,40 @@ input:focus, textarea:focus, .post-input:focus, .review-input:focus, .auth-input
     height: 52px !important;
 }
 
+/* FAB "+" añadir reseña — más prominente, encima del locate */
+.add-review-fab {
+    position: fixed !important;
+    bottom: calc(var(--nav-total) + 76px) !important;
+    right: 16px !important;
+    width: 56px !important;
+    height: 56px !important;
+    background: linear-gradient(135deg, #0B71FC 0%, #17C8D4 100%) !important;
+    color: white !important;
+    border: 1.5px solid rgba(255,255,255,0.5) !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 28px !important;
+    font-weight: 900 !important;
+    cursor: pointer !important;
+    z-index: 999 !important;
+    box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.3),
+        0 8px 24px rgba(11,113,252,0.4),
+        0 4px 10px rgba(11,113,252,0.2) !important;
+    transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s !important;
+}
+.add-review-fab:hover {
+    transform: scale(1.08);
+}
+.add-review-fab:active {
+    transform: scale(0.88) !important;
+    box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.3),
+        0 3px 10px rgba(11,113,252,0.3) !important;
+}
+
 /* Marcadores 3D Waze-style */
 .gohappy-marker-wrap .marker-pin-premium {
     background: white !important;

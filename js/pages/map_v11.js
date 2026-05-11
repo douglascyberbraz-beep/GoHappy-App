@@ -208,8 +208,61 @@ window.GoHappyMap = {
                 window.GoHappyMap.startGPSWatch();
             });
 
+            // ─── AÑADIR RESEÑA: doble clic (desktop) + long press (móvil) ───
+
+            // 1. Desactivar zoom on doubleclick (interfería con nuestro handler)
+            try { window.GoHappyMap.instance.doubleClickZoom.disable(); } catch (e) {}
+
+            // 2. Doble clic en desktop
             window.GoHappyMap.instance.on('dblclick', (e) => {
+                if (e?.preventDefault) e.preventDefault();
+                if (e?.originalEvent?.preventDefault) e.originalEvent.preventDefault();
                 window.GoHappyMap.showAddSiteModal(e.lngLat.lat, e.lngLat.lng);
+            });
+
+            // 3. Long press 600ms para móvil
+            let pressTimer = null;
+            let pressCoords = null;
+            let didMove = false;
+
+            const cancelLongPress = () => {
+                if (pressTimer) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                }
+                pressCoords = null;
+            };
+
+            window.GoHappyMap.instance.on('touchstart', (e) => {
+                // Ignorar multi-touch (pinch zoom)
+                if (e?.originalEvent?.touches && e.originalEvent.touches.length > 1) {
+                    cancelLongPress();
+                    return;
+                }
+                pressCoords = e.lngLat;
+                didMove = false;
+                pressTimer = setTimeout(() => {
+                    if (!didMove && pressCoords) {
+                        // Feedback háptico si disponible
+                        if (navigator.vibrate) navigator.vibrate(60);
+                        try {
+                            if (window.Capacitor?.isNativePlatform?.()) {
+                                const { Haptics } = window.Capacitor.Plugins;
+                                if (Haptics) Haptics.impact({ style: 'MEDIUM' });
+                            }
+                        } catch (err) {}
+                        window.GoHappyMap.showAddSiteModal(pressCoords.lat, pressCoords.lng);
+                    }
+                    pressTimer = null;
+                }, 600);
+            });
+
+            window.GoHappyMap.instance.on('touchend', cancelLongPress);
+            window.GoHappyMap.instance.on('touchcancel', cancelLongPress);
+
+            // Si el mapa se mueve durante el press, cancelar (era un drag)
+            window.GoHappyMap.instance.on('move', () => {
+                if (pressTimer) didMove = true;
             });
 
         } catch (e) {
@@ -247,6 +300,44 @@ window.GoHappyMap = {
         locateBtn.className = 'fab-btn locate-fab';
         locateBtn.innerHTML = '🎯';
         container.appendChild(locateBtn);
+
+        // FAB para añadir reseña en tu ubicación actual (más visible que long-press)
+        const addReviewBtn = document.createElement('button');
+        addReviewBtn.id = 'add-review-fab';
+        addReviewBtn.className = 'fab-btn add-review-fab';
+        addReviewBtn.innerHTML = '<span style="font-size:24px; line-height:1;">+</span>';
+        addReviewBtn.title = window.GoHappyI18n ? window.GoHappyI18n.t('map.review') : 'Añadir reseña';
+        container.appendChild(addReviewBtn);
+
+        addReviewBtn.addEventListener('click', () => {
+            // Coordenadas: prefiere ubicación del usuario, si no, centro del mapa
+            let lat, lng;
+            if (window.GoHappyMap.userMarker) {
+                const ll = window.GoHappyMap.userMarker.getLngLat();
+                lat = ll.lat;
+                lng = ll.lng;
+            } else if (window.GoHappyMap.instance) {
+                const c = window.GoHappyMap.instance.getCenter();
+                lat = c.lat;
+                lng = c.lng;
+            } else {
+                return;
+            }
+            window.GoHappyMap.showAddSiteModal(lat, lng);
+        });
+
+        // Hint inicial al usuario (solo primera vez)
+        if (!localStorage.getItem('GoHappy_map_hint_seen')) {
+            setTimeout(() => {
+                if (window.GoHappyToast) {
+                    const tip = window.GoHappyI18n?.lang === 'en'
+                        ? '💡 Tap "+" or hold any place to add a review'
+                        : '💡 Toca el "+" o mantén pulsado un sitio para reseñarlo';
+                    window.GoHappyToast.info(tip, 4500);
+                }
+                localStorage.setItem('GoHappy_map_hint_seen', '1');
+            }, 2500);
+        }
 
         // Brujula eliminada por peticion del usuario
 
