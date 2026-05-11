@@ -50,6 +50,127 @@ window.GoHappyAI = {
     checkTodayLimit: () => ({ canRequest: true }),
     incrementTodayUsage: () => {},
 
+    // ───────────────────────────────────────────────────────────
+    // REVERSE GEOCODING — ciudad desde coords (Photon, gratuito)
+    // ───────────────────────────────────────────────────────────
+    getCityFromCoords: async (coords = "41.6520, -4.7286") => {
+        // Cache 24h en localStorage
+        const cacheKey = 'GoHappy_city_' + coords.replace(/[^0-9.,-]/g, '').slice(0, 14);
+        try {
+            const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+            if (cached && Date.now() - cached.t < 86400000) return cached.v;
+        } catch (e) {}
+
+        try {
+            const [lat, lng] = coords.split(',').map(s => parseFloat(s.trim()));
+            const r = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}&limit=1`);
+            const data = await r.json();
+            const p = data.features?.[0]?.properties || {};
+            const city = p.city || p.town || p.village || p.county || p.state || 'tu zona';
+            const country = p.country || '';
+            const result = { city, country, full: country ? `${city}, ${country}` : city };
+            try { localStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), v: result })); } catch (e) {}
+            return result;
+        } catch (e) {
+            console.warn('[GoHappyAI] Reverse geocoding fallback:', e?.message);
+            return { city: 'tu zona', country: '', full: 'tu zona' };
+        }
+    },
+
+    // ───────────────────────────────────────────────────────────
+    // EVENTOS REALES — actividades familiares en la ciudad
+    // ───────────────────────────────────────────────────────────
+    getRealEvents: async (coords = "41.6520, -4.7286", filter = 'hoy') => {
+        const cityInfo = await window.GoHappyAI.getCityFromCoords(coords);
+        const today = new Date();
+        const dayNames = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+        const monthNames = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+        const todayStr = `${dayNames[today.getDay()]} ${today.getDate()} de ${monthNames[today.getMonth()]} de ${today.getFullYear()}`;
+
+        let rango = '';
+        if (filter === 'hoy')    rango = `HOY (${todayStr})`;
+        if (filter === 'manana') rango = `MAÑANA`;
+        if (filter === 'finde')  rango = `ESTE FIN DE SEMANA (sábado y domingo)`;
+
+        const prompt = `Eres el agenda cultural familiar de GoHappy. La familia está en ${cityInfo.full} (coords: ${coords}).
+
+MISIÓN: Lista 6 EVENTOS REALES típicos para familias con niños para ${rango}.
+
+INCLUYE estos tipos:
+- Talleres infantiles (museos, bibliotecas, centros culturales)
+- Espectáculos infantiles (teatros, marionetas, cuentacuentos)
+- Actividades al aire libre (rutas, parques temáticos, mercados artesanos)
+- Cines (estrenos infantiles del momento)
+- Eventos municipales (fiestas, ferias estacionales según fecha)
+- Visitas guiadas familiares (museos, monumentos)
+
+Para cada evento devuelve datos REALES o muy probables de ${cityInfo.city}:
+- title: nombre concreto
+- description: 1-2 frases atractivas (qué van a hacer/aprender)
+- category: una de: taller, teatro, museo, aire-libre, cine, feria, mercado, ruta
+- dayLabel: "HOY", "MAÑANA", "SÁBADO", "DOMINGO" según corresponda
+- time: hora concreta (ej "17:00 - 19:00")
+- location: lugar específico de ${cityInfo.city}
+- distanceDesc: "A 5 min andando" o "A 10 min en coche"
+- price: "Gratis" o "5€" o "Desde 8€"
+- ages: rango edad ej "3-8 años" o "Todas las edades"
+- linkText: "Web oficial" o "Comprar entradas"
+- linkUrl: URL real de la web del centro/museo/teatro/ayuntamiento (ej: https://www.museocienciavalladolid.es)
+- tip: 1 consejo práctico breve
+
+IMPORTANTE: que sean eventos típicos REALMENTE recurrentes en ${cityInfo.city}, no inventes nombres de talleres específicos si no estás seguro. Usa nombres de centros/teatros/museos verificables.
+
+Formato JSON estricto:
+[ { "title":"", "description":"", "category":"", "dayLabel":"", "time":"", "location":"", "distanceDesc":"", "price":"", "ages":"", "linkText":"", "linkUrl":"", "tip":"" } ]`;
+
+        return await window.GoHappyAI._callGemini(prompt, true);
+    },
+
+    // ───────────────────────────────────────────────────────────
+    // PLANES SEMANALES — 7 días con 1-2 planes cada uno
+    // ───────────────────────────────────────────────────────────
+    getWeekPlans: async (coords = "41.6520, -4.7286", preferences = null) => {
+        const cityInfo = await window.GoHappyAI.getCityFromCoords(coords);
+        const today = new Date();
+        const days = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(today);
+            d.setDate(today.getDate() + i);
+            days.push({
+                key: `d${i}`,
+                date: d,
+                dayName: ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][d.getDay()],
+                num: d.getDate()
+            });
+        }
+
+        let prefsContext = '';
+        if (preferences) {
+            prefsContext = `\nFamilia: ${preferences.adults} adultos + ${preferences.kids} niños (edades: ${preferences.ages}). Entorno preferido: ${preferences.environment}. Presupuesto: ${preferences.budget}. Distancia: ${preferences.distance}.`;
+        }
+
+        const prompt = `Eres el planificador familiar de GoHappy. Diseña planes para los próximos 7 días en ${cityInfo.full}.${prefsContext}
+
+Para CADA día genera 1 plan principal (el mejor) con datos premium.
+Días: ${days.map(d => `${d.dayName} ${d.num}`).join(', ')}
+
+Para cada plan:
+- title: creativo
+- summary: 1-2 frases
+- typeLabel: "🌳 Al aire libre" | "🏠 A cubierto" | "⛅ Mixto"
+- time: hora sugerida
+- duration: ej "2 horas"
+- location: lugar real en ${cityInfo.city}
+- price: "Gratis" o coste
+- ages: rango edad
+- icon: 1 emoji representativo
+
+Formato JSON estricto:
+{ "d0":{"title":"","summary":"","typeLabel":"","time":"","duration":"","location":"","price":"","ages":"","icon":""}, "d1":{}, "d2":{}, "d3":{}, "d4":{}, "d5":{}, "d6":{} }`;
+
+        return await window.GoHappyAI._callGemini(prompt, true);
+    },
+
     // Generador Dinámico de Mapa (Basado en Coordenadas)
     getDynamicLocations: async (coordinates = "41.6520, -4.7286") => {
         const prompt = `Actúa como guía turístico local familiar. Genera 8 sitios reales increíbles para ir con niños (parques, museos, ludotecas, restaurantes kid-friendly) en un radio cercano de las coordenadas GPS: ${coordinates}.
