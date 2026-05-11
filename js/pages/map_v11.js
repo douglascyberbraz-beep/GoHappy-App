@@ -108,16 +108,22 @@ window.GoHappyMap = {
                     window._navContext = null;
                 }
                 
-                // ── WAZE-STYLE COLORS — claro, vivo, navegador premium ──
+                // ── WAZE-STYLE COLORS — paleta brand cobalt/cyan en todos los zooms ──
                 const layersToColor = [
-                    { id: 'water',           color: '#A6D9F7', opacity: 1 },     // azul claro Waze
-                    { id: 'landuse-natural', color: '#DDF1D5', opacity: 1 },     // verde pastel
-                    { id: 'landuse-park',    color: '#B8E6B5', opacity: 1 },     // parque más saturado
-                    { id: 'land',            color: '#F5F8FA', opacity: 1 },     // fondo limpio
-                    { id: 'landuse-residential', color: '#EEF2F7', opacity: 1 },
-                    { id: 'landuse-commercial',  color: '#F0EAF7', opacity: 1 },
-                    { id: 'landcover-grass',     color: '#D4ECCB', opacity: 1 },
-                    { id: 'landcover-wood',      color: '#C5E0B8', opacity: 1 }
+                    { id: 'water',           color: '#7CC6EE', opacity: 1 },     // azul cobalto-claro saturado
+                    { id: 'landuse-natural', color: '#D8EAF6', opacity: 1 },     // tinte cobalto suave
+                    { id: 'landuse-park',    color: '#A6E8C9', opacity: 1 },     // verde-cyan saturado (brand)
+                    { id: 'land',            color: '#E8F1FB', opacity: 1 },     // fondo base CON tinte cobalto
+                    { id: 'landuse-residential', color: '#DCE7F4', opacity: 1 },  // cobalto pastel
+                    { id: 'landuse-commercial',  color: '#D8E0F0', opacity: 1 },  // cobalto pastel (no lavanda)
+                    { id: 'landcover-grass',     color: '#B8E5D0', opacity: 1 },  // verde-cyan
+                    { id: 'landcover-wood',      color: '#A8D8C0', opacity: 1 },
+                    { id: 'landuse-industrial',  color: '#CFD9EA', opacity: 1 },
+                    { id: 'landuse-cemetery',    color: '#C9E5D8', opacity: 1 },
+                    { id: 'landuse-school',      color: '#DCE7F4', opacity: 1 },
+                    { id: 'landuse-hospital',    color: '#E6DEEF', opacity: 1 },
+                    { id: 'water-pattern',       color: '#7CC6EE', opacity: 0.9 },
+                    { id: 'aeroway-area',        color: '#DCE7F4', opacity: 1 }
                 ];
 
                 layersToColor.forEach(l => {
@@ -129,18 +135,21 @@ window.GoHappyMap = {
                     } catch (e) {}
                 });
 
-                // ── 3D BUILDINGS — gradiente cobalto vivo con altura ──
+                // ── 3D BUILDINGS — gradiente cobalto vivo, visible desde zoom 12 ──
                 try {
                     const buildingLayer = window.GoHappyMap.instance.getLayer('building');
                     if (buildingLayer) {
-                        window.GoHappyMap.instance.setPaintProperty('building', 'fill-opacity', 0);
+                        // Capa 2D plana cobalto para zooms bajos (cuando 3D no aparece)
+                        window.GoHappyMap.instance.setPaintProperty('building', 'fill-color', '#9FBEDD');
+                        window.GoHappyMap.instance.setPaintProperty('building', 'fill-opacity', 0.6);
 
+                        // Capa 3D extrusión por encima — fade-in suave desde zoom 12
                         window.GoHappyMap.instance.addLayer({
                             'id': 'waze-3d-buildings',
                             'source': buildingLayer.source,
                             'source-layer': buildingLayer.sourceLayer,
                             'type': 'fill-extrusion',
-                            'minzoom': 14,
+                            'minzoom': 12,
                             'paint': {
                                 // Color por altura: edificios bajos cyan claro, altos cobalt
                                 'fill-extrusion-color': [
@@ -154,17 +163,45 @@ window.GoHappyMap = {
                                 ],
                                 'fill-extrusion-height': [
                                     'interpolate', ['linear'], ['zoom'],
-                                    14, 0,
-                                    15.5, ['coalesce', ['get', 'render_height'], 18]
+                                    12, 0,
+                                    13.5, ['*', ['coalesce', ['get', 'render_height'], 18], 0.4],
+                                    15, ['coalesce', ['get', 'render_height'], 18]
                                 ],
                                 'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
-                                'fill-extrusion-opacity': 0.62,
+                                'fill-extrusion-opacity': [
+                                    'interpolate', ['linear'], ['zoom'],
+                                    12, 0.3,
+                                    14, 0.6,
+                                    16, 0.7
+                                ],
                                 'fill-extrusion-vertical-gradient': true
                             }
                         });
                     }
                 } catch (e) {
                     console.warn("3D buildings injection skipped:", e);
+                }
+
+                // ── TINT OVERLAY — capa cobalto sutil sobre todo para mantener identidad brand
+                // Visible en cualquier zoom (especialmente al hacer zoom out)
+                try {
+                    window.GoHappyMap.instance.addLayer({
+                        'id': 'brand-tint-overlay',
+                        'type': 'background',
+                        'paint': {
+                            'background-color': '#7DA8D4',  // cobalto medio
+                            'background-opacity': [
+                                'interpolate', ['linear'], ['zoom'],
+                                0,  0.18,   // muy ampliado: tinte fuerte
+                                6,  0.12,
+                                10, 0.05,   // medio: tinte sutil
+                                14, 0.02,   // detalle: casi sin tinte
+                                18, 0
+                            ]
+                        }
+                    }, 'water'); // debajo de water para no oscurecer ríos/mar
+                } catch (e) {
+                    console.warn("Brand tint overlay skipped:", e);
                 }
 
                 // ── ROADS estilo Waze — blancos limpios con casing ──
