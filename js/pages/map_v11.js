@@ -353,16 +353,22 @@ window.GoHappyMap = {
         const safeType = window.GoHappySecurity ? window.GoHappySecurity.safe(loc.type) : String(loc.type || '').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
         const safeImage = (loc.image && /^https?:\/\//.test(loc.image)) ? loc.image : '';
 
+        const tRoute   = window.GoHappyI18n ? window.GoHappyI18n.t('map.route')  : '🗺️ Cómo llegar';
+        const tReview  = window.GoHappyI18n ? window.GoHappyI18n.t('map.review') : '📝 Escribir Reseña';
+
         const popupHTML = `
-            <div class="popup-premium" style="min-width: 220px; border-radius: 20px; overflow: hidden;">
+            <div class="popup-premium" style="min-width: 230px; border-radius: 20px; overflow: hidden;">
                 <div class="popup-img-container" style="position: relative; height: 100px; background: #eee;">
-                    ${safeImage ? `<img src="${safeImage}" style="width: 100%; height: 100%; object-fit: cover;">` : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--primary-blue); color: white; font-size: 2rem;">🌟</div>`}
+                    ${safeImage ? `<img src="${safeImage}" style="width: 100%; height: 100%; object-fit: cover;">` : `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg,#0B71FC,#17C8D4); color: white; font-size: 2rem;">🌟</div>`}
                 </div>
                 <div class="popup-body" style="padding: 12px; background: white;">
-                    <h3 style="margin: 0 0 5px 0; font-size: 1rem; font-weight: 800; color: var(--primary-navy);">${safeName}</h3>
-                    <div style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">⭐ ${parseFloat(loc.rating) || 4.5} | ${safeType}</div>
-                    <button class="popup-review-btn btn-primary-gradient" style="padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 700; width: 100%; border:none; color:white; cursor:pointer;" data-lat="${parseFloat(loc.lat)}" data-lng="${parseFloat(loc.lng)}">
-                        📝 Escribir Reseña
+                    <h3 style="margin: 0 0 4px 0; font-size: 1rem; font-weight: 800; color: var(--cobalt);">${safeName}</h3>
+                    <div style="font-size: 0.78rem; color: #666; margin-bottom: 10px;">⭐ ${parseFloat(loc.rating) || 4.5} · ${safeType}</div>
+                    <button class="popup-route-btn" style="padding:10px; border-radius:12px; font-size:12px; font-weight:800; width:100%; border:none; color:white; cursor:pointer; background:linear-gradient(135deg,#0B71FC,#17C8D4); margin-bottom:8px; box-shadow: 0 6px 16px rgba(11,113,252,0.28);" data-lat="${parseFloat(loc.lat)}" data-lng="${parseFloat(loc.lng)}">
+                        ${tRoute}
+                    </button>
+                    <button class="popup-review-btn" style="padding:9px; border-radius:12px; font-size:12px; font-weight:700; width:100%; border:0.5px solid rgba(11,76,143,0.15); color:var(--cobalt); cursor:pointer; background:rgba(11,76,143,0.06);" data-lat="${parseFloat(loc.lat)}" data-lng="${parseFloat(loc.lng)}">
+                        ${tReview}
                     </button>
                 </div>
             </div>
@@ -371,11 +377,19 @@ window.GoHappyMap = {
         const popup = new maplibregl.Popup({ offset: 40, className: 'premium-popup-3d' }).setHTML(popupHTML);
         // Bind sin onclick inline (evita XSS y CSP issues)
         popup.on('open', () => {
-            const btn = document.querySelector('.maplibregl-popup-content .popup-review-btn');
-            if (btn) {
-                btn.onclick = () => window.GoHappyMap.showAddSiteModal(
-                    parseFloat(btn.dataset.lat),
-                    parseFloat(btn.dataset.lng),
+            const reviewBtn = document.querySelector('.maplibregl-popup-content .popup-review-btn');
+            const routeBtn  = document.querySelector('.maplibregl-popup-content .popup-route-btn');
+            if (reviewBtn) {
+                reviewBtn.onclick = () => window.GoHappyMap.showAddSiteModal(
+                    parseFloat(reviewBtn.dataset.lat),
+                    parseFloat(reviewBtn.dataset.lng),
+                    loc.name
+                );
+            }
+            if (routeBtn && window.GoHappyNav) {
+                routeBtn.onclick = () => window.GoHappyNav.openRoute(
+                    parseFloat(routeBtn.dataset.lat),
+                    parseFloat(routeBtn.dataset.lng),
                     loc.name
                 );
             }

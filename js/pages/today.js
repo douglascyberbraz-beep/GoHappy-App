@@ -405,9 +405,27 @@ window.GoHappyToday = {
 
             list.innerHTML = events.map(e => window.GoHappyToday._renderEventCard(e)).join('') + `
                 <div class="event-disclaimer">
-                    ⓘ Verifica horarios y entradas en la web oficial antes de ir
+                    ${window.GoHappyI18n ? window.GoHappyI18n.t('today.disclaimer') : 'ⓘ Verifica horarios y entradas en la web oficial antes de ir'}
                 </div>
             `;
+
+            // Bind botones de ruta → navegador nativo
+            list.querySelectorAll('.event-route-btn').forEach((btn, idx) => {
+                btn.onclick = () => {
+                    const ev = events[idx];
+                    if (!ev) return;
+                    if (window.GoHappyNav) {
+                        // Si tenemos coords del evento (lat/lng), usar; si no, buscar por nombre + ciudad
+                        const cityName = window.GoHappyToday._city?.city || '';
+                        const query = `${ev.location || ev.title}${cityName ? ', ' + cityName : ''}`;
+                        if (ev.lat && ev.lng) {
+                            window.GoHappyNav.openRoute(parseFloat(ev.lat), parseFloat(ev.lng), ev.location || ev.title);
+                        } else {
+                            window.GoHappyNav.openSearch(query);
+                        }
+                    }
+                };
+            });
 
             // Indicador IA real
             const src = window.GoHappyAI._lastSource;
@@ -427,6 +445,8 @@ window.GoHappyToday = {
         const safe = (s) => sec ? sec.safe(s || '') : String(s || '').replace(/[<>]/g, '');
         const url = (e.linkUrl && /^https?:\/\//.test(e.linkUrl)) ? e.linkUrl : null;
         const linkAttr = url ? `href="${url}" target="_blank" rel="noopener"` : 'href="#" onclick="return false"';
+        const t = window.GoHappyI18n ? window.GoHappyI18n.t.bind(window.GoHappyI18n) : (k => k);
+        const routeLabel = t('map.route');
 
         return `
             <div class="event-card card-anim">
@@ -444,7 +464,10 @@ window.GoHappyToday = {
                     <div class="event-info-item">👶 ${safe(e.ages || 'Familia')}</div>
                 </div>
                 ${e.tip ? `<div class="event-tip"><span class="event-tip-icon">💡</span><span>${safe(e.tip)}</span></div>` : ''}
-                <a class="event-cta" ${linkAttr}>${safe(e.linkText || 'Más info')} →</a>
+                <div style="display:flex; gap:8px;">
+                    <a class="event-cta" ${linkAttr} style="flex:2;">${safe(e.linkText || 'Más info')} →</a>
+                    <button class="event-cta event-route-btn" data-loc="${safe(e.location)}" style="flex:1; background:rgba(11,76,143,0.08); color:var(--cobalt); box-shadow:none;">${routeLabel}</button>
+                </div>
             </div>
         `;
     },
@@ -572,7 +595,12 @@ window.GoHappyToday = {
                 const lat = parseFloat(btn.dataset.lat);
                 const lng = parseFloat(btn.dataset.lng);
                 const loc = btn.dataset.loc;
-                window.GoHappyApp.navigate('map', { focus: loc, coords: lat && lng ? { lat, lng } : null, zoom: 17 });
+                // Abrir en navegador nativo (Apple Maps / Google Maps / Waze)
+                if (lat && lng && window.GoHappyNav) {
+                    window.GoHappyNav.openRoute(lat, lng, loc);
+                } else if (window.GoHappyNav) {
+                    window.GoHappyNav.openSearch(loc);
+                }
             };
         });
 

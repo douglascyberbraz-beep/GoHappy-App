@@ -318,7 +318,13 @@ Formato JSON estricto:
 
     // Helper para llamadas a Gemini — proxy autenticado + caché client-side
     _callGemini: async (prompt, expectJson = true) => {
-        // Cache client-side primero
+        // Inyectar instrucción de idioma al inicio (auto-detectado por i18n)
+        const langName = window.GoHappyI18n ? window.GoHappyI18n.aiLanguageName() : 'Español (España)';
+        const country = window.GoHappyI18n ? window.GoHappyI18n.country : 'ES';
+        const langPrefix = `IDIOMA OBLIGATORIO: Responde SIEMPRE en ${langName}. País del usuario: ${country}. Usa nombres de lugares, monedas (€/£) y unidades coherentes con ese país.\n\n`;
+        prompt = langPrefix + prompt;
+
+        // Cache client-side primero (key incluye idioma)
         const cacheKey = window.GoHappyAI._cacheKey(prompt, expectJson);
         const cached = window.GoHappyAI._getCached(cacheKey);
         if (cached !== null) {

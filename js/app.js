@@ -11,6 +11,11 @@ const appState = {
 // Initialize App
 document.addEventListener('DOMContentLoaded', async () => {
 
+    // i18n: detectar idioma por geolocalización ANTES de renderizar nada
+    if (window.GoHappyI18n) {
+        try { await window.GoHappyI18n.init(); } catch (e) { console.warn('i18n init:', e); }
+    }
+
     // Desbloquear AudioContext en primer gesto del usuario
     document.addEventListener('touchstart', () => window.GoHappySound.unlock(), { once: true });
     document.addEventListener('click', () => window.GoHappySound.unlock(), { once: true });
