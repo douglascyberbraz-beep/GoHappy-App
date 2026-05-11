@@ -1,6 +1,7 @@
 window.GoHappyProfile = {
     render: async (container) => {
-        container.innerHTML = `<div class="p-20 center-text"><div class="typing-dots"><span></span><span></span><span></span></div><p>Sincronizando con la nube...</p></div>`;
+        const T = window.t || (k => k);
+        container.innerHTML = `<div class="p-20 center-text"><div class="typing-dots"><span></span><span></span><span></span></div><p>${T('profile.loading')}</p></div>`;
 
         const user = window.GoHappyAuth.checkAuth();
 
@@ -8,10 +9,10 @@ window.GoHappyProfile = {
             container.innerHTML = `
                 <div class="p-20 center-text entry-anim" style="padding-top: calc(var(--safe-top, 44px) + 60px);">
                     <div style="font-size: 5rem; margin-bottom: 30px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));">🕶️</div>
-                    <h3 style="color: var(--primary-cobalt); font-size: 20px; font-weight: 800;">¿Quién eres?</h3>
-                    <p style="color: #666; margin-top: 10px;">Identifícate para desbloquear tu nivel, puntos y premios exclusivos.</p>
-                    <button id="login-from-profile" class="btn-primary" style="margin-top: 30px; padding: 15px 40px; font-size: 16px;">Entrar a GoHappy</button>
-                    <p style="font-size: 12px; color: #aaa; margin-top: 20px;">Únete a miles de familias 🌍</p>
+                    <h3 style="color: var(--primary-cobalt); font-size: 20px; font-weight: 800;">${T('profile.guest.title')}</h3>
+                    <p style="color: #666; margin-top: 10px;">${T('profile.guest.sub')}</p>
+                    <button id="login-from-profile" class="btn-primary" style="margin-top: 30px; padding: 15px 40px; font-size: 16px;">${T('profile.guest.btn')}</button>
+                    <p style="font-size: 12px; color: #aaa; margin-top: 20px;">${T('profile.guest.foot')}</p>
                 </div>
             `;
             document.getElementById('login-from-profile').addEventListener('click', () => {
@@ -39,11 +40,11 @@ window.GoHappyProfile = {
                     <div class="g-card-header">
                         <div class="g-points-display">
                             <span class="g-points-val">${user.points}</span>
-                            <label>PUNTOS</label>
+                            <label>${T('profile.points')}</label>
                         </div>
                         <div class="g-level-info">
                             <h3>${levelInfo.icon} ${levelInfo.name}</h3>
-                            <p>${levelInfo.nextPoints ? `Faltan ${levelInfo.nextPoints - user.points} para el siguiente` : '¡Nivel Máximo!'}</p>
+                            <p>${levelInfo.nextPoints ? T('profile.next.level', { n: levelInfo.nextPoints - user.points }) : T('profile.max.level')}</p>
                         </div>
                     </div>
                     
@@ -64,31 +65,31 @@ window.GoHappyProfile = {
                     <div class="action-card-glass" data-goto="memories">
                         <div class="a-icon">📸</div>
                         <div class="a-text">
-                            <h4>Recuerdos</h4>
-                            <p>Mis fotos</p>
+                            <h4>${T('profile.memories')}</h4>
+                            <p>${T('profile.my.photos')}</p>
                         </div>
                     </div>
                     <div class="action-card-glass" id="share-app-btn">
                         <div class="a-icon">🎁</div>
                         <div class="a-text">
-                            <h4>Invitar</h4>
-                            <p>+100 pts</p>
+                            <h4>${T('profile.invite')}</h4>
+                            <p>${T('profile.invite.gain')}</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="referral-premium-box premium-glass" style="margin: 20px 0; padding: 25px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.4);">
                     <div style="text-align: center; margin-bottom: 20px;">
-                        <h3 style="color: var(--primary-cobalt); font-weight: 900; margin: 0;">¡Invita y Gana! 🎁</h3>
-                        <p style="font-size: 13px; color: #64748b; margin-top: 5px;">Gana 500 puntos por cada amigo que se una.</p>
+                        <h3 style="color: var(--primary-cobalt); font-weight: 900; margin: 0;">${T('profile.referral.title')}</h3>
+                        <p style="font-size: 13px; color: #64748b; margin-top: 5px;">${T('profile.referral.sub')}</p>
                     </div>
-                    
+
                     <div style="display: flex; gap: 20px; align-items: center; background: white; padding: 15px; border-radius: 20px; box-shadow: var(--shadow-soft);">
                         <div id="referral-qr" style="width: 100px; height: 100px; background: #f8fafc; border-radius: 12px; display: flex; align-items: center; justify-content: center;"></div>
                         <div style="flex: 1;">
-                            <div style="font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Tu código personal</div>
+                            <div style="font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">${T('profile.your.code')}</div>
                             <div id="ref-code-display" style="font-size: 1.5rem; font-weight: 900; color: var(--primary-cobalt); letter-spacing: 1px;">${user.referralCode || 'GH-123'}</div>
-                            <button id="copy-ref-link" style="margin-top: 10px; background: var(--primary-cobalt); color: white; border: none; padding: 8px 15px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer;">Copiar Enlace</button>
+                            <button id="copy-ref-link" style="margin-top: 10px; background: var(--primary-cobalt); color: white; border: none; padding: 8px 15px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer;">${T('profile.copy.link')}</button>
                         </div>
                     </div>
                 </div>
@@ -96,8 +97,8 @@ window.GoHappyProfile = {
                 <!-- SECCIÓN MI FAMILIA -->
                 <div id="family-section" style="margin: 0 20px 20px; padding: 24px; background: white; border-radius: 28px; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                        <h3 style="color:var(--primary-cobalt); font-weight:900; margin:0; font-size:1rem;">👨‍👩‍👧‍👦 Mi Familia</h3>
-                        <div id="family-loading" style="font-size:12px; color:#94a3b8;">Cargando...</div>
+                        <h3 style="color:var(--primary-cobalt); font-weight:900; margin:0; font-size:1rem;">${T('profile.my.family')}</h3>
+                        <div id="family-loading" style="font-size:12px; color:#94a3b8;">${T('profile.family.loading')}</div>
                     </div>
                     <div id="family-content"></div>
                     
@@ -121,11 +122,11 @@ window.GoHappyProfile = {
 
                 <div class="account-actions-list">
                     <button id="terms-link" class="action-list-item">
-                        <span>📜 Términos y Soporte</span>
+                        <span>${T('profile.terms')}</span>
                         <span class="arrow">→</span>
                     </button>
                     <button id="logout-btn" class="action-list-item danger">
-                        <span>🚪 Cerrar Sesión</span>
+                        <span>${T('profile.logout')}</span>
                     </button>
                 </div>
             </div>

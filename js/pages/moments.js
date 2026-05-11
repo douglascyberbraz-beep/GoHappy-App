@@ -5,15 +5,27 @@
 // ================================================================
 window.GoHappyMoments = {
 
-    PROMPTS: [
-        "¿Qué estáis haciendo en familia ahora? 📸",
-        "Capturad un momento bonito de hoy ✨",
-        "Una sonrisa. Una foto. Un recuerdo. 💝",
-        "¿Quién ha hecho reír a la familia hoy? 😂",
-        "Mostrad el momento más happy del día 🌟",
-        "Una foto que cuente vuestro día 📷",
-        "El detalle pequeño que os hizo felices hoy 🎈"
-    ],
+    get PROMPTS() {
+        const lang = window.GoHappyI18n?.lang || 'es';
+        if (lang === 'en') return [
+            "What's the family doing right now? 📸",
+            "Capture a beautiful moment today ✨",
+            "A smile. A photo. A memory. 💝",
+            "Who made the family laugh today? 😂",
+            "Show the happiest moment of your day 🌟",
+            "A photo that tells your day 📷",
+            "The little detail that made you happy today 🎈"
+        ];
+        return [
+            "¿Qué estáis haciendo en familia ahora? 📸",
+            "Capturad un momento bonito de hoy ✨",
+            "Una sonrisa. Una foto. Un recuerdo. 💝",
+            "¿Quién ha hecho reír a la familia hoy? 😂",
+            "Mostrad el momento más happy del día 🌟",
+            "Una foto que cuente vuestro día 📷",
+            "El detalle pequeño que os hizo felices hoy 🎈"
+        ];
+    },
 
     _currentPrompt: null,
     _photoData: null,
@@ -25,13 +37,14 @@ window.GoHappyMoments = {
         const dayHash = new Date().toDateString().split('').reduce((h,c) => h + c.charCodeAt(0), 0);
         window.GoHappyMoments._currentPrompt = window.GoHappyMoments.PROMPTS[dayHash % window.GoHappyMoments.PROMPTS.length];
 
+        const T = window.t || (k => k);
         container.innerHTML = `
             <div class="moments-page">
                 <div class="unified-hero">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; position:relative; z-index:2;">
                         <div style="flex:1;">
-                            <h2>💝 Moments</h2>
-                            <p>Vuestros recuerdos en familia, todo el año</p>
+                            <h2>${T('moments.title')}</h2>
+                            <p>${T('moments.subtitle')}</p>
                         </div>
                     </div>
                 </div>
@@ -41,12 +54,12 @@ window.GoHappyMoments = {
                     <div class="moments-prompt-icon">📸</div>
                     <div style="flex:1;">
                         <div class="moments-prompt-text">${window.GoHappyMoments._currentPrompt}</div>
-                        <div class="moments-prompt-sub">Solo lo verá tu familia (Tribu privada)</div>
+                        <div class="moments-prompt-sub">${T('moments.privacy')}</div>
                     </div>
                 </div>
 
                 <button id="moments-capture-btn" class="btn-primary moments-capture-btn">
-                    📷  Capturar momento
+                    ${T('moments.capture')}
                 </button>
 
                 <!-- Hidden file input -->
@@ -264,11 +277,12 @@ window.GoHappyMoments = {
                 .get();
 
             if (snap.empty) {
+                const T = window.t || (k => k);
                 feed.innerHTML = `
                     <div class="moments-empty">
                         <div class="moments-empty-icon">📸</div>
-                        <div class="moments-empty-title">Aún no hay momentos</div>
-                        <div class="moments-empty-text">Sé el primero en capturar uno.<br>Toca el botón de arriba 👆</div>
+                        <div class="moments-empty-title">${T('moments.empty.title')}</div>
+                        <div class="moments-empty-text">${T('moments.empty.text')}</div>
                     </div>
                 `;
                 return;
@@ -370,16 +384,17 @@ window.GoHappyMoments = {
     },
 
     _showPreviewModal: (imageData, user) => {
+        const T = window.t || (k => k);
         const modal = document.createElement('div');
         modal.className = 'modal entry-anim moment-preview-modal';
         modal.innerHTML = `
             <div class="auth-container">
-                <h3 style="font-family:'Poppins',sans-serif; font-weight:900; color:var(--cobalt); font-size:1.3rem; margin-bottom:6px; text-align:center;">Tu momento ✨</h3>
-                <p style="font-size:13px; color:var(--text-secondary); text-align:center; margin-bottom:18px;">Solo lo verá tu familia</p>
+                <h3 style="font-family:'Poppins',sans-serif; font-weight:900; color:var(--cobalt); font-size:1.3rem; margin-bottom:6px; text-align:center;">${T('moments.preview.title')}</h3>
+                <p style="font-size:13px; color:var(--text-secondary); text-align:center; margin-bottom:18px;">${T('moments.preview.sub')}</p>
                 <img class="preview-img" src="${imageData}" alt="preview">
-                <textarea class="moment-caption-input" id="mc-caption" placeholder="Añade una nota (opcional)..." maxlength="200"></textarea>
-                <button id="mc-publish" class="btn-primary" style="width:100%; height:54px; margin-bottom:10px;">📤  Compartir con la familia</button>
-                <button id="mc-cancel" class="btn-plan-secondary" style="width:100%; height:48px;">Cancelar</button>
+                <textarea class="moment-caption-input" id="mc-caption" placeholder="${T('moments.preview.caption')}" maxlength="200"></textarea>
+                <button id="mc-publish" class="btn-primary" style="width:100%; height:54px; margin-bottom:10px;">${T('moments.publish')}</button>
+                <button id="mc-cancel" class="btn-plan-secondary" style="width:100%; height:48px;">${T('moments.cancel')}</button>
             </div>
         `;
         document.body.appendChild(modal);
@@ -393,13 +408,13 @@ window.GoHappyMoments = {
             const caption = document.getElementById('mc-caption').value.trim().slice(0, 200);
             const publishBtn = document.getElementById('mc-publish');
             publishBtn.disabled = true;
-            publishBtn.textContent = '⌛ Publicando...';
+            publishBtn.textContent = '⌛ ' + (window.t ? window.t('common.loading') : 'Publicando...');
 
             try {
                 await window.GoHappyMoments._publishMoment(imageData, caption, user);
                 modal.remove();
                 window.GoHappySound && window.GoHappySound.play('success');
-                window.GoHappyToast.points('¡Momento compartido! +20 pts ✨');
+                window.GoHappyToast.points(window.t ? window.t('moments.published') : '¡Momento compartido! +20 pts ✨');
                 // Recargar feed
                 setTimeout(() => window.GoHappyMoments._loadFeed(user), 500);
             } catch (e) {

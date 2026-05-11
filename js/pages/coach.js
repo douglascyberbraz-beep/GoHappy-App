@@ -5,17 +5,42 @@
 // ================================================================
 window.GoHappyCare = {
 
-    // Categorías rápidas que prefijan la conversación
-    CATEGORIES: [
-        { emoji: '😴', label: 'Sueño',     prompt: 'Tengo problemas con el sueño de mi hijo/a. ' },
-        { emoji: '🍽️', label: 'Comida',    prompt: 'Mi hijo/a no quiere comer bien. ' },
-        { emoji: '😤', label: 'Rabietas',  prompt: 'Mi hijo/a tiene rabietas frecuentes. ' },
-        { emoji: '📚', label: 'Deberes',   prompt: 'Mi hijo/a no quiere hacer los deberes. ' },
-        { emoji: '📱', label: 'Pantallas', prompt: 'Mi hijo/a usa demasiado las pantallas. ' },
-        { emoji: '🤝', label: 'Hermanos',  prompt: 'Mis hijos se pelean mucho entre ellos. ' },
-        { emoji: '🎒', label: 'Cole',      prompt: 'Mi hijo/a no quiere ir al cole. ' },
-        { emoji: '💔', label: 'Emociones', prompt: 'Mi hijo/a está pasando por un momento emocional difícil. ' }
-    ],
+    // Categorías rápidas — labels y prompts según idioma
+    get CATEGORIES() {
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const T = window.t || (k => k);
+        const PROMPTS_ES = {
+            sleep:    'Tengo problemas con el sueño de mi hijo/a. ',
+            food:     'Mi hijo/a no quiere comer bien. ',
+            tantrums: 'Mi hijo/a tiene rabietas frecuentes. ',
+            homework: 'Mi hijo/a no quiere hacer los deberes. ',
+            screens:  'Mi hijo/a usa demasiado las pantallas. ',
+            siblings: 'Mis hijos se pelean mucho entre ellos. ',
+            school:   'Mi hijo/a no quiere ir al cole. ',
+            emotions: 'Mi hijo/a está pasando por un momento emocional difícil. '
+        };
+        const PROMPTS_EN = {
+            sleep:    'I have trouble with my child\'s sleep. ',
+            food:     'My child won\'t eat well. ',
+            tantrums: 'My child has frequent tantrums. ',
+            homework: 'My child doesn\'t want to do homework. ',
+            screens:  'My child uses screens too much. ',
+            siblings: 'My kids fight a lot with each other. ',
+            school:   'My child doesn\'t want to go to school. ',
+            emotions: 'My child is going through a difficult emotional time. '
+        };
+        const P = lang === 'en' ? PROMPTS_EN : PROMPTS_ES;
+        return [
+            { emoji: '😴', label: T('care.cat.sleep'),    prompt: P.sleep },
+            { emoji: '🍽️', label: T('care.cat.food'),     prompt: P.food },
+            { emoji: '😤', label: T('care.cat.tantrums'), prompt: P.tantrums },
+            { emoji: '📚', label: T('care.cat.homework'), prompt: P.homework },
+            { emoji: '📱', label: T('care.cat.screens'),  prompt: P.screens },
+            { emoji: '🤝', label: T('care.cat.siblings'), prompt: P.siblings },
+            { emoji: '🎒', label: T('care.cat.school'),   prompt: P.school },
+            { emoji: '💔', label: T('care.cat.emotions'), prompt: P.emotions }
+        ];
+    },
 
     SYSTEM_PROMPT: `Eres GoHappy Care, coach experto en psicología infantil, crianza consciente, sueño infantil, alimentación familiar y desarrollo emocional. Hablas español natural y cálido.
 
@@ -46,14 +71,15 @@ REGLAS:
             window.GoHappyCare._historial = saved ? JSON.parse(saved) : [];
         } catch (e) { window.GoHappyCare._historial = []; }
 
+        const T = window.t || (k => k);
         container.innerHTML = `
             <div class="care-page">
                 <div class="unified-hero" style="padding-bottom: 22px !important;">
                     <div style="display:flex; align-items:center; gap:14px; position:relative; z-index:2;">
                         <div class="care-avatar-hero">🧡</div>
                         <div style="flex:1; min-width:0;">
-                            <h2 style="margin-bottom:2px !important;">Care</h2>
-                            <p style="margin-top:2px !important;">Tu coach IA en crianza · disponible 24/7</p>
+                            <h2 style="margin-bottom:2px !important;">${T('care.title')}</h2>
+                            <p style="margin-top:2px !important;">${T('care.subtitle')}</p>
                         </div>
                     </div>
                 </div>
@@ -73,8 +99,8 @@ REGLAS:
                     ${window.GoHappyCare._historial.length === 0
                         ? `<div class="care-welcome">
                             <div class="care-welcome-icon">🧡</div>
-                            <h3>Hola, soy Care</h3>
-                            <p>Tu coach personal en crianza consciente.<br>Cuéntame qué te preocupa o elige una categoría arriba.</p>
+                            <h3>${T('care.welcome.title')}</h3>
+                            <p>${T('care.welcome.text')}</p>
                         </div>`
                         : window.GoHappyCare._historial.map(m => window.GoHappyCare._renderBubble(m)).join('')
                     }
@@ -83,11 +109,11 @@ REGLAS:
                 <!-- Input fijo abajo -->
                 <div class="care-input-bar">
                     <input type="text" id="care-input"
-                        placeholder="Pregunta a Care…"
+                        placeholder="${T('care.placeholder')}"
                         autocomplete="off"
                         spellcheck="true"
                         maxlength="500">
-                    <button id="care-send-btn" class="care-send-btn" aria-label="Enviar">
+                    <button id="care-send-btn" class="care-send-btn" aria-label="${T('common.send')}">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M22 2L11 13"/>
                             <path d="M22 2l-7 20-4-9-9-4 20-7z"/>
@@ -347,7 +373,7 @@ REGLAS:
         } catch (e) {
             console.error('Care error:', e);
             window.GoHappyCare._removeTyping();
-            const errorMsg = { role: 'bot', text: 'Lo siento, no he podido responderte ahora mismo. Inténtalo de nuevo en unos segundos. 💙', time: Date.now() };
+            const errorMsg = { role: 'bot', text: (window.t ? window.t('care.error') : 'Lo siento, no he podido responderte ahora mismo. Inténtalo de nuevo en unos segundos. 💙'), time: Date.now() };
             window.GoHappyCare._historial.push(errorMsg);
             window.GoHappyCare._appendBubble(errorMsg);
             window.GoHappyCare._save();

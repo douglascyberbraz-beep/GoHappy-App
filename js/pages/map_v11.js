@@ -279,18 +279,19 @@ window.GoHappyMap = {
         const overlay = document.createElement('div');
         overlay.className = 'map-search-container';
         overlay.style.zIndex = '5';
+        const T = window.t || (k => k);
         overlay.innerHTML = `
             <div class="map-search-bar" style="display:flex; align-items:center; background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 30px; padding: 2px 20px; box-shadow: 0 10px 30px rgba(0, 210, 211, 0.1); flex:1; width: 100%; border: 1px solid rgba(255,255,255,0.5);">
                 <span class="gemini-sparkle" style="margin-right:8px; font-size:1.2rem;">✨</span>
-                <input type="text" id="map-search-input" class="map-search-input" placeholder="Pregunta a Gemini o busca un lugar..." style="background:transparent; border:none; color:var(--text-dark); flex:1; outline:none; padding:12px 0; font-size: 0.95rem;">
+                <input type="text" id="map-search-input" class="map-search-input" placeholder="${T('map.search.placeholder')}" style="background:transparent; border:none; color:var(--text-dark); flex:1; outline:none; padding:12px 0; font-size: 0.95rem;">
             </div>
             <div class="map-filters">
-                <div class="filter-chip active" data-type="all">Todos</div>
-                <div class="filter-chip" data-type="park">Parques 🌳</div>
-                <div class="filter-chip" data-type="school">Escuelas 🎓</div>
-                <div class="filter-chip" data-type="theater">Cine/Teatro 🎭</div>
-                <div class="filter-chip" data-type="kidzone">Ludotecas 🏰</div>
-                <div class="filter-chip" data-type="food">Comida 🍏</div>
+                <div class="filter-chip active" data-type="all">${T('map.filter.all')}</div>
+                <div class="filter-chip" data-type="park">${T('map.filter.parks')}</div>
+                <div class="filter-chip" data-type="school">${T('map.filter.schools')}</div>
+                <div class="filter-chip" data-type="theater">${T('map.filter.theaters')}</div>
+                <div class="filter-chip" data-type="kidzone">${T('map.filter.kidzones')}</div>
+                <div class="filter-chip" data-type="food">${T('map.filter.food')}</div>
             </div>
         `;
         container.appendChild(overlay);
@@ -707,31 +708,35 @@ window.GoHappyMap = {
 
         const modal = document.createElement('div');
         modal.className = 'modal entry-anim';
+        const T = window.t || (k => k);
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const namePlaceholder = lang === 'en' ? 'E.g.: Park Hills' : 'Ej: Parque Los Pinos';
+        const namelabel = lang === 'en' ? 'Place name' : 'Nombre del lugar';
         modal.innerHTML = `
             <div class="auth-container" style="padding: 20px;">
                 <div class="auth-card premium-glass" style="max-height: 85vh; overflow-y: auto; border-radius: 30px; border: 1px solid rgba(255,255,255,0.4); padding: 25px;">
                     <div style="text-align: center; margin-bottom: 20px;">
                         <span style="font-size: 40px; display: block; margin-bottom: 10px;">🌟</span>
-                        <h3 style="color:var(--primary-cobalt); font-weight: 900; font-size: 1.5rem; margin: 0;">${name ? `Reseñar ${name}` : 'Añadir a la Tribu'}</h3>
-                        <p style="font-size:13px; color:#64748b; margin-top: 5px;">Tu experiencia ayuda a cientos de familias.</p>
+                        <h3 style="color:var(--primary-cobalt); font-weight: 900; font-size: 1.5rem; margin: 0;">${name ? T('map.review.review', { name }) : T('map.review.modal.title')}</h3>
+                        <p style="font-size:13px; color:#64748b; margin-top: 5px;">${T('map.review.help')}</p>
                     </div>
 
-                    ${name ? '' : '<div style="margin-bottom: 15px;"><label style="font-size: 11px; font-weight: 700; color: var(--primary-cobalt); text-transform: uppercase; margin-bottom: 5px; display: block;">Nombre del lugar</label><input type="text" id="new-site-name" placeholder="Ej: Parque Los Pinos" class="review-input" style="width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #eee; background: #f8fafc;"></div>'}
+                    ${name ? '' : `<div style="margin-bottom: 15px;"><label style="font-size: 11px; font-weight: 700; color: var(--primary-cobalt); text-transform: uppercase; margin-bottom: 5px; display: block;">${namelabel}</label><input type="text" id="new-site-name" placeholder="${namePlaceholder}" class="review-input" style="width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #eee; background: #f8fafc;"></div>`}
 
                     <div style="text-align: center; margin-bottom: 20px;">
-                        <label style="font-size: 11px; font-weight: 700; color: var(--primary-cobalt); text-transform: uppercase; margin-bottom: 5px; display: block;">¿Qué nota le das?</label>
+                        <label style="font-size: 11px; font-weight: 700; color: var(--primary-cobalt); text-transform: uppercase; margin-bottom: 5px; display: block;">${T('map.review.rating')}</label>
                         <div class="star-rating" style="font-size: 2.5rem; color: #ddd; cursor: pointer;">
                             <span class="star" data-val="1">★</span><span class="star" data-val="2">★</span><span class="star" data-val="3">★</span><span class="star" data-val="4">★</span><span class="star" data-val="5">★</span>
                         </div>
                     </div>
 
                     <div style="margin-bottom: 20px;">
-                        <label style="font-size: 11px; font-weight: 700; color: var(--primary-cobalt); text-transform: uppercase; margin-bottom: 5px; display: block;">Tu opinión (Breve)</label>
-                        <textarea id="review-text" class="review-input" placeholder="Limpieza, columpios, zona de sombra..." style="width: 100%; height:100px; padding: 14px; border-radius: 12px; border: 1px solid #eee; background: #f8fafc; font-size: 14px; resize: none;"></textarea>
+                        <label style="font-size: 11px; font-weight: 700; color: var(--primary-cobalt); text-transform: uppercase; margin-bottom: 5px; display: block;">${T('map.review.opinion')}</label>
+                        <textarea id="review-text" class="review-input" placeholder="${T('map.review.placeholder')}" style="width: 100%; height:100px; padding: 14px; border-radius: 12px; border: 1px solid #eee; background: #f8fafc; font-size: 14px; resize: none;"></textarea>
                     </div>
 
-                    <button id="post-review-btn" class="btn-primary-gradient" style="width: 100%; height: 55px; border-radius: 16px; font-size: 1.1rem; font-weight: 800; border: none; box-shadow: 0 10px 20px rgba(11, 113, 252, 0.2);">🚀 Publicar en el Mapa</button>
-                    <button class="btn-text full-width" style="margin-top:15px; color: #888; font-size: 13px; text-decoration: underline;" onclick="this.closest('.modal').remove()">Ahora no, gracias</button>
+                    <button id="post-review-btn" class="btn-primary-gradient" style="width: 100%; height: 55px; border-radius: 16px; font-size: 1.1rem; font-weight: 800; border: none; box-shadow: 0 10px 20px rgba(11, 113, 252, 0.2);">${T('map.review.publish')}</button>
+                    <button class="btn-text full-width" style="margin-top:15px; color: #888; font-size: 13px; text-decoration: underline;" onclick="this.closest('.modal').remove()">${T('map.review.skip')}</button>
                 </div>
             </div>
         `;

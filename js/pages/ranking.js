@@ -1,18 +1,19 @@
 window.GoHappyRanking = {
     render: async (container) => {
+        const T = window.t || (k => k);
         container.innerHTML = `
             <div class="ranking-hero-premium">
                 <div class="ranking-hero-content">
-                    <h2 class="ranking-title">🏆 TOP TRIBU</h2>
-                    <p class="ranking-subtitle">Los líderes que mueven la comunidad GoHappy</p>
-                    
+                    <h2 class="ranking-title">${T('ranking.title')}</h2>
+                    <p class="ranking-subtitle">${T('ranking.subtitle')}</p>
+
                     <div class="ranking-toggle-pills">
-                        <button class="rank-toggle-btn active" data-tab="sites">🌟 Sitios</button>
-                        <button class="rank-toggle-btn" data-tab="users">🤝 Miembros</button>
+                        <button class="rank-toggle-btn active" data-tab="sites">${T('ranking.sites')}</button>
+                        <button class="rank-toggle-btn" data-tab="users">${T('ranking.members')}</button>
                     </div>
                 </div>
             </div>
-            
+
             <div id="ranking-list" class="ranking-display-area stagger-group">
                 <div class="center-text p-40"><div class="typing-dots"><span></span><span></span><span></span></div></div>
             </div>

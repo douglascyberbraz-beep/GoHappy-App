@@ -13,25 +13,26 @@ window.GoHappyToday = {
         // Coords iniciales
         window.GoHappyToday._coords = window.lastKnownCoords || '41.6520, -4.7286';
 
+        const T = window.t || (k => k);
         container.innerHTML = `
             <div class="today-page">
                 <div class="today-hero-premium">
                     <div style="position:relative; z-index:2;">
-                        <h2 class="today-welcome-title">✨ Tu día hoy</h2>
-                        <p class="today-welcome-subtitle" id="today-city-sub">Detectando tu ciudad...</p>
+                        <h2 class="today-welcome-title">${T('today.title')}</h2>
+                        <p class="today-welcome-subtitle" id="today-city-sub">${T('today.detecting')}</p>
                     </div>
                 </div>
 
                 <!-- TOGGLE 3 vistas -->
                 <div class="today-view-toggle">
                     <button class="t-view-btn active" data-view="eventos">
-                        <span>🎫</span> Eventos
+                        <span>🎫</span> ${T('today.view.events').replace('🎫 ','')}
                     </button>
                     <button class="t-view-btn" data-view="planes">
-                        <span>🪄</span> Planes IA
+                        <span>🪄</span> ${T('today.view.plans').replace('🪄 ','')}
                     </button>
                     <button class="t-view-btn" data-view="semana">
-                        <span>📅</span> Semana
+                        <span>📅</span> ${T('today.view.week').replace('📅 ','')}
                     </button>
                 </div>
 
@@ -39,7 +40,7 @@ window.GoHappyToday = {
                 <div id="today-view-content" style="padding: 0 16px calc(var(--nav-total, 110px) + 24px);">
                     <div class="center-text p-40">
                         <div class="typing-dots"><span></span><span></span><span></span></div>
-                        <p style="margin-top:14px; color:var(--text-secondary); font-size:13px;">Cargando información...</p>
+                        <p style="margin-top:14px; color:var(--text-secondary); font-size:13px;">${T('common.loading')}</p>
                     </div>
                 </div>
             </div>
@@ -364,18 +365,19 @@ window.GoHappyToday = {
     // ───────────────────── VISTA 1: EVENTOS REALES ─────────────────────
     _renderEventos: async (content) => {
         const filter = window.GoHappyToday._currentFilter;
+        const T = window.t || (k => k);
 
         content.innerHTML = `
             <div class="events-filters">
-                <button class="ev-filter-chip ${filter==='hoy'?'active':''}" data-filter="hoy">Hoy</button>
-                <button class="ev-filter-chip ${filter==='manana'?'active':''}" data-filter="manana">Mañana</button>
-                <button class="ev-filter-chip ${filter==='finde'?'active':''}" data-filter="finde">Fin de semana</button>
+                <button class="ev-filter-chip ${filter==='hoy'?'active':''}" data-filter="hoy">${T('today.filter.today')}</button>
+                <button class="ev-filter-chip ${filter==='manana'?'active':''}" data-filter="manana">${T('today.filter.tomorrow')}</button>
+                <button class="ev-filter-chip ${filter==='finde'?'active':''}" data-filter="finde">${T('today.filter.weekend')}</button>
             </div>
             <div id="events-list">
                 <div class="center-text p-40">
                     <div class="magic-loader" style="font-size:40px;">🎫</div>
                     <div class="typing-dots" style="margin-top:12px;"><span></span><span></span><span></span></div>
-                    <p style="margin-top:12px; color:var(--text-secondary); font-size:13px;">Buscando eventos reales en tu ciudad...</p>
+                    <p style="margin-top:12px; color:var(--text-secondary); font-size:13px;">${T('today.loading.events')}</p>
                 </div>
             </div>
         `;
@@ -475,15 +477,16 @@ window.GoHappyToday = {
     // ───────────────────── VISTA 2: PLANES IA "DONE FOR YOU" ─────────────────────
     _renderPlanes: async (content) => {
         const storedPrefs = JSON.parse(localStorage.getItem('GoHappy_family_prefs') || 'null');
+        const T = window.t || (k => k);
 
         content.innerHTML = `
             <button id="surprise-btn" class="surprise-btn">
-                <span>🪄</span> Sorpréndeme con 3 planes nuevos
+                ${T('today.surprise')}
             </button>
             <div id="planes-list">
                 <div class="center-text p-40">
                     <div class="magic-loader">✨</div>
-                    <p style="margin-top:12px; color:var(--text-secondary); font-size:13px;">Diseñando vuestros planes...</p>
+                    <p style="margin-top:12px; color:var(--text-secondary); font-size:13px;">${T('today.loading.plans')}</p>
                 </div>
             </div>
         `;
@@ -665,12 +668,13 @@ window.GoHappyToday = {
 
     // ───────────────────── VISTA 3: SEMANA (CALENDAR) ─────────────────────
     _renderSemana: async (content) => {
+        const T = window.t || (k => k);
         content.innerHTML = `
             <div id="week-list">
                 <div class="center-text p-40">
                     <div class="magic-loader" style="font-size:42px;">📅</div>
                     <div class="typing-dots" style="margin-top:14px;"><span></span><span></span><span></span></div>
-                    <p style="margin-top:12px; color:var(--text-secondary); font-size:13px;">Planificando vuestra semana...</p>
+                    <p style="margin-top:12px; color:var(--text-secondary); font-size:13px;">${T('today.loading.week')}</p>
                 </div>
             </div>
         `;

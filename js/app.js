@@ -11,10 +11,17 @@ const appState = {
 // Initialize App
 document.addEventListener('DOMContentLoaded', async () => {
 
-    // i18n: detectar idioma por geolocalización ANTES de renderizar nada
+    // i18n: detectar idioma ANTES de renderizar nada (sincronico)
     if (window.GoHappyI18n) {
-        try { await window.GoHappyI18n.init(); } catch (e) { console.warn('i18n init:', e); }
+        try { window.GoHappyI18n.init(); } catch (e) { console.warn('i18n init:', e); }
     }
+
+    // Si GPS refina el idioma en background y difiere, recargar página
+    window.addEventListener('GoHappy-lang-changed', () => {
+        if (window.GoHappyApp && window.GoHappyApp.currentPage) {
+            window.GoHappyApp.loadPage(window.GoHappyApp.currentPage);
+        }
+    });
 
     // Desbloquear AudioContext en primer gesto del usuario
     document.addEventListener('touchstart', () => window.GoHappySound.unlock(), { once: true });

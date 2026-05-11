@@ -9,6 +9,10 @@ window.GoHappyQuestsPage = {
         const familyId = user?.familyId || null;
 
         // Estructura Base (Control total del ancho)
+        const T = window.t || (k => k);
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const daysLabel = lang === 'en' ? 'DAYS' : 'DÍAS';
+
         container.innerHTML = `
             <div class="quests-page">
 
@@ -16,16 +20,16 @@ window.GoHappyQuestsPage = {
                 <div class="q-header-premium">
                     <div class="q-header-content">
                         <div class="q-title-group">
-                            <h2>⚔️ Quests</h2>
+                            <h2>${T('quests.title')}</h2>
                             <p class="q-subtitle">
-                                ${familyId ? `Tribu <span>${user?.familyName || 'GoHappy'}</span>` : 'Misiones Familiares'}
+                                ${familyId ? `${T('quests.tribu')} <span>${user?.familyName || 'GoHappy'}</span>` : T('quests.subtitle')}
                             </p>
                         </div>
                         <div id="racha-badge" class="q-racha-capsule">
                             <div class="racha-icon">🔥</div>
                             <div class="racha-info">
                                 <span id="racha-num">-</span>
-                                <label>DÍAS</label>
+                                <label>${daysLabel}</label>
                             </div>
                         </div>
                     </div>
@@ -35,27 +39,27 @@ window.GoHappyQuestsPage = {
                 <div class="q-stats-floating-bar">
                     <div class="stat-item">
                         <span id="stat-pendientes" class="stat-val">-</span>
-                        <span class="stat-label">Libres</span>
+                        <span class="stat-label">${T('quests.stat.free')}</span>
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat-item">
                         <span id="stat-completadas" class="stat-val done">-</span>
-                        <span class="stat-label">Hechas</span>
+                        <span class="stat-label">${T('quests.stat.done')}</span>
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat-item">
                         <span id="stat-puntos" class="stat-val pts">-</span>
-                        <span class="stat-label">Puntos</span>
+                        <span class="stat-label">${T('quests.stat.points')}</span>
                     </div>
                 </div>
 
                 <!-- FILTROS (Premium Pills) -->
                 <div class="q-filters-container">
-                    <button class="q-filter-btn active" data-filter="todas">Todas</button>
-                    <button class="q-filter-btn" data-filter="diaria">☀️ Diarias</button>
-                    <button class="q-filter-btn" data-filter="semanal">📅 Semanales</button>
-                    <button class="q-filter-btn" data-filter="mensual">📆 Mensuales</button>
-                    <button class="q-filter-btn" data-filter="fisica">🏃 Activas</button>
+                    <button class="q-filter-btn active" data-filter="todas">${T('quests.filter.all')}</button>
+                    <button class="q-filter-btn" data-filter="diaria">${T('quests.filter.daily')}</button>
+                    <button class="q-filter-btn" data-filter="semanal">${T('quests.filter.weekly')}</button>
+                    <button class="q-filter-btn" data-filter="mensual">${T('quests.filter.monthly')}</button>
+                    <button class="q-filter-btn" data-filter="fisica">${T('quests.filter.active')}</button>
                 </div>
 
                 <!-- LISTA DE TARJETAS (Staggered Animation) -->
