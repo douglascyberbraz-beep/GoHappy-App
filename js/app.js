@@ -11,6 +11,22 @@ const appState = {
 // Initialize App
 document.addEventListener('DOMContentLoaded', async () => {
 
+    // ─── REFERIDO: detectar ?ref=CODIGO en URL y guardarlo ───
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const refCode = urlParams.get('ref') || urlParams.get('referral') || urlParams.get('invite');
+        if (refCode && /^[A-Z0-9\-]{3,20}$/i.test(refCode)) {
+            localStorage.setItem('GoHappy_pending_referral', refCode.toUpperCase());
+            console.log('[GoHappy] Código de referido detectado:', refCode);
+            // Limpiar la URL para no mostrar el ?ref= en la barra
+            const url = new URL(window.location.href);
+            url.searchParams.delete('ref');
+            url.searchParams.delete('referral');
+            url.searchParams.delete('invite');
+            window.history.replaceState({}, '', url.pathname + (url.search || '') + url.hash);
+        }
+    } catch (e) { console.warn('referral parse:', e); }
+
     // i18n: detectar idioma ANTES de renderizar nada (sincronico)
     if (window.GoHappyI18n) {
         try { window.GoHappyI18n.init(); } catch (e) { console.warn('i18n init:', e); }

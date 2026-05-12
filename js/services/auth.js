@@ -271,7 +271,7 @@ window.GoHappyAuth = {
                 <div class="auth-card premium-glass" style="max-height: 90vh; overflow-y: auto;">
                     <div class="auth-header">
                         <div class="premium-logo-wrap" style="margin-bottom: 20px; display: flex; justify-content: center;">
-                            <img src="assets/ESLOGAN.png" alt="GoHappy Logo" style="width: 200px; height: auto;">
+                            <img src="assets/ESLOGAN.png" alt="GoHappy Logo" style="width: 220px; max-width: 80%; height: auto; mix-blend-mode: multiply; filter: drop-shadow(0 4px 12px rgba(11,76,143,0.10));">
                         </div>
                         <h2 style="color:var(--primary-cobalt); font-size: 1.8rem; font-weight: 900; margin-bottom: 5px; letter-spacing: -1px;">Bienvenido a la Tribu</h2>
                         <p style="color: #64748b; font-size: 0.95rem; font-weight: 500;">Crea recuerdos inolvidables en familia</p>
@@ -302,8 +302,8 @@ window.GoHappyAuth = {
                             </div>
 
                             <div style="margin-top: 8px;">
-                                <input type="text" id="reg-referral" placeholder="Código de invitación (opcional)" class="auth-input" style="font-size: 13px; letter-spacing: 1px; text-transform: uppercase;">
-                                <p style="font-size: 11px; color: #94a3b8; margin: 4px 0 0 4px;">Si un amigo te invitó, ¡pega su código y él gana 500 pts! 🎁</p>
+                                <input type="text" id="reg-referral" placeholder="Código de invitación (opcional)" class="auth-input" style="font-size: 13px; letter-spacing: 1px; text-transform: uppercase;" value="${(localStorage.getItem('GoHappy_pending_referral') || '').replace(/"/g, '')}">
+                                <p style="font-size: 11px; color: #94a3b8; margin: 4px 0 0 4px;">Si un amigo te invitó, ¡pega su código y él gana 1000 pts! 🎁</p>
                             </div>
                         </div>
 
@@ -349,7 +349,9 @@ window.GoHappyAuth = {
         if (mapFilters) mapFilters.style.display = 'none';
         if (locateBtn) locateBtn.style.display = 'none';
 
-        let isLoginMode = true;
+        // Si hay código de referido pendiente, abrir directamente en modo registro
+        const pendingRef = localStorage.getItem('GoHappy_pending_referral');
+        let isLoginMode = !pendingRef; // si hay referral, empezar en register
         const showError = (msg) => {
             const errDiv = document.getElementById('auth-error-msg');
             errDiv.textContent = msg;
@@ -407,6 +409,8 @@ window.GoHappyAuth = {
                 try {
                     // FIX: Pasar referralCode al register
                     await window.GoHappyAuth.register(email, pass, nick, name, surname, selectedEmoji, referralCode);
+                    // Limpiar referral pendiente tras registro exitoso
+                    try { localStorage.removeItem('GoHappy_pending_referral'); } catch (e) {}
                     modal.remove();
                     location.reload();
                 } catch (e) {

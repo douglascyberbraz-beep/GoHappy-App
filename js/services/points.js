@@ -5,7 +5,8 @@ window.GoHappyPoints = {
         REVIEW: 30,
         PHOTO_VIDEO: 50,
         COMMENT: 10,
-        REFERRAL: 500,
+        REFERRAL: 1000,           // ★ La recompensa más alta — invitar a amigos
+        REFERRED_BONUS: 200,      // Bono al que se registra con un código
         QUEST_EASY: 50,
         QUEST_MEDIUM: 100,
         QUEST_HARD: 200,

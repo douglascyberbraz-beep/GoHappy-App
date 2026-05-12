@@ -138,24 +138,45 @@ window.GoHappyProfile = {
         // Cargar datos de familia de forma asíncrona (no bloquea el render)
         window.GoHappyProfile._loadFamilySection(user);
 
-        document.getElementById('copy-ref-link').onclick = (e) => {
-            const link = `https://GoHappy.app/invite/${user.referralCode}`;
-            navigator.clipboard.writeText(link);
-            e.target.innerText = "¡Copiado! ✅";
-            window.GoHappySound.play('success');
-            setTimeout(() => e.target.innerText = "Copiar Enlace de Invitación", 2000);
+        // ─── REFERIDO: URL base configurable ───
+        const INVITE_BASE_URL = 'https://douglascyberbraz-beep.github.io/GoHappy-App/';
+        const buildInviteLink = (code) => `${INVITE_BASE_URL}?ref=${encodeURIComponent(code || '')}`;
+
+        document.getElementById('copy-ref-link').onclick = async (e) => {
+            const link = buildInviteLink(user.referralCode);
+            try {
+                await navigator.clipboard.writeText(link);
+            } catch (err) {
+                // Fallback (HTTP / older browsers): textarea trick
+                const ta = document.createElement('textarea');
+                ta.value = link; document.body.appendChild(ta);
+                ta.select(); document.execCommand('copy'); ta.remove();
+            }
+            const T = window.t || (k => k);
+            e.target.innerText = T('profile.copied');
+            window.GoHappySound && window.GoHappySound.play('success');
+            window.GoHappyToast && window.GoHappyToast.success(T('profile.copied'), 2000);
+            setTimeout(() => e.target.innerText = T('profile.copy.link'), 2400);
         };
 
-        document.getElementById('share-app-btn').onclick = () => {
+        document.getElementById('share-app-btn').onclick = async () => {
+            const lang = window.GoHappyI18n?.lang || 'es';
+            const link = buildInviteLink(user.referralCode);
             const shareData = {
-                title: 'Únete a GoHappy',
-                text: `¡Hola! Únete a GoHappy y explora planes increíbles en familia. Usa mi código: ${user.referralCode}`,
-                url: `https://GoHappy.app/invite/${user.referralCode}`
+                title: 'GoHappy Family',
+                text: lang === 'en'
+                    ? `Hey! Join GoHappy and discover amazing family plans. Use my code ${user.referralCode} and I get 1000 pts 🎁`
+                    : `¡Hola! Únete a GoHappy y descubre planes increíbles en familia. Usa mi código ${user.referralCode} y yo gano 1000 pts 🎁`,
+                url: link
             };
             if (navigator.share) {
-                navigator.share(shareData).catch(() => {
-                    document.getElementById('copy-ref-link').click();
-                });
+                try {
+                    await navigator.share(shareData);
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        document.getElementById('copy-ref-link').click();
+                    }
+                }
             } else {
                 document.getElementById('copy-ref-link').click();
             }
@@ -232,12 +253,13 @@ window.GoHappyProfile = {
         };
         window.addEventListener('GoHappy-points-sync', window.GoHappyProfile._syncListener);
 
-        // Generate QR
+        // Generate QR — URL real con el referral del usuario
         setTimeout(() => {
             const qrContainer = document.getElementById('referral-qr');
             if (qrContainer && window.QRCode) {
+                qrContainer.innerHTML = ''; // limpiar previo
                 new QRCode(qrContainer, {
-                    text: `https://GoHappy.app/invite/${user.referralCode}`,
+                    text: buildInviteLink(user.referralCode),
                     width: 100,
                     height: 100,
                     colorDark: "#0B71FC",

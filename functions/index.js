@@ -317,7 +317,7 @@ exports.rewardReferrer = onCall({ region: 'europe-west1' }, async ({ data, auth 
     const { referrerId, newUserId } = data;
     if (!referrerId || referrerId === auth.uid) return { ok: false };
 
-    const REWARD = 500;
+    const REWARD = 1000;
     const ref = db.collection('users').doc(referrerId);
     await db.runTransaction(async (t) => {
         const doc = await t.get(ref);
