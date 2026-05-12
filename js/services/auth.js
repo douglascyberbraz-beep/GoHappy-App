@@ -266,29 +266,39 @@ window.GoHappyAuth = {
         const modal = document.createElement('div');
         modal.id = 'auth-modal';
         modal.className = 'modal auth-modal';
+
+        // ─── i18n strings ───
+        const T = window.t || (k => k);
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const refHelp = lang === 'en'
+            ? 'If a friend invited you, paste their code and they get 1000 pts! 🎁'
+            : 'Si un amigo te invitó, ¡pega su código y él gana 1000 pts! 🎁';
+
         modal.innerHTML = `
             <div class="auth-container entry-anim">
                 <div class="auth-card premium-glass" style="max-height: 90vh; overflow-y: auto;">
-                    <div class="auth-header">
-                        <div class="premium-logo-wrap" style="margin-bottom: 20px; display: flex; justify-content: center;">
-                            <img src="assets/ESLOGAN.png" alt="GoHappy Logo" style="width: 220px; max-width: 80%; height: auto; mix-blend-mode: multiply; filter: drop-shadow(0 4px 12px rgba(11,76,143,0.10));">
+                    <div class="auth-header" style="text-align:center;">
+                        <div class="brand-logo-stack" style="margin-bottom:18px;">
+                            <img src="assets/logo_gohappy_official.png" alt="GoHappy" style="width:180px; max-width:70%; height:auto; filter:drop-shadow(0 6px 16px rgba(11,76,143,0.14));">
+                            <div class="brand-family-text" style="font-size:1.8rem;">${T('brand.family')}</div>
+                            <div class="brand-tagline-text" style="font-size:0.85rem; margin-top:8px;">${T('brand.tagline')}</div>
                         </div>
-                        <h2 style="color:var(--primary-cobalt); font-size: 1.8rem; font-weight: 900; margin-bottom: 5px; letter-spacing: -1px;">Bienvenido a la Tribu</h2>
-                        <p style="color: #64748b; font-size: 0.95rem; font-weight: 500;">Crea recuerdos inolvidables en familia</p>
+                        <h2 style="color:var(--cobalt); font-size: 1.5rem; font-weight: 900; margin-bottom: 4px; letter-spacing: -0.5px;">${T('auth.welcome')}</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.92rem; font-weight: 500;">${T('auth.tagline')}</p>
                     </div>
-                    
+
                     <div id="auth-form" style="margin-top: 20px;">
                         <div id="auth-error-msg" style="color: #ff4d4d; font-size: 12px; margin-bottom: 15px; display:none; background: rgba(255,77,77,0.1); padding: 12px; border-radius: 14px; font-weight: 600;"></div>
-                        
+
                         <div id="register-fields" style="display:none;">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                                <input type="text" id="reg-name" placeholder="Nombre" class="auth-input">
-                                <input type="text" id="reg-surname" placeholder="Apellidos" class="auth-input">
+                                <input type="text" id="reg-name" placeholder="${T('auth.firstname')}" class="auth-input">
+                                <input type="text" id="reg-surname" placeholder="${T('auth.lastname')}" class="auth-input">
                             </div>
-                            <input type="text" id="reg-nickname" placeholder="Tu Apodo (Nickname)" class="auth-input">
-                            
+                            <input type="text" id="reg-nickname" placeholder="${T('auth.nickname')}" class="auth-input">
+
                             <div style="margin: 15px 0;">
-                                <label style="font-size: 11px; font-weight: 800; color: var(--primary-cobalt); text-transform: uppercase; display: block; margin-bottom: 10px;">Elige tu Avatar</label>
+                                <label style="font-size: 11px; font-weight: 800; color: var(--cobalt); text-transform: uppercase; display: block; margin-bottom: 10px;">${T('auth.avatar')}</label>
                                 <div id="avatar-selector" style="display: flex; gap: 10px; overflow-x: auto; padding: 5px; scrollbar-width: none;">
                                     <div class="avatar-option selected" data-emoji="👤">👤</div>
                                     <div class="avatar-option" data-emoji="🦁">🦁</div>
@@ -302,25 +312,25 @@ window.GoHappyAuth = {
                             </div>
 
                             <div style="margin-top: 8px;">
-                                <input type="text" id="reg-referral" placeholder="Código de invitación (opcional)" class="auth-input" style="font-size: 13px; letter-spacing: 1px; text-transform: uppercase;" value="${(localStorage.getItem('GoHappy_pending_referral') || '').replace(/"/g, '')}">
-                                <p style="font-size: 11px; color: #94a3b8; margin: 4px 0 0 4px;">Si un amigo te invitó, ¡pega su código y él gana 1000 pts! 🎁</p>
+                                <input type="text" id="reg-referral" placeholder="${T('auth.referral')}" class="auth-input" style="font-size: 13px; letter-spacing: 1px; text-transform: uppercase;" value="${(localStorage.getItem('GoHappy_pending_referral') || '').replace(/"/g, '')}">
+                                <p style="font-size: 11px; color: var(--text-tertiary); margin: 4px 0 0 4px;">${refHelp}</p>
                             </div>
                         </div>
 
-                        <input type="email" id="auth-email" placeholder="Correo electrónico" class="auth-input">
-                        <input type="password" id="auth-pass" placeholder="Contraseña" class="auth-input">
-                        
-                        <label id="terms-label" style="display:none; align-items:center; justify-content: center; gap:8px; margin-top:12px; font-size:12px; color:#64748b; cursor:pointer;">
-                            <input type="checkbox" id="accept-terms" style="width:18px; height:18px; accent-color:var(--primary-cobalt);">
-                            <span>Acepto los <a href="#" id="show-terms-link" style="color:var(--primary-cobalt); font-weight:700;">Términos</a></span>
+                        <input type="email" id="auth-email" placeholder="${T('auth.email')}" class="auth-input">
+                        <input type="password" id="auth-pass" placeholder="${T('auth.password')}" class="auth-input">
+
+                        <label id="terms-label" style="display:none; align-items:center; justify-content: center; gap:8px; margin-top:12px; font-size:12px; color:var(--text-secondary); cursor:pointer;">
+                            <input type="checkbox" id="accept-terms" style="width:18px; height:18px; accent-color:var(--cobalt);">
+                            <span>${T('auth.terms.accept')} <a href="#" id="show-terms-link" style="color:var(--cobalt-bright); font-weight:700;">${T('auth.terms.link')}</a></span>
                         </label>
-                        
-                        <button id="main-auth-btn" class="btn-primary-gradient full-width" style="height: 55px; margin-top: 20px; font-size: 1.1rem; font-weight: 800; border: none; border-radius: 16px; box-shadow: 0 10px 20px rgba(11, 113, 252, 0.2);">Entrar</button>
-                        
-                        <button id="toggle-auth-mode" class="btn-text full-width" style="margin-top: 10px; font-size: 14px; font-weight: 600; color: #64748b;">¿No tienes cuenta? Regístrate gratis</button>
-                        
-                        <div class="social-divider" style="margin: 25px 0;"><span>O CONECTA CON</span></div>
-                        
+
+                        <button id="main-auth-btn" class="btn-primary-gradient full-width" style="height: 55px; margin-top: 20px; font-size: 1.05rem; font-weight: 800; border: none; border-radius: 16px; box-shadow: 0 10px 20px rgba(11, 113, 252, 0.2);">${T('auth.login')}</button>
+
+                        <button id="toggle-auth-mode" class="btn-text full-width" style="margin-top: 10px; font-size: 14px; font-weight: 600; color: var(--text-secondary);">${T('auth.toggle.register')}</button>
+
+                        <div class="social-divider" style="margin: 25px 0;"><span>${T('auth.connect.with')}</span></div>
+
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
                             <button id="do-google" class="social-btn-premium">
                                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Google
@@ -331,8 +341,8 @@ window.GoHappyAuth = {
                         </div>
 
                         <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #f1f5f9;">
-                            <button id="do-guest" style="background: none; border: none; color: #94a3b8; font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: underline;">
-                                Seguir como invitado
+                            <button id="do-guest" style="background: none; border: none; color: var(--text-tertiary); font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: underline;">
+                                ${T('auth.guest')}
                             </button>
                         </div>
                     </div>
@@ -358,13 +368,22 @@ window.GoHappyAuth = {
             errDiv.style.display = 'block';
         };
 
+        const T2 = window.t || (k => k);
         const toggleMode = () => {
             isLoginMode = !isLoginMode;
             document.getElementById('register-fields').style.display = isLoginMode ? 'none' : 'block';
             document.getElementById('terms-label').style.display = isLoginMode ? 'none' : 'flex';
-            document.getElementById('main-auth-btn').textContent = isLoginMode ? 'Entrar' : 'Crear Cuenta Gratis';
-            document.getElementById('toggle-auth-mode').textContent = isLoginMode ? '¿No tienes cuenta? Regístrate gratis' : '¿Ya tienes cuenta? Inicia sesión';
+            document.getElementById('main-auth-btn').textContent = isLoginMode ? T2('auth.login') : T2('auth.register');
+            document.getElementById('toggle-auth-mode').textContent = isLoginMode ? T2('auth.toggle.register') : T2('auth.toggle.login');
         };
+        // Si hay referral pendiente, abrir directamente en modo registro
+        if (!isLoginMode) {
+            // estado inicial = register: poner UI en register sin toggle (toggle invertiría)
+            document.getElementById('register-fields').style.display = 'block';
+            document.getElementById('terms-label').style.display = 'flex';
+            document.getElementById('main-auth-btn').textContent = T2('auth.register');
+            document.getElementById('toggle-auth-mode').textContent = T2('auth.toggle.login');
+        }
 
         let selectedEmoji = "👤";
         document.querySelectorAll('.avatar-option').forEach(opt => {
@@ -382,47 +401,42 @@ window.GoHappyAuth = {
             const pass = document.getElementById('auth-pass').value;
 
             if (isLoginMode) {
-                if (!email || !pass) return showError("Email y contraseña requeridos.");
+                if (!email || !pass) return showError(T2('auth.err.required'));
                 try {
                     await window.GoHappyAuth.login(email, pass);
                     modal.remove();
                     location.reload();
                 } catch (e) {
-                    showError("Error al iniciar sesión. Revisa tus datos.");
+                    showError(T2('auth.err.login'));
                 }
             } else {
                 const nick = document.getElementById('reg-nickname').value;
                 const name = document.getElementById('reg-name').value;
                 const surname = document.getElementById('reg-surname').value;
                 const termsAccepted = document.getElementById('accept-terms').checked;
-                // FIX: Leer código de referido del nuevo campo
                 const referralInput = document.getElementById('reg-referral');
                 const referralCode = referralInput ? referralInput.value.trim().toUpperCase() : '';
 
-                if (!email || !pass || !nick || !name) return showError("Nombre, Apodo, Email y Contraseña requeridos.");
-                if (!termsAccepted) return showError("Debes aceptar los Términos.");
+                if (!email || !pass || !nick || !name) return showError(T2('auth.err.fields'));
+                if (!termsAccepted) return showError(T2('auth.err.terms'));
 
                 const mainBtn = document.getElementById('main-auth-btn');
                 mainBtn.disabled = true;
-                mainBtn.textContent = '⌛ Creando tu cuenta...';
+                mainBtn.textContent = T2('auth.creating');
 
                 try {
-                    // FIX: Pasar referralCode al register
                     await window.GoHappyAuth.register(email, pass, nick, name, surname, selectedEmoji, referralCode);
-                    // Limpiar referral pendiente tras registro exitoso
                     try { localStorage.removeItem('GoHappy_pending_referral'); } catch (e) {}
                     modal.remove();
                     location.reload();
                 } catch (e) {
                     mainBtn.disabled = false;
-                    mainBtn.textContent = 'Crear Cuenta Gratis';
+                    mainBtn.textContent = T2('auth.register');
                     console.error("Reg error details:", e);
-                    let errMsg = "Error en el registro.";
-                    if (e.code === 'auth/email-already-in-use') errMsg = "El email ya está registrado.";
-                    if (e.code === 'auth/weak-password') errMsg = "La contraseña es muy débil (mín. 6 caracteres).";
-                    if (e.code === 'auth/operation-not-allowed') errMsg = "El registro por email no está activado en Firebase.";
-                    if (e.code === 'auth/invalid-email') errMsg = "El formato del email no es válido.";
-
+                    let errMsg = T2('auth.err.login');
+                    if (e.code === 'auth/email-already-in-use') errMsg = T2('auth.err.exists');
+                    if (e.code === 'auth/weak-password')        errMsg = T2('auth.err.weak');
+                    if (e.code === 'auth/invalid-email')        errMsg = T2('auth.err.email');
                     showError(errMsg);
                 }
             }

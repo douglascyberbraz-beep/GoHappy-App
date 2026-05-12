@@ -232,11 +232,12 @@ window.GoHappyProfile = {
             };
         };
 
-        container.querySelectorAll('.quick-card[data-goto]').forEach(card => {
+        // Bind navegación de cards de acción (Recuerdos, etc)
+        container.querySelectorAll('[data-goto]').forEach(card => {
             card.onclick = () => {
                 const target = card.dataset.goto;
                 if (target) {
-                    window.GoHappySound.play('click');
+                    window.GoHappySound && window.GoHappySound.play('click');
                     window.GoHappyApp.loadPage(target);
                 }
             };
@@ -370,23 +371,48 @@ window.GoHappyProfile = {
                 ` : ''}
             `;
 
-            // Botón copiar código (solo admin)
+            // Botón copiar código de familia → comparte LINK + texto
+            const FAM_BASE_URL = 'https://douglascyberbraz-beep.github.io/GoHappy-App/';
+            const buildFamilyLink = (code) => `${FAM_BASE_URL}?fam=${encodeURIComponent(code || '')}`;
+            const lang = window.GoHappyI18n?.lang || 'es';
+            const shareText = (code, name) => lang === 'en'
+                ? `Join our family "${name}" on GoHappy 👨‍👩‍👧‍👦\nFamily code: ${code}\n${buildFamilyLink(code)}`
+                : `Únete a nuestra familia "${name}" en GoHappy 👨‍👩‍👧‍👦\nCódigo: ${code}\n${buildFamilyLink(code)}`;
+
             const copyBtn = document.getElementById('copy-family-code');
             if (copyBtn) {
-                copyBtn.onclick = () => {
-                    navigator.clipboard.writeText(family.codigoInvitacion).then(() => {
-                        window.GoHappyToast.success(`Código "${family.codigoInvitacion}" copiado`);
-                    });
+                copyBtn.onclick = async () => {
+                    const txt = shareText(family.codigoInvitacion, family.nombre);
+                    try {
+                        if (navigator.share) {
+                            await navigator.share({
+                                title: 'GoHappy Family',
+                                text: txt
+                            });
+                            return;
+                        }
+                    } catch (err) { if (err.name === 'AbortError') return; }
+                    try {
+                        await navigator.clipboard.writeText(txt);
+                        window.GoHappyToast.success((window.t ? window.t('common.copied') : '¡Copiado!') + ' ' + family.codigoInvitacion);
+                    } catch (err) {}
                 };
             }
 
-            // Slot invitar abre el onboarding (para que compartan el código)
             const inviteSlot = document.getElementById('invite-family-slot');
             if (inviteSlot) {
-                inviteSlot.onclick = () => {
-                    navigator.clipboard.writeText(family.codigoInvitacion).then(() => {
-                        window.GoHappyToast.info(`Comparte el código ${family.codigoInvitacion} con tu familia`);
-                    });
+                inviteSlot.onclick = async () => {
+                    const txt = shareText(family.codigoInvitacion, family.nombre);
+                    try {
+                        if (navigator.share) {
+                            await navigator.share({ title: 'GoHappy Family', text: txt });
+                            return;
+                        }
+                    } catch (err) { if (err.name === 'AbortError') return; }
+                    try {
+                        await navigator.clipboard.writeText(txt);
+                        window.GoHappyToast.info((window.t ? window.t('common.copied') : '¡Copiado!') + ' ' + family.codigoInvitacion);
+                    } catch (err) {}
                 };
             }
 

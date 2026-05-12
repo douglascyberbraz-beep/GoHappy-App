@@ -214,6 +214,10 @@ window.GoHappyI18n = {
             'map.route':        '🗺️ Cómo llegar',
             'map.review':       '📝 Escribir Reseña',
 
+            // BRAND
+            'brand.family':         'Family',
+            'brand.tagline':        'Tu camino a la alegría',
+
             // GENÉRICOS
             'common.loading':       'Cargando...',
             'common.error':         'Algo ha ido mal. Inténtalo de nuevo.',
@@ -518,6 +522,10 @@ window.GoHappyI18n = {
             'map.search':       'Ask Gemini or search a place...',
             'map.route':        '🗺️ Get directions',
             'map.review':       '📝 Write a Review',
+
+            // BRAND
+            'brand.family':         'Family',
+            'brand.tagline':        'Your path to joy',
 
             // GENERIC
             'common.loading':       'Loading...',

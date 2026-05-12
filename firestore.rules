@@ -92,10 +92,11 @@ service cloud.firestore {
     // ═══════════════════════════════════════════════════════════════
     match /families/{familyId} {
 
-      allow get:  if isAuthenticated() && request.auth.uid in resource.data.miembros;
+      // GET: cualquier autenticado puede leer un doc concreto (necesario para joinFamily)
+      // En la app, el cliente solo accede por codigoInvitacion conocido
+      allow get:  if isAuthenticated();
 
-      // LIST: necesario para buscar por codigoInvitacion
-      // (limitamos lecturas individuales con el get de arriba)
+      // LIST: necesario para buscar por codigoInvitacion (auth requerido)
       allow list: if isAuthenticated();
 
       allow create: if isRealUser()

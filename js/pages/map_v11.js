@@ -404,36 +404,32 @@ window.GoHappyMap = {
                 const label = chip.innerText;
 
                 if (type === 'all') {
-                    // Mostrar TODOS los marcadores
                     window.GoHappyMap.filterMarkers('all');
                     return;
                 }
 
-                // 1. Filtrar marcadores locales primero (instantáneo)
+                // PASO 1: SIEMPRE filtrar inmediatamente lo que ya hay del tipo
+                window.GoHappyMap.filterMarkers(type);
                 const localOfType = window.GoHappyMap.markers.filter(m => m.type === type);
+                const T = window.t || (k => k);
 
-                if (localOfType.length >= 2) {
-                    // Hay suficientes locales — filtrar
-                    window.GoHappyMap.filterMarkers(type);
-                    window.GoHappyToast && window.GoHappyToast.info(
-                        `${localOfType.length} ${label.toLowerCase()} en tu zona`, 2500
-                    );
-                } else {
-                    // Pocos o ninguno → pedir a la IA más
-                    window.GoHappyToast && window.GoHappyToast.info(`Buscando ${label.toLowerCase()}…`, 2000);
+                // PASO 2: si hay pocos, EXPANDIR con IA en background sin borrar lo que está visible
+                if (localOfType.length < 6) {
+                    window.GoHappyToast && window.GoHappyToast.info(T('map.searching', { label: label.toLowerCase() }), 2000);
                     const before = window.GoHappyMap.markers.length;
+                    // handleSearch SUMA marcadores nuevos sin borrar existentes
                     await window.GoHappyMap.handleSearch(`mejores ${label} para ir con niños`);
                     const after = window.GoHappyMap.markers.length;
 
-                    // Tras búsqueda, aplicar filtro por tipo de nuevo
                     if (after > before) {
+                        // Reaplicar filtro para mostrar también los nuevos del tipo
                         window.GoHappyMap.filterMarkers(type);
-                    } else if (window.GoHappyAI && !window.GoHappyAI._isReal()) {
-                        window.GoHappyToast && window.GoHappyToast.warning(
-                            `IA en modo demo. Mostrando todos los sitios.`, 3500
-                        );
-                        window.GoHappyMap.filterMarkers('all');
+                        const newCount = window.GoHappyMap.markers.filter(m => m.type === type).length;
+                        window.GoHappyToast && window.GoHappyToast.success(T('map.community.found', { n: newCount, label: label.toLowerCase() }), 2500);
                     }
+                } else {
+                    // Hay suficientes locales
+                    window.GoHappyToast && window.GoHappyToast.info(T('map.community.found', { n: localOfType.length, label: label.toLowerCase() }), 2500);
                 }
             });
         });

@@ -129,7 +129,7 @@ REGLAS:
             const style = document.createElement('style');
             style.id = styleId;
             style.textContent = `
-                .care-page { width:100%; min-height:100vh; box-sizing:border-box; padding-bottom: calc(var(--nav-total, 110px) + 80px); position: relative; }
+                .care-page { width:100%; min-height:100vh; box-sizing:border-box; padding-bottom: calc(var(--nav-total, 110px) + 96px); position: relative; }
 
                 .care-avatar-hero {
                     width:54px; height:54px; flex-shrink:0;
@@ -166,7 +166,7 @@ REGLAS:
                 .care-cat-emoji { font-size: 17px; }
 
                 .care-chat {
-                    padding: 16px 16px 24px;
+                    padding: 16px 16px 100px;
                     display: flex; flex-direction: column; gap: 12px;
                     min-height: 200px;
                 }
@@ -193,8 +193,10 @@ REGLAS:
                     padding: 12px 16px;
                     border-radius: 22px;
                     font-size: 15px;
-                    line-height: 1.5;
+                    line-height: 1.55;
                     word-wrap: break-word;
+                    overflow-wrap: anywhere;
+                    white-space: pre-wrap;
                     animation: bubbleIn 0.35s cubic-bezier(0.19,1,0.22,1);
                 }
                 @keyframes bubbleIn {
@@ -249,23 +251,24 @@ REGLAS:
                 }
                 .care-bubble.user + .care-bubble-meta { text-align: right; }
 
-                /* Input bar fija arriba del nav flotante */
+                /* Input bar fija arriba del nav flotante — con clearance suficiente */
                 .care-input-bar {
                     position: fixed;
-                    bottom: calc(var(--nav-total, 110px) + 8px);
+                    bottom: calc(var(--nav-total, 110px) + 16px);
                     left: 50%;
                     transform: translateX(-50%);
                     width: calc(100% - 24px);
                     max-width: 420px;
                     display: flex; gap: 8px; align-items: center;
                     padding: 8px 8px 8px 18px;
-                    background: rgba(255,255,255,0.92);
+                    background: rgba(255,255,255,0.96);
                     backdrop-filter: blur(40px) saturate(200%);
                     border: 0.5px solid rgba(255,255,255,0.95);
                     border-radius: 36px;
                     box-shadow:
                         inset 0 1px 0 rgba(255,255,255,0.95),
-                        0 12px 32px rgba(11,76,143,0.14);
+                        0 16px 36px rgba(11,76,143,0.16),
+                        0 4px 10px rgba(11,76,143,0.08);
                     z-index: 999;
                 }
                 .care-input-bar input {
@@ -420,7 +423,11 @@ REGLAS:
 
     _scrollToBottom: () => {
         const main = document.getElementById('main-content');
-        if (main) main.scrollTo({ top: main.scrollHeight, behavior: 'smooth' });
+        if (main) {
+            requestAnimationFrame(() => {
+                main.scrollTo({ top: main.scrollHeight, behavior: 'smooth' });
+            });
+        }
     },
 
     _save: () => {

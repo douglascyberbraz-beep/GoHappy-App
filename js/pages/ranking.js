@@ -2,20 +2,23 @@ window.GoHappyRanking = {
     render: async (container) => {
         const T = window.t || (k => k);
         container.innerHTML = `
-            <div class="ranking-hero-premium">
-                <div class="ranking-hero-content">
-                    <h2 class="ranking-title">${T('ranking.title')}</h2>
-                    <p class="ranking-subtitle">${T('ranking.subtitle')}</p>
-
-                    <div class="ranking-toggle-pills">
-                        <button class="rank-toggle-btn active" data-tab="sites">${T('ranking.sites')}</button>
-                        <button class="rank-toggle-btn" data-tab="users">${T('ranking.members')}</button>
+            <div class="ranking-page">
+                <div class="ranking-hero-premium">
+                    <div class="ranking-hero-content" style="text-align:center; position:relative; z-index:2;">
+                        <h2 class="ranking-title">${T('ranking.title')}</h2>
+                        <p class="ranking-subtitle">${T('ranking.subtitle')}</p>
                     </div>
                 </div>
-            </div>
 
-            <div id="ranking-list" class="ranking-display-area stagger-group">
-                <div class="center-text p-40"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+                <!-- Toggle SEPARADO del hero para no solaparse con el podio -->
+                <div class="ranking-toggle-pills" style="margin: 0 16px 16px;">
+                    <button class="rank-toggle-btn active" data-tab="sites">${T('ranking.sites')}</button>
+                    <button class="rank-toggle-btn" data-tab="users">${T('ranking.members')}</button>
+                </div>
+
+                <div id="ranking-list" class="ranking-display-area stagger-group">
+                    <div class="center-text p-40"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+                </div>
             </div>
         `;
 

@@ -4,7 +4,7 @@
 // ================================================================
 window.GoHappyToday = {
 
-    _currentView: 'eventos',  // 'eventos' | 'planes' | 'semana'
+    _currentView: 'planes',  // 'planes' | 'eventos' | 'semana' (default Planes IA)
     _currentFilter: 'hoy',    // 'hoy' | 'manana' | 'finde'
     _city: null,
     _coords: '41.6520, -4.7286',
@@ -23,13 +23,13 @@ window.GoHappyToday = {
                     </div>
                 </div>
 
-                <!-- TOGGLE 3 vistas -->
+                <!-- TOGGLE 3 vistas — Planes IA primero (default) -->
                 <div class="today-view-toggle">
-                    <button class="t-view-btn active" data-view="eventos">
-                        <span>🎫</span> ${T('today.view.events').replace('🎫 ','')}
-                    </button>
-                    <button class="t-view-btn" data-view="planes">
+                    <button class="t-view-btn active" data-view="planes">
                         <span>🪄</span> ${T('today.view.plans').replace('🪄 ','')}
+                    </button>
+                    <button class="t-view-btn" data-view="eventos">
+                        <span>🎫</span> ${T('today.view.events').replace('🎫 ','')}
                     </button>
                     <button class="t-view-btn" data-view="semana">
                         <span>📅</span> ${T('today.view.week').replace('📅 ','')}
@@ -119,7 +119,7 @@ window.GoHappyToday = {
                 .ev-filter-chip:active { transform: scale(0.92); }
 
                 /* Card de Evento (vista Eventos) */
-                .event-card {
+                .event-card, .plan-card-premium {
                     background: rgba(255,255,255,0.92);
                     backdrop-filter: blur(30px) saturate(180%);
                     border: 0.5px solid rgba(255,255,255,0.95);
@@ -129,8 +129,26 @@ window.GoHappyToday = {
                     box-shadow: inset 0 1px 0 rgba(255,255,255,0.95),
                                 0 8px 28px rgba(11,76,143,0.08);
                     transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
+                    width: 100%;
+                    max-width: 100%;
+                    box-sizing: border-box;
+                    overflow: hidden;
                 }
-                .event-card:active { transform: scale(0.975); }
+                .event-card:active, .plan-card-premium:active { transform: scale(0.975); }
+                .event-card .event-title, .plan-card-premium .event-title {
+                    word-wrap: break-word;
+                    overflow-wrap: anywhere;
+                }
+                .event-card .event-meta-row, .plan-card-premium .event-meta-row {
+                    flex-wrap: wrap;
+                    overflow: hidden;
+                }
+                .event-card .event-cta, .plan-card-premium .event-cta {
+                    min-width: 0;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
 
                 .event-meta-row {
                     display: flex; align-items: center; gap: 8px;
@@ -182,18 +200,31 @@ window.GoHappyToday = {
                 .event-info-grid {
                     display: grid;
                     grid-template-columns: 1fr 1fr;
-                    gap: 6px 10px;
+                    gap: 8px 10px;
                     background: rgba(11,76,143,0.04);
-                    padding: 10px 12px;
+                    padding: 12px 14px;
                     border-radius: 14px;
                     margin-bottom: 14px;
                     font-size: 12px;
+                    box-sizing: border-box;
+                    width: 100%;
+                    min-width: 0;
                 }
                 .event-info-item {
                     display: flex; align-items: center; gap: 6px;
                     color: var(--text-secondary);
+                    min-width: 0;
+                    overflow: hidden;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
                 }
-                .event-info-item strong { color: var(--text-primary); font-weight: 700; }
+                .event-info-item strong {
+                    color: var(--text-primary); font-weight: 700;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    min-width: 0;
+                }
 
                 .event-tip {
                     background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,165,0,0.06));

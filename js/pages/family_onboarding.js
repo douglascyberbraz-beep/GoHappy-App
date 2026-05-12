@@ -20,6 +20,9 @@ window.GoHappyFamilyOnboarding = {
         if (document.getElementById('family-onboarding-modal')) return;
         const user = window.GoHappyAuth.checkAuth();
 
+        // Si hay código de familia pendiente, auto-unir
+        const pendingFam = localStorage.getItem('GoHappy_pending_family');
+
         const modal = document.createElement('div');
         modal.id = 'family-onboarding-modal';
         modal.className = 'modal';
@@ -209,6 +212,22 @@ window.GoHappyFamilyOnboarding = {
 
         document.body.appendChild(modal);
 
+        // ── Auto-relleno si hay código pendiente ──
+        if (pendingFam && pendingFam.length === 6) {
+            // Saltar al paso de unirse y rellenar los inputs
+            setTimeout(() => {
+                const stepJoin = document.getElementById('ob-step-join');
+                if (stepJoin) {
+                    document.getElementById('ob-step-choice').style.display = 'none';
+                    stepJoin.style.display = 'block';
+                    for (let i = 0; i < 6; i++) {
+                        const inp = document.getElementById(`ob-code-${i}`);
+                        if (inp) inp.value = pendingFam.charAt(i);
+                    }
+                }
+            }, 100);
+        }
+
         // ── Helpers de navegación entre pasos ──
         const showStep = (id) => {
             ['ob-step-choice', 'ob-step-create', 'ob-step-join', 'ob-step-success']
@@ -310,6 +329,7 @@ window.GoHappyFamilyOnboarding = {
 
             try {
                 const result = await window.GoHappyFamilies.joinFamily(code);
+                try { localStorage.removeItem('GoHappy_pending_family'); } catch (e) {}
                 document.getElementById('ob-success-title').textContent = `¡Te has unido a "${result.nombre}"! 🔗`;
                 document.getElementById('ob-success-msg').textContent = '¡Ya eres parte de la familia! Explorad GoHappy juntos.';
                 document.getElementById('ob-code-display').style.display = 'none';

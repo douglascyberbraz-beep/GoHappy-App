@@ -11,25 +11,43 @@ const appState = {
 // Initialize App
 document.addEventListener('DOMContentLoaded', async () => {
 
-    // ─── REFERIDO: detectar ?ref=CODIGO en URL y guardarlo ───
+    // ─── REFERIDO + FAMILIA: detectar parámetros en URL ───
     try {
         const urlParams = new URLSearchParams(window.location.search);
+
+        // Código de referido (premia al referidor)
         const refCode = urlParams.get('ref') || urlParams.get('referral') || urlParams.get('invite');
         if (refCode && /^[A-Z0-9\-]{3,20}$/i.test(refCode)) {
             localStorage.setItem('GoHappy_pending_referral', refCode.toUpperCase());
             console.log('[GoHappy] Código de referido detectado:', refCode);
-            // Limpiar la URL para no mostrar el ?ref= en la barra
+        }
+
+        // Código de familia (auto-join a la familia tras login)
+        const famCode = urlParams.get('fam') || urlParams.get('family');
+        if (famCode && /^[A-Z0-9]{6}$/i.test(famCode)) {
+            localStorage.setItem('GoHappy_pending_family', famCode.toUpperCase());
+            console.log('[GoHappy] Código de familia detectado:', famCode);
+        }
+
+        // Limpiar la URL si había alguno
+        if (refCode || famCode) {
             const url = new URL(window.location.href);
-            url.searchParams.delete('ref');
-            url.searchParams.delete('referral');
-            url.searchParams.delete('invite');
+            ['ref','referral','invite','fam','family'].forEach(k => url.searchParams.delete(k));
             window.history.replaceState({}, '', url.pathname + (url.search || '') + url.hash);
         }
-    } catch (e) { console.warn('referral parse:', e); }
+    } catch (e) { console.warn('URL params parse:', e); }
 
     // i18n: detectar idioma ANTES de renderizar nada (sincronico)
     if (window.GoHappyI18n) {
-        try { window.GoHappyI18n.init(); } catch (e) { console.warn('i18n init:', e); }
+        try {
+            window.GoHappyI18n.init();
+            // Aplicar tagline traducido al splash
+            const t = window.GoHappyI18n.t.bind(window.GoHappyI18n);
+            const splashTag = document.getElementById('splash-tagline');
+            const splashFam = document.getElementById('splash-family');
+            if (splashTag) splashTag.textContent = t('brand.tagline');
+            if (splashFam) splashFam.textContent = t('brand.family');
+        } catch (e) { console.warn('i18n init:', e); }
     }
 
     // Si GPS refina el idioma en background y difiere, recargar página

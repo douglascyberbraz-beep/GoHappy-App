@@ -14,34 +14,58 @@ window.GoHappyAI = {
 
 
     getTodayActivities: async (coordinates = "41.6520, -4.7286", preferences = null) => {
+        const cityInfo = await window.GoHappyAI.getCityFromCoords(coordinates);
+        const today = new Date();
+        const dayNames = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+        const dayNamesEN = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const todayName = lang === 'en' ? dayNamesEN[today.getDay()] : dayNames[today.getDay()];
+        const hour = today.getHours();
+        const timeOfDay = hour < 12 ? (lang === 'en' ? 'morning' : 'mañana')
+                        : hour < 18 ? (lang === 'en' ? 'afternoon' : 'tarde')
+                                    : (lang === 'en' ? 'evening' : 'noche');
+
         let prefsContext = "";
         if (preferences) {
             prefsContext = `
-            CONTEXTO DE LA FAMILIA:
-            - Miembros: ${preferences.adults} adultos y ${preferences.kids} niños (edades: ${preferences.ages}).
-            - Preferencia de entorno: ${preferences.environment === 'Indoor' ? 'Sitios cerrados/resguardados' : preferences.environment === 'Outdoor' ? 'Al aire libre' : 'Ambos'}.
-            - Presupuesto: ${preferences.budget === 'Free' ? 'Solo planes gratuitos' : 'Cualquier presupuesto'}.
-            - Distancia: ${preferences.distance === 'Walking' ? 'Cerca, para ir andando' : preferences.distance === 'ShortDrive' ? 'A poca distancia en coche' : 'Cualquier distancia'}.
-            `;
+PERFIL FAMILIAR ESPECÍFICO (ALTAMENTE PERSONALIZAR):
+- Composición: ${preferences.adults} adultos + ${preferences.kids} niños.
+- Edades exactas de los niños: ${preferences.ages || 'no especificadas'}.
+- Entorno preferido: ${preferences.environment === 'Indoor' ? 'INTERIOR (espacios cerrados, refugios, museos, cines)' : preferences.environment === 'Outdoor' ? 'EXTERIOR (parques, rutas, aire libre)' : 'INDIFERENTE (mixto)'}.
+- Presupuesto: ${preferences.budget === 'Free' ? 'SOLO GRATIS — descarta cualquier plan de pago' : 'Sin restricción de presupuesto'}.
+- Distancia: ${preferences.distance === 'Walking' ? 'Solo lugares accesibles ANDANDO (< 1.5km)' : preferences.distance === 'ShortDrive' ? 'Cerca, máx 15 min en coche' : 'Cualquier distancia'}.
+
+ADAPTA cada plan a estas edades específicas: si tienen 3-5 años evita museos largos, si tienen 10-14 sugiere retos más estimulantes.`;
         }
 
-        const prompt = `Actúa como un 'Concierge' Premium de ocio familiar. Ubicación GPS: ${coordinates}.
-        ${prefsContext}
-        Tu misión es generar planes "Done for you" (completos, listos para hacer hoy mismo). Eres el servicio estrella de la app.
-        1. Identifica la CIUDAD de estas coordenadas y el clima de hoy.
-        2. Diseña 3 PLANES INOLVIDABLES reales en esa ciudad que encajen perfectamente con la familia descrita.
-        3. Si la familia busca 'Outdoor' pero hace mal clima, busca refugios creativos.
-        4. Necesitamos datos altamente estructurados y premium para cada plan:
-           - Título: Creativo y magnético.
-           - Resumen: Breve introducción de por qué es perfecto para sus edades.
-           - typeLabel: "🌳 Al aire libre", "🏠 A cubierto", o "⛅ Mixto".
-           - distanceDesc: Estimación descriptiva (ej. "A 10 min en coche", "Paseo de 5 min").
-           - highlights: Array de 2 o 3 frases cortas sobre qué lo hace especial.
-           - packingList: Array de 2 a 4 cosas esenciales para llevar (ej. "Agua", "Calcetines antideslizantes", "Gorra").
-           - Horarios sugeridos, duración y precios detallados.
-           - Enlace oficial (si requiere tickets o info), si no, "".
-           - Tip/Consejo experto para padres.
-        Formato JSON estricto: [ { "title": "", "summary": "", "typeLabel": "", "distanceDesc": "", "location": "", "lat": NUM, "lng": NUM, "time": "", "duration": "", "price": "", "age": "", "highlights": ["", ""], "packingList": ["", ""], "tip": "", "link": "" } ]`;
+        const prompt = `Eres el Concierge Premium de ocio familiar de GoHappy.
+Ubicación: ${cityInfo.full} (coords ${coordinates}).
+Hoy es ${todayName} ${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()}, ${timeOfDay}.
+${prefsContext}
+
+TAREA:
+1. Identifica el CLIMA típico de hoy en ${cityInfo.city} y la TEMPORADA (primavera/verano/otoño/invierno).
+2. Diseña EXACTAMENTE 3 planes ESPECÍFICOS para ESTA familia HOY (no genéricos):
+   - Cada plan debe mencionar el LUGAR REAL concreto en ${cityInfo.city} (no "un parque", sino "Parque del Retiro" o "Hyde Park")
+   - Adapta a la HORA del día (mañana = desayuno/talleres, tarde = visitas, noche = espectáculos)
+   - Si la familia quiere 'Outdoor' pero llueve hoy, busca refugios creativos similares
+   - Diversifica los 3 planes (no 3 parques, mezcla tipos)
+3. Para cada plan, JSON estricto con:
+   - title: nombre creativo magnético (max 50 chars)
+   - summary: 1 frase breve sobre por qué encaja con sus edades (max 90 chars)
+   - typeLabel: "🌳 Al aire libre" o "🏠 A cubierto" o "⛅ Mixto"
+   - location: NOMBRE REAL del lugar (ej "Museo de la Ciencia de Valladolid")
+   - lat, lng: coords del lugar real
+   - time: horario sugerido (ej "11:00 - 13:00")
+   - duration: estimación (ej "2 horas")
+   - price: "Gratis" o "5€/adulto" o "Desde 8€" (usa € en España, £ en UK)
+   - age: rango de edad apropiado (ej "3-8 años")
+   - highlights: array de 2 frases CORTAS (max 40 chars cada una)
+   - packingList: array de 2-3 items esenciales
+   - tip: 1 consejo práctico breve (max 70 chars)
+   - link: URL oficial si la tienes, si no ""
+
+Formato JSON estricto: [ { "title":"", "summary":"", "typeLabel":"", "location":"", "lat":NUM, "lng":NUM, "time":"", "duration":"", "price":"", "age":"", "highlights":["",""], "packingList":["",""], "tip":"", "link":"" } ]`;
 
         return await window.GoHappyAI._callGemini(prompt);
     },
