@@ -360,17 +360,18 @@
         }
         .phone {
             position: relative;
-            width: 280px;
-            height: 580px;
-            background: #1a1a1a;
-            border-radius: 48px;
-            padding: 12px;
+            width: 300px;
+            height: 650px;
+            background: #000;
+            border-radius: 54px;
+            padding: 10px;
             box-shadow:
-                0 0 0 2px #2a2a2a,
+                0 0 0 2px #333,
                 0 50px 100px -20px rgba(11,76,143,0.35),
-                0 30px 60px -30px rgba(11,76,143,0.5),
-                inset 0 0 0 0.5px rgba(255,255,255,0.1);
+                0 30px 60px -30px rgba(11,76,143,0.5);
             animation: phoneFloat 6s ease-in-out infinite;
+            border: 8px solid #1e293b;
+            overflow: hidden;
         }
         @keyframes phoneFloat {
             0%, 100% { transform: translateY(0) rotate(-2deg); }
@@ -379,22 +380,20 @@
         .phone::before {
             content: '';
             position: absolute;
-            top: 24px; left: 50%;
+            top: 15px; left: 50%;
             transform: translateX(-50%);
-            width: 100px; height: 28px;
-            background: #1a1a1a;
-            border-radius: 18px;
+            width: 90px; height: 28px;
+            background: #000;
+            border-radius: 20px;
             z-index: 10;
         }
         .phone-screen {
             width: 100%;
             height: 100%;
-            background: linear-gradient(160deg, #F4F8FF 0%, #E8F1FB 100%);
-            border-radius: 36px;
+            background: #000;
+            border-radius: 44px;
             overflow: hidden;
             position: relative;
-            display: flex;
-            flex-direction: column;
         }
         .phone-content {
             flex: 1;
@@ -602,23 +601,46 @@
             transform: translateY(-12px);
             box-shadow: 0 30px 60px rgba(11,76,143,0.12);
         }
+        
+        /* iPhone 17 Pro Max Mockup Style */
         .feature-mockup {
             width: 100%;
-            aspect-ratio: 9/19;
-            background: #f8fafc;
-            border-radius: 24px;
-            margin-bottom: 25px;
+            max-width: 260px;
+            aspect-ratio: 430 / 932; /* iPhone 17 Pro Max ratio approx */
+            background: #000;
+            border-radius: 48px;
+            margin-bottom: 30px;
             overflow: hidden;
-            border: 6px solid #1e293b;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border: 8px solid #1e293b; /* Titanium-like bezel */
+            box-shadow: 
+                0 20px 50px rgba(0,0,0,0.2),
+                inset 0 0 2px rgba(255,255,255,0.2);
             position: relative;
+            transform: translateZ(0);
         }
+
+        /* Dynamic Island */
+        .feature-mockup::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 25px;
+            background: #000;
+            border-radius: 20px;
+            z-index: 10;
+        }
+
         .feature-mockup img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             object-position: top;
+            border-radius: 40px;
         }
+
         .feature-icon {
             font-size: 32px;
             margin-bottom: 20px;
