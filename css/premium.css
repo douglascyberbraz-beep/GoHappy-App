@@ -133,7 +133,7 @@ body {
     max-width: 72vw;
     height: auto;
     object-fit: contain;
-    /* PNG ya tiene fondo transparente — no necesita mix-blend-mode */
+    mix-blend-mode: multiply; /* Para ocultar el fondo blanco del asset oficial */
     animation:
         splashBounceIn 1s cubic-bezier(0.34,1.56,0.64,1) both,
         splashBreathe 3.5s ease-in-out infinite 1.2s;
