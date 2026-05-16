@@ -161,10 +161,11 @@
             color: var(--cobalt);
             letter-spacing: -0.5px;
         }
-        .nav-logo img {
+        .nav-logo img, .footer-brand img {
             height: 32px;
             width: auto;
             mix-blend-mode: multiply;
+            filter: contrast(1.1); /* Mejora la claridad al mezclar */
         }
 
         .nav-links {
@@ -887,8 +888,11 @@
             margin-bottom: 12px;
         }
         .footer-brand img {
-            height: 36px;
-            filter: brightness(0) invert(1);
+            height: 32px;
+            background: white;
+            padding: 4px 12px;
+            border-radius: 999px;
+            object-fit: contain;
         }
         .footer-tag {
             font-size: 14px;
