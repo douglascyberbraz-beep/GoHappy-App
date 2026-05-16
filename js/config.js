@@ -8,9 +8,9 @@
 
 const firebaseConfig = {
     apiKey:            "AIzaSyDppR0-A8bEKT1sjJDst1N6uZV-EsTLSYo",
-    authDomain:        "kindr-8d660.firebaseapp.com",
-    projectId:         "kindr-8d660",
-    storageBucket:     "kindr-8d660.firebasestorage.app",
+    authDomain:        "gohappy-8d660.firebaseapp.com",
+    projectId:         "gohappy-8d660",
+    storageBucket:     "gohappy-8d660.firebasestorage.app",
     messagingSenderId: "552831875210",
     appId:             "1:552831875210:web:1af5583c40e0d62bbf9573",
     measurementId:     "G-2F3HNE2L5P"
@@ -62,7 +62,7 @@ if (window.firebase) {
 
         // Dominios autorizados de Firebase Auth (añadir en Firebase Console si cambian)
         // - douglascyberbraz-beep.github.io
-        // - kindr-8d660.web.app
+        // - gohappy-8d660.web.app
         // - localhost (solo dev)
 
         console.log('[GoHappy] Firebase inicializado correctamente ✓');

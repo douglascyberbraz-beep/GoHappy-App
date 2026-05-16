@@ -14,7 +14,7 @@ window.GoHappyLegal = {
         email:       'hola@gohappyfamily.app',
         dpoEmail:    'privacidad@gohappyfamily.app',
         web:         'https://gohappyfamily.app',
-        appHost:     'https://kindr-8d660.web.app',
+        appHost:     'https://gohappy-8d660.web.app',
         lastUpdate:  '2026-05-11'
     },
 

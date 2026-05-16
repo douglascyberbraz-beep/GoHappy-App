@@ -1,11 +1,11 @@
 {
   "projects": {
-    "default": "kindr-8d660"
+    "default": "gohappy-8d660"
   },
   "targets": {
-    "kindr-8d660": {
+    "gohappy-8d660": {
       "hosting": {
-        "app":     ["kindr-8d660"],
+        "app":     ["gohappy-8d660"],
         "landing": ["gohappy-landing"]
       }
     }

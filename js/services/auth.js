@@ -279,9 +279,7 @@ window.GoHappyAuth = {
                 <div class="auth-card premium-glass" style="max-height: 90vh; overflow-y: auto;">
                     <div class="auth-header" style="text-align:center;">
                         <div class="brand-logo-stack" style="margin-bottom:18px;">
-                            <img src="assets/logo_gohappy_official.png" alt="GoHappy" style="width:180px; max-width:70%; height:auto; filter:drop-shadow(0 6px 16px rgba(11,76,143,0.14));">
-                            <div class="brand-family-text" style="font-size:1.8rem;">${T('brand.family')}</div>
-                            <div class="brand-tagline-text" style="font-size:0.85rem; margin-top:8px;">${T('brand.tagline')}</div>
+                            <img src="assets/logo_gohappy_official.png" alt="GoHappy" style="width:220px; max-width:85%; height:auto; filter:drop-shadow(0 6px 16px rgba(11,76,143,0.14));">
                         </div>
                         <h2 style="color:var(--cobalt); font-size: 1.5rem; font-weight: 900; margin-bottom: 4px; letter-spacing: -0.5px;">${T('auth.welcome')}</h2>
                         <p style="color: var(--text-secondary); font-size: 0.92rem; font-weight: 500;">${T('auth.tagline')}</p>
