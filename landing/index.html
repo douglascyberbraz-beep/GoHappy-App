@@ -16,8 +16,8 @@
     <meta property="og:locale" content="es_ES">
     <meta name="twitter:card" content="summary_large_image">
 
-    <link rel="icon" type="image/png" href="assets/logo.png">
-    <link rel="apple-touch-icon" href="assets/logo.png">
+    <link rel="icon" type="image/png" href="assets/logo.png?v=4.9.0">
+    <link rel="apple-touch-icon" href="assets/logo.png?v=4.9.0">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -129,6 +129,39 @@
         }
 
         /* ─── NAVBAR (Floating Glass Pill) ──────────────────────── */
+        .bg-orbs {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .bg-orbs::before, .bg-orbs::after {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+            animation: orbFloat 20s infinite alternate;
+        }
+        .bg-orbs::before {
+            background: var(--cobalt-bright);
+            top: -100px;
+            right: -100px;
+        }
+        .bg-orbs::after {
+            background: var(--cyan);
+            bottom: -100px;
+            left: -100px;
+            animation-delay: -10s;
+        }
+        @keyframes orbFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-50px, 100px) scale(1.1); }
+        }
+
         .nav {
             position: fixed;
             top: 16px;
@@ -136,7 +169,7 @@
             transform: translateX(-50%);
             width: calc(100% - 32px);
             max-width: 1100px;
-            z-index: 100;
+            z-index: 1000;
             background: rgba(255,255,255,0.7);
             backdrop-filter: blur(40px) saturate(200%);
             -webkit-backdrop-filter: blur(40px) saturate(200%);
@@ -147,9 +180,9 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: padding 0.3s ease;
+            transition: all 0.3s ease;
         }
-        .nav.scrolled { padding: 8px 20px; }
+        .nav.scrolled { padding: 8px 20px; background: rgba(255,255,255,0.85); }
 
         .nav-logo {
             display: flex;
@@ -974,7 +1007,7 @@
     <!-- ════════════ NAV ════════════ -->
     <nav class="nav" id="nav">
         <a href="#" class="nav-logo">
-            <img src="assets/logo.png" alt="GoHappy">
+            <img src="assets/logo.png?v=4.9.0" alt="GoHappy">
             <span>GoHappy</span>
         </a>
         <ul class="nav-links">
@@ -1016,36 +1049,7 @@
         <div class="hero-mockup fade-up" data-delay="2">
             <div class="phone">
                 <div class="phone-screen">
-                    <div class="phone-content">
-                        <div class="phone-header">
-                            <h3>✨ Tu día hoy</h3>
-                            <p>Planes 'Done for You' para tu tribu</p>
-                        </div>
-                        <div class="phone-card">
-                            <div class="phone-card-title">🎨 Taller infantil de pintura</div>
-                            <div>Una tarde creativa en el Museo Patio Herreriano.</div>
-                            <div class="phone-card-meta">📍 A 5 min · 🕒 17h · 💰 Gratis</div>
-                        </div>
-                        <div class="phone-card">
-                            <div class="phone-card-title">🌳 Pícnic en Campo Grande</div>
-                            <div>Perfecto si hace sol. Pavos reales libres.</div>
-                            <div class="phone-card-meta">📍 A 10 min · 🕒 16-19h · 💰 0€</div>
-                        </div>
-                        <div class="phone-card">
-                            <div class="phone-card-title">🏛️ Museo de la Ciencia</div>
-                            <div>Planetario y sala interactiva 4-12 años.</div>
-                            <div class="phone-card-meta">📍 A 15 min · 🎟️ 5€</div>
-                        </div>
-                    </div>
-                    <div class="phone-nav">
-                        <span>⚔️</span>
-                        <span>🛡️</span>
-                        <span class="active">✨</span>
-                        <span class="orb">📍</span>
-                        <span>🏆</span>
-                        <span>🗞️</span>
-                        <span>👤</span>
-                    </div>
+                    <img src="assets/ss_today.png" alt="App Today" style="width: 100%; height: 100%; object-fit: cover; object-position: top;">
                 </div>
             </div>
         </div>
@@ -1279,7 +1283,7 @@
             <div class="footer-grid">
                 <div class="footer-brand-col">
                     <div class="footer-brand">
-                        <img src="assets/logo.png" alt="GoHappy">
+                        <img src="assets/logo.png?v=4.9.0" alt="GoHappy">
                         <span>GoHappy Family</span>
                     </div>
                     <p class="footer-tag">La comunidad real para familias modernas. Tu camino a la alegría empieza aquí.</p>
