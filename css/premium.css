@@ -1355,6 +1355,17 @@ input:focus, textarea:focus, .post-input:focus, .review-input:focus, .auth-input
     border-radius: 999px !important;
     border: 0.5px solid rgba(11,76,143,0.10) !important;
     box-shadow: 0 6px 20px rgba(11,76,143,0.08) !important;
+    margin: 0 16px 20px !important;
+    box-sizing: border-box !important;
+}
+.podium-section {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: flex-end !important;
+    gap: 8px !important;
+    padding: 10px 16px 30px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 .ranking-toggle-pills .rank-toggle-btn {
     flex: 1 !important;
@@ -1430,6 +1441,8 @@ input:focus, textarea:focus, .post-input:focus, .review-input:focus, .auth-input
     display: flex !important;
     flex-direction: column !important;
     gap: 10px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 .ranking-row {
     display: flex !important;

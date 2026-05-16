@@ -11,7 +11,7 @@ window.GoHappyRanking = {
                 </div>
 
                 <!-- Toggle SEPARADO del hero para no solaparse con el podio -->
-                <div class="ranking-toggle-pills" style="margin: 0 16px 16px;">
+                <div class="ranking-toggle-pills">
                     <button class="rank-toggle-btn active" data-tab="sites">${T('ranking.sites')}</button>
                     <button class="rank-toggle-btn" data-tab="users">${T('ranking.members')}</button>
                 </div>
@@ -186,7 +186,7 @@ window.GoHappyRanking = {
             html += '</div>';
 
             html += `
-                <div class="motivation-box entry-anim" style="background: linear-gradient(135deg, rgba(11, 113, 252, 0.05), rgba(11, 113, 252, 0.1)); padding: 20px; border-radius: 24px; margin-top: 30px; text-align: center; border: 1px dashed var(--primary-cobalt);">
+                <div class="motivation-box entry-anim" style="background: linear-gradient(135deg, rgba(11, 113, 252, 0.05), rgba(11, 113, 252, 0.1)); padding: 20px; border-radius: 24px; margin: 30px 16px 0; text-align: center; border: 1px dashed var(--primary-cobalt);">
                     <h4 style="color: var(--primary-cobalt); margin: 0 0 5px 0;">¡Tú puedes ser el próximo! 🚀</h4>
                     <p style="font-size: 12px; color: #64748b;">Reporta peligros en SAFE, haz reseñas en el MAPA o completa QUESTS para sumar puntos semanales.</p>
                 </div>

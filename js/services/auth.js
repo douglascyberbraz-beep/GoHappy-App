@@ -278,8 +278,10 @@ window.GoHappyAuth = {
             <div class="auth-container entry-anim">
                 <div class="auth-card premium-glass" style="max-height: 90vh; overflow-y: auto;">
                     <div class="auth-header" style="text-align:center;">
-                        <div class="brand-logo-stack" style="margin-bottom:18px;">
-                            <img src="assets/logo.png" alt="GoHappy" style="width:220px; max-width:85%; height:auto; filter:drop-shadow(0 6px 16px rgba(11,76,143,0.14)); mix-blend-mode: multiply;">
+                        <div class="brand-logo-stack" style="margin-bottom:18px; display: flex; justify-content: center;">
+                            <div style="background: white; padding: 10px 25px; border-radius: 999px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: inline-flex; align-items: center; justify-content: center;">
+                                <img src="assets/logo.png" alt="GoHappy" style="width:180px; max-width:100%; height:auto;">
+                            </div>
                         </div>
                         <h2 style="color:var(--cobalt); font-size: 1.5rem; font-weight: 900; margin-bottom: 4px; letter-spacing: -0.5px;">${T('auth.welcome')}</h2>
                         <p style="color: var(--text-secondary); font-size: 0.92rem; font-weight: 500;">${T('auth.tagline')}</p>
