@@ -384,16 +384,17 @@
         .phone {
             position: relative;
             width: 300px;
-            height: 650px;
-            background: #000;
-            border-radius: 54px;
-            padding: 10px;
+            /* Ratio coherente con las capturas reales */
+            aspect-ratio: 9 / 16;
+            background: #F4F8FF;
+            border-radius: 42px;
+            padding: 0;
             box-shadow:
                 0 0 0 2px #333,
                 0 50px 100px -20px rgba(11,76,143,0.35),
                 0 30px 60px -30px rgba(11,76,143,0.5);
             animation: phoneFloat 6s ease-in-out infinite;
-            border: 8px solid #1e293b;
+            border: 7px solid #1e293b;
             overflow: hidden;
         }
         @keyframes phoneFloat {
@@ -403,18 +404,19 @@
         .phone::before {
             content: '';
             position: absolute;
-            top: 15px; left: 50%;
+            top: 12px; left: 50%;
             transform: translateX(-50%);
-            width: 90px; height: 28px;
+            width: 80px; height: 24px;
             background: #000;
             border-radius: 20px;
             z-index: 10;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
         }
         .phone-screen {
             width: 100%;
             height: 100%;
-            background: #000;
-            border-radius: 44px;
+            background: #F4F8FF;
+            border-radius: 34px;
             overflow: hidden;
             position: relative;
         }
@@ -625,46 +627,47 @@
             box-shadow: 0 30px 60px rgba(11,76,143,0.12);
         }
         
-        /* iPhone 17 Pro Max Mockup Style */
+        /* Mockup móvil — ratio adaptado al contenido real de las capturas */
         .feature-mockup {
             width: 100%;
-            max-width: 260px;
-            aspect-ratio: 430 / 932; /* iPhone 17 Pro Max ratio approx */
-            background: #000;
-            border-radius: 48px;
+            max-width: 280px;
+            /* Ratio que coincide con las capturas reales (no iPhone vertical extremo) */
+            aspect-ratio: 9 / 16;
+            background: #F4F8FF;
+            border-radius: 36px;
             margin-bottom: 30px;
             overflow: hidden;
-            border: 8px solid #1e293b; /* Titanium-like bezel */
-            box-shadow: 
-                0 20px 50px rgba(0,0,0,0.2),
-                inset 0 0 2px rgba(255,255,255,0.2);
+            border: 6px solid #1e293b;
+            box-shadow:
+                0 20px 50px rgba(0,0,0,0.22),
+                inset 0 0 2px rgba(255,255,255,0.25);
             position: relative;
             transform: translateZ(0);
         }
 
-        /* Dynamic Island */
+        /* Dynamic Island — decorativa encima */
         .feature-mockup::before {
             content: '';
             position: absolute;
-            top: 12px;
+            top: 10px;
             left: 50%;
             transform: translateX(-50%);
-            width: 80px;
-            height: 25px;
+            width: 70px;
+            height: 22px;
             background: #000;
             border-radius: 20px;
             z-index: 10;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
         }
 
         .feature-mockup img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            /* COVER llena todo el marco, mostrando la captura completa visualmente */
+            object-fit: cover;
             object-position: center top;
             background: #F4F8FF;
-            border-radius: 40px;
-            padding-top: 42px; /* deja espacio para la Dynamic Island */
-            box-sizing: border-box;
+            display: block;
         }
 
         .feature-icon {
@@ -1097,7 +1100,7 @@
         <div class="hero-mockup fade-up" data-delay="2">
             <div class="phone">
                 <div class="phone-screen">
-                    <img src="assets/ss_today.png" alt="App Today" style="width: 100%; height: 100%; object-fit: contain; object-position: center top; background: #F4F8FF; padding-top: 44px; box-sizing: border-box;">
+                    <img src="assets/ss_today.png" alt="App Today" style="width: 100%; height: 100%; object-fit: cover; object-position: center top; background: #F4F8FF; display: block;">
                 </div>
             </div>
         </div>
