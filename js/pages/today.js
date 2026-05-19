@@ -102,6 +102,147 @@ window.GoHappyToday = {
                 .today-page { width:100%; min-height:100vh; box-sizing:border-box; overflow-x:hidden; }
 
                 /* ─── Skeleton cards (evita pantalla en blanco) ─── */
+                /* ─── EVENT CARD V2 — premium y robusta ─── */
+                .event-card-v2 {
+                    background: rgba(255,255,255,0.92);
+                    backdrop-filter: blur(30px) saturate(180%);
+                    border: 0.5px solid rgba(255,255,255,0.95);
+                    border-radius: 22px;
+                    padding: 16px;
+                    margin: 0 2px 14px;
+                    width: calc(100% - 4px);
+                    box-sizing: border-box;
+                    box-shadow: inset 0 1px 0 rgba(255,255,255,0.95),
+                                0 8px 22px rgba(11,76,143,0.08);
+                    overflow: hidden;
+                    transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
+                }
+                .event-card-v2:active { transform: scale(0.985); }
+
+                .evc-top { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+                .evc-icon {
+                    width: 44px; height: 44px;
+                    border-radius: 12px;
+                    background: linear-gradient(135deg, rgba(11,113,252,0.10), rgba(23,200,212,0.14));
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 22px;
+                    flex-shrink: 0;
+                    border: 0.5px solid rgba(11,113,252,0.15);
+                }
+                .evc-top-text { flex: 1; min-width: 0; }
+                .evc-meta { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; flex-wrap: wrap; }
+                .evc-day {
+                    background: var(--brand-bright, linear-gradient(135deg,#0B71FC,#17C8D4));
+                    color: white;
+                    padding: 3px 10px;
+                    border-radius: 999px;
+                    font-size: 10px;
+                    font-weight: 800;
+                    letter-spacing: 0.4px;
+                    text-transform: uppercase;
+                    box-shadow: 0 3px 10px rgba(11,113,252,0.22);
+                }
+                .evc-time { font-size: 11.5px; font-weight: 700; color: var(--text-secondary); }
+                .evc-title {
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 16px;
+                    font-weight: 800;
+                    color: var(--cobalt);
+                    margin: 0;
+                    line-height: 1.25;
+                    letter-spacing: -0.2px;
+                    word-wrap: break-word;
+                    overflow-wrap: break-word;
+                }
+                .evc-desc {
+                    font-size: 13px;
+                    color: var(--text-primary);
+                    line-height: 1.45;
+                    margin: 0 0 12px;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 3;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    word-wrap: break-word;
+                    overflow-wrap: break-word;
+                }
+                .evc-info {
+                    display: flex; flex-direction: column; gap: 6px;
+                    background: rgba(11,76,143,0.035);
+                    border-radius: 12px;
+                    padding: 10px 12px;
+                    margin-bottom: 12px;
+                }
+                .evc-info-row {
+                    display: flex; gap: 8px; align-items: flex-start;
+                    font-size: 12.5px;
+                    color: var(--text-primary);
+                    line-height: 1.35;
+                }
+                .evc-info-emoji { flex-shrink: 0; font-size: 13px; }
+                .evc-info-text {
+                    flex: 1; min-width: 0;
+                    word-wrap: break-word;
+                    overflow-wrap: break-word;
+                }
+                .evc-info-pills { gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+                .evc-pill {
+                    display: inline-flex; align-items: center; gap: 4px;
+                    padding: 4px 10px;
+                    background: white;
+                    border-radius: 999px;
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: var(--text-secondary);
+                    border: 0.5px solid rgba(11,76,143,0.10);
+                    box-shadow: 0 1px 3px rgba(11,76,143,0.04);
+                }
+                .evc-pill-price { color: var(--cobalt); background: rgba(11,113,252,0.06); }
+                .evc-tip {
+                    background: linear-gradient(135deg, rgba(255,200,80,0.10), rgba(255,150,50,0.08));
+                    border: 0.5px solid rgba(255,180,80,0.22);
+                    border-radius: 12px;
+                    padding: 9px 12px;
+                    font-size: 12px;
+                    color: #8B5C00;
+                    line-height: 1.4;
+                    margin-bottom: 12px;
+                    word-wrap: break-word;
+                    overflow-wrap: break-word;
+                }
+                .evc-actions { display: flex; gap: 8px; }
+                .evc-btn {
+                    flex: 1;
+                    min-width: 0;
+                    text-align: center;
+                    padding: 11px 10px;
+                    border-radius: 12px;
+                    font-family: -apple-system, sans-serif;
+                    font-weight: 800;
+                    font-size: 13px;
+                    cursor: pointer;
+                    border: none;
+                    text-decoration: none;
+                    box-sizing: border-box;
+                    transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+                    /* Permitir 2 líneas si el texto es largo */
+                    white-space: normal;
+                    word-wrap: break-word;
+                    line-height: 1.2;
+                }
+                .evc-btn:active { transform: scale(0.96); }
+                .evc-btn-primary {
+                    flex: 1.5;
+                    background: var(--brand-bright, linear-gradient(135deg,#0B71FC,#17C8D4));
+                    color: white;
+                    box-shadow: 0 5px 14px rgba(11,113,252,0.26);
+                }
+                .evc-btn-secondary {
+                    background: rgba(11,76,143,0.08);
+                    color: var(--cobalt);
+                    border: 0.5px solid rgba(11,76,143,0.12);
+                }
+
                 .today-skel-wrap { display:flex; flex-direction:column; gap:14px; margin-top:4px; }
                 .today-skel-card {
                     background: rgba(255,255,255,0.7);
@@ -637,27 +778,47 @@ window.GoHappyToday = {
         const url = (e.linkUrl && /^https?:\/\//.test(e.linkUrl)) ? e.linkUrl : null;
         const linkAttr = url ? `href="${url}" target="_blank" rel="noopener"` : 'href="#" onclick="return false"';
         const t = window.GoHappyI18n ? window.GoHappyI18n.t.bind(window.GoHappyI18n) : (k => k);
-        const routeLabel = t('map.route');
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const routeLabel = lang === 'en' ? '🗺️ Route' : '🗺️ Ruta';
+        const linkLabel = safe(e.linkText || (window.t ? window.t('today.event.cta') : 'Más info'));
+
+        // Icono según categoría
+        const catIcons = {
+            taller: '🎨', teatro: '🎭', museo: '🏛️', 'aire-libre': '🌳',
+            cine: '🎬', feria: '🎡', mercado: '🛍️', ruta: '🥾'
+        };
+        const catKey = String(e.category || '').toLowerCase();
+        const icon = catIcons[catKey] || '✨';
 
         return `
-            <div class="event-card card-anim">
-                <div class="event-meta-row">
-                    <span class="event-day-badge">${safe(e.dayLabel || 'HOY')}</span>
-                    <span class="event-time">🕐 ${safe(e.time || 'Consultar')}</span>
-                    <span class="event-cat-tag">${safe(e.category || 'evento')}</span>
+            <div class="event-card-v2 card-anim">
+                <div class="evc-top">
+                    <span class="evc-icon">${icon}</span>
+                    <div class="evc-top-text">
+                        <div class="evc-meta">
+                            <span class="evc-day">${safe(e.dayLabel || 'HOY')}</span>
+                            <span class="evc-time">${safe(e.time || '')}</span>
+                        </div>
+                        <h3 class="evc-title">${safe(e.title || 'Evento')}</h3>
+                    </div>
                 </div>
-                <h3 class="event-title">${safe(e.title || 'Evento')}</h3>
-                <p class="event-desc">${safe(e.description || '')}</p>
-                <div class="event-info-grid">
-                    <div class="event-info-item">📍 <strong>${safe(e.location || '')}</strong></div>
-                    <div class="event-info-item">🚶 ${safe(e.distanceDesc || '')}</div>
-                    <div class="event-info-item">💰 <strong>${safe(e.price || 'Gratis')}</strong></div>
-                    <div class="event-info-item">👶 ${safe(e.ages || 'Familia')}</div>
+
+                ${e.description ? `<p class="evc-desc">${safe(e.description)}</p>` : ''}
+
+                <div class="evc-info">
+                    ${e.location ? `<div class="evc-info-row"><span class="evc-info-emoji">📍</span><span class="evc-info-text">${safe(e.location)}</span></div>` : ''}
+                    ${e.distanceDesc ? `<div class="evc-info-row"><span class="evc-info-emoji">🚶</span><span class="evc-info-text">${safe(e.distanceDesc)}</span></div>` : ''}
+                    <div class="evc-info-row evc-info-pills">
+                        <span class="evc-pill evc-pill-price">💰 ${safe(e.price || 'Gratis')}</span>
+                        <span class="evc-pill">👶 ${safe(e.ages || 'Familia')}</span>
+                    </div>
                 </div>
-                ${e.tip ? `<div class="event-tip"><span class="event-tip-icon">💡</span><span>${safe(e.tip)}</span></div>` : ''}
-                <div style="display:flex; gap:8px;">
-                    <a class="event-cta" ${linkAttr} style="flex:2;">${safe(e.linkText || (window.t ? window.t('today.event.cta') : 'Más info'))} →</a>
-                    <button class="event-cta event-route-btn" data-loc="${safe(e.location)}" style="flex:1; background:rgba(11,76,143,0.08); color:var(--cobalt); box-shadow:none;">${routeLabel}</button>
+
+                ${e.tip ? `<div class="evc-tip">💡 ${safe(e.tip)}</div>` : ''}
+
+                <div class="evc-actions">
+                    <a class="evc-btn evc-btn-primary" ${linkAttr}>${linkLabel}</a>
+                    <button class="evc-btn evc-btn-secondary event-route-btn" data-loc="${safe(e.location)}">${routeLabel}</button>
                 </div>
             </div>
         `;

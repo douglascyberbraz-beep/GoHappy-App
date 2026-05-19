@@ -663,12 +663,504 @@
         .feature-mockup img {
             width: 100%;
             height: 100%;
-            /* COVER llena todo el marco, mostrando la captura completa visualmente */
             object-fit: cover;
             object-position: center top;
             background: #F4F8FF;
             display: block;
         }
+
+        /* ════════════════════════════════════════════════════════════
+           MOCKUPS HTML — Capturas in-code de la app GoHappy
+           ════════════════════════════════════════════════════════════ */
+        .m-screen {
+            position: absolute; inset: 0;
+            background: linear-gradient(180deg, #FFFFFF 0%, #F0F7FF 40%, #E5F2FB 100%);
+            display: flex; flex-direction: column;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+            font-size: 9px;
+            color: #0F172A;
+            overflow: hidden;
+            padding: 26px 10px 38px;
+            box-sizing: border-box;
+        }
+        .m-statusbar {
+            position: absolute; top: 4px; left: 14px; right: 14px;
+            display: flex; justify-content: space-between;
+            font-size: 8px; font-weight: 700; color: #0F172A;
+            z-index: 5;
+        }
+        .m-sb-right { letter-spacing: 1px; font-size: 7px; }
+
+        /* Nav inferior (común a todos los mockups) */
+        .m-nav {
+            position: absolute; bottom: 6px; left: 10px; right: 10px;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(10px);
+            border: 0.5px solid rgba(255,255,255,0.95);
+            border-radius: 999px;
+            padding: 6px 8px;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 12px;
+            box-shadow: 0 4px 12px rgba(11,76,143,0.10);
+        }
+        .m-nav span { opacity: 0.45; transition: all 0.2s; }
+        .m-nav span.active { opacity: 1; transform: scale(1.15); }
+        .m-nav span.orb {
+            background: white;
+            border: 2px solid var(--cobalt);
+            border-radius: 50%;
+            width: 22px; height: 22px;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 1;
+            box-shadow: 0 3px 8px rgba(11,76,143,0.25);
+            font-size: 11px;
+        }
+        .m-nav span.orb.active { background: var(--brand-gradient); color: white; }
+
+        /* ─── TODAY ─── */
+        .m-today { padding: 20px 12px 38px; }
+        .m-hero-pad { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+        .m-greet { display: flex; gap: 8px; align-items: center; padding: 0 2px; }
+        .m-greet-emoji {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, rgba(11,113,252,0.15), rgba(23,200,212,0.20));
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+        }
+        .m-greet h4 { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 800; color: var(--cobalt); margin: 0; }
+        .m-greet p { font-size: 8px; color: #64748b; margin: 0; }
+        .m-toggle {
+            display: flex; gap: 3px; padding: 3px;
+            background: rgba(255,255,255,0.85);
+            border-radius: 999px;
+            border: 0.5px solid rgba(255,255,255,0.95);
+            box-shadow: 0 4px 10px rgba(11,76,143,0.06);
+            margin-bottom: 2px;
+        }
+        .m-toggle-pill {
+            flex: 1; padding: 4px 6px;
+            font-size: 8px; font-weight: 700; color: #64748b;
+            text-align: center; border-radius: 999px;
+            white-space: nowrap;
+        }
+        .m-toggle-pill.active {
+            background: var(--brand-bright);
+            color: white;
+            box-shadow: 0 3px 8px rgba(11,113,252,0.28);
+        }
+        .m-plan-card {
+            background: rgba(255,255,255,0.92);
+            border: 0.5px solid rgba(255,255,255,0.95);
+            border-radius: 14px;
+            padding: 9px;
+            box-shadow: 0 4px 14px rgba(11,76,143,0.06);
+        }
+        .m-plan-card.slim { padding: 7px 9px; }
+        .m-plan-head { display: flex; gap: 7px; align-items: center; }
+        .m-plan-emoji {
+            width: 26px; height: 26px;
+            background: linear-gradient(135deg, rgba(11,113,252,0.10), rgba(23,200,212,0.15));
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .m-plan-title { font-size: 10px; font-weight: 800; color: var(--cobalt); }
+        .m-plan-meta { font-size: 7.5px; color: #64748b; margin-top: 1px; }
+        .m-plan-desc {
+            font-size: 8.5px; color: #475569; line-height: 1.4;
+            margin: 6px 0; padding: 0 2px;
+        }
+        .m-plan-cta {
+            background: var(--brand-bright);
+            color: white;
+            border-radius: 8px;
+            padding: 5px;
+            text-align: center;
+            font-size: 8.5px; font-weight: 800;
+            margin-top: 4px;
+            box-shadow: 0 3px 8px rgba(11,113,252,0.28);
+        }
+
+        /* ─── MAP ─── */
+        .m-map {
+            background: linear-gradient(180deg, #C5D9EE 0%, #A5C0E0 100%);
+            padding: 26px 10px 38px;
+        }
+        .m-map-tiles {
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(11,76,143,0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(11,76,143,0.08) 1px, transparent 1px),
+                radial-gradient(circle at 30% 40%, rgba(34,197,94,0.30) 0%, transparent 30%),
+                radial-gradient(circle at 70% 65%, rgba(23,200,212,0.25) 0%, transparent 25%),
+                linear-gradient(135deg, #B8D4EE 0%, #94BEDD 100%);
+            background-size: 24px 24px, 24px 24px, 100% 100%, 100% 100%, 100% 100%;
+        }
+        .m-search-bar {
+            position: relative; z-index: 2;
+            background: rgba(255,255,255,0.92);
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-size: 9px;
+            color: #64748b;
+            font-weight: 600;
+            border: 0.5px solid rgba(255,255,255,0.95);
+            box-shadow: 0 4px 12px rgba(11,76,143,0.14);
+            margin-bottom: 6px;
+        }
+        .m-chips { position: relative; z-index: 2; display: flex; gap: 4px; overflow: hidden; }
+        .m-chip {
+            background: rgba(255,255,255,0.85);
+            padding: 4px 9px;
+            border-radius: 999px;
+            font-size: 8px; font-weight: 700;
+            color: var(--cobalt);
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(11,76,143,0.08);
+        }
+        .m-chip.active { background: var(--cobalt); color: white; }
+        .m-pin {
+            position: absolute;
+            width: 28px; height: 28px;
+            border-radius: 50% 50% 50% 0;
+            background: white;
+            border: 2px solid var(--cobalt);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px;
+            transform: rotate(-45deg);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+            z-index: 3;
+        }
+        .m-pin > * { transform: rotate(45deg); }
+        .m-pin-1 { top: 40%; left: 25%; }
+        .m-pin-2 { top: 55%; left: 60%; }
+        .m-pin-3.me { top: 65%; left: 38%; border-color: var(--cyan); background: var(--cyan); color: white; }
+        .m-fab {
+            position: absolute; bottom: 56px; right: 14px;
+            width: 36px; height: 36px;
+            background: var(--brand-bright);
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; font-weight: 800;
+            box-shadow: 0 6px 16px rgba(11,113,252,0.40);
+            z-index: 4;
+        }
+
+        /* ─── CARE ─── */
+        .m-care { padding: 22px 10px 38px; }
+        .m-care-header {
+            display: flex; gap: 8px; align-items: center;
+            background: linear-gradient(135deg, rgba(255,138,101,0.10), rgba(255,107,107,0.08));
+            border-radius: 12px;
+            padding: 8px;
+            margin-bottom: 8px;
+            border: 0.5px solid rgba(255,138,101,0.20);
+        }
+        .m-care-avatar {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, #FF8A65, #FF6B6B);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+        }
+        .m-care-name { font-size: 11px; font-weight: 800; color: #C2410C; }
+        .m-care-sub { font-size: 8px; color: #9A3412; }
+        .m-care-chat { flex: 1; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+        .m-bubble {
+            padding: 7px 10px;
+            border-radius: 14px;
+            font-size: 8.5px;
+            line-height: 1.4;
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+        .m-bubble.user {
+            background: var(--brand-bright);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .m-bubble.bot {
+            background: white;
+            color: #0F172A;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(11,76,143,0.06);
+            border: 0.5px solid rgba(11,76,143,0.08);
+        }
+        .m-bubble.typing {
+            display: flex; gap: 2px; align-items: center; padding: 6px 10px;
+        }
+        .m-bubble.typing span {
+            width: 4px; height: 4px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: mDots 1.2s ease-in-out infinite;
+        }
+        .m-bubble.typing span:nth-child(2) { animation-delay: 0.2s; }
+        .m-bubble.typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes mDots { 0%, 60%, 100% { opacity: 0.3; } 30% { opacity: 1; } }
+        .m-care-input {
+            display: flex; gap: 6px; align-items: center;
+            background: white;
+            border-radius: 999px;
+            padding: 5px 6px 5px 12px;
+            border: 0.5px solid rgba(11,76,143,0.10);
+            margin-bottom: 38px;
+            box-shadow: 0 2px 6px rgba(11,76,143,0.06);
+        }
+        .m-input-text { flex: 1; font-size: 9px; color: #94a3b8; }
+        .m-send {
+            width: 22px; height: 22px;
+            background: var(--brand-bright);
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 800;
+        }
+
+        /* ─── QUESTS ─── */
+        .m-quests { padding: 22px 10px 38px; }
+        .m-q-header { text-align: center; margin-bottom: 8px; }
+        .m-q-header h4 { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 800; color: var(--cobalt); margin: 0; }
+        .m-q-header p { font-size: 8px; color: #64748b; margin: 1px 0 6px; }
+        .m-q-stats { display: flex; gap: 6px; justify-content: center; }
+        .m-q-stat {
+            background: white;
+            border-radius: 10px;
+            padding: 5px 8px;
+            box-shadow: 0 2px 6px rgba(11,76,143,0.06);
+            text-align: center;
+            min-width: 38px;
+        }
+        .m-q-stat-val {
+            display: block; font-size: 13px; font-weight: 900;
+            color: var(--cobalt);
+            font-family: 'Poppins', sans-serif;
+        }
+        .m-q-stat-val.done { color: #22C55E; }
+        .m-q-stat-lbl { display: block; font-size: 7px; font-weight: 700; color: #64748b; }
+        .m-q-card {
+            display: flex; gap: 7px; align-items: center;
+            background: white;
+            border-radius: 12px;
+            padding: 7px 9px;
+            margin-top: 6px;
+            box-shadow: 0 2px 6px rgba(11,76,143,0.05);
+            border-left: 3px solid var(--cobalt-bright);
+        }
+        .m-q-icon { font-size: 16px; flex-shrink: 0; }
+        .m-q-text { flex: 1; min-width: 0; }
+        .m-q-title { font-size: 9.5px; font-weight: 800; color: var(--cobalt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .m-q-pts { font-size: 8px; font-weight: 700; color: #64748b; }
+        .m-q-check {
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            border: 1.5px solid #cbd5e1;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 900;
+            color: transparent;
+            flex-shrink: 0;
+        }
+        .m-q-card:first-of-type .m-q-check { background: #22C55E; border-color: #22C55E; color: white; }
+
+        /* ─── MOMENTS ─── */
+        .m-moments { padding: 22px 10px 38px; }
+        .m-mom-header { text-align: center; margin-bottom: 6px; }
+        .m-mom-header h4 { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 800; color: var(--cobalt); margin: 0; }
+        .m-mom-header p { font-size: 7.5px; color: #64748b; margin: 1px 0 4px; }
+        .m-mom-card {
+            background: white;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(11,76,143,0.06);
+            margin-top: 5px;
+            border: 0.5px solid rgba(255,255,255,0.95);
+        }
+        .m-mom-card.slim { display: flex; gap: 6px; padding: 6px; align-items: center; }
+        .m-mom-meta { display: flex; gap: 6px; align-items: center; padding: 6px 8px 4px; }
+        .m-mom-av {
+            width: 22px; height: 22px;
+            background: linear-gradient(135deg, var(--cobalt), var(--cyan));
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px;
+            color: white;
+            flex-shrink: 0;
+        }
+        .m-mom-name { font-size: 9px; font-weight: 800; color: var(--cobalt); line-height: 1; }
+        .m-mom-time { font-size: 7px; color: #94a3b8; margin-top: 1px; }
+        .m-mom-img {
+            height: 70px;
+            background-size: cover;
+            background-position: center;
+        }
+        .m-mom-img-1 { background: linear-gradient(135deg, #FDE68A 0%, #FCA5A5 60%, #93C5FD 100%); position: relative; }
+        .m-mom-img-1::after { content: '🚲'; position: absolute; bottom: 8px; right: 12px; font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+        .m-mom-img-2 { width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg, #86EFAC 0%, #67E8F9 100%); flex-shrink: 0; }
+        .m-mom-card.slim .m-mom-meta { padding: 0; flex: 1; }
+        .m-mom-cap { font-size: 8.5px; padding: 4px 9px 2px; color: #0F172A; }
+        .m-mom-reacts {
+            display: flex; gap: 7px; padding: 4px 9px 7px;
+            font-size: 8px; color: #64748b; font-weight: 600;
+        }
+        .m-mom-fab {
+            position: absolute; bottom: 56px; right: 14px;
+            width: 38px; height: 38px;
+            background: var(--brand-bright);
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 6px 16px rgba(11,113,252,0.36);
+            z-index: 4;
+        }
+
+        /* ─── RANKING ─── */
+        .m-ranking { padding: 22px 10px 38px; }
+        .m-r-header { text-align: center; margin-bottom: 5px; }
+        .m-r-header h4 { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 900; color: var(--cobalt); margin: 0; letter-spacing: 0.5px; }
+        .m-r-header p { font-size: 7.5px; color: #64748b; margin: 1px 0 6px; }
+        .m-r-toggle {
+            display: flex; gap: 3px; padding: 3px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 999px;
+            border: 0.5px solid rgba(11,76,143,0.10);
+            margin-bottom: 6px;
+            box-shadow: 0 3px 8px rgba(11,76,143,0.06);
+        }
+        .m-r-toggle span {
+            flex: 1; text-align: center; padding: 4px 6px;
+            font-size: 8px; font-weight: 700;
+            color: #64748b; border-radius: 999px;
+        }
+        .m-r-toggle span.active { background: var(--brand-bright); color: white; }
+        .m-r-podium {
+            display: flex; gap: 4px; align-items: flex-end;
+            justify-content: center; padding: 8px 4px 8px;
+        }
+        .m-r-pod {
+            flex: 1; max-width: 32%;
+            background: white;
+            border-radius: 12px;
+            padding: 7px 4px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(11,76,143,0.08);
+            border: 0.5px solid rgba(255,255,255,0.95);
+        }
+        .m-r-pod.large {
+            transform: translateY(-4px);
+            background: linear-gradient(160deg, #FFFFFF, rgba(184,240,244,0.5));
+            border: 0.5px solid rgba(23,200,212,0.45);
+            box-shadow: 0 6px 16px rgba(11,76,143,0.14);
+        }
+        .m-r-pod-medal { font-size: 14px; line-height: 1; }
+        .m-r-pod-avatar {
+            width: 24px; height: 24px;
+            background: linear-gradient(135deg, var(--cobalt), var(--cyan));
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 3px auto;
+            font-size: 12px;
+        }
+        .m-r-pod-name { font-size: 8px; font-weight: 800; color: var(--cobalt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .m-r-pod-pts { font-size: 7.5px; font-weight: 700; color: #64748b; margin-top: 1px; }
+        .m-r-row {
+            display: flex; gap: 6px; align-items: center;
+            background: white;
+            border-radius: 10px;
+            padding: 5px 8px;
+            margin-top: 4px;
+            box-shadow: 0 2px 5px rgba(11,76,143,0.05);
+            font-size: 8.5px;
+        }
+        .m-r-row > span:first-child { font-weight: 800; color: #94a3b8; font-size: 8px; }
+        .m-r-thumb {
+            width: 22px; height: 22px; border-radius: 8px;
+            background: linear-gradient(135deg, #67E8F9, #93C5FD);
+            flex-shrink: 0;
+        }
+        .m-r-info { flex: 1; font-weight: 700; color: var(--cobalt); }
+
+        /* ─── PROFILE ─── */
+        .m-profile { padding: 22px 10px 38px; }
+        .m-p-hero {
+            background: linear-gradient(180deg, #FFFFFF, #F0F7FF);
+            border-radius: 14px;
+            padding: 10px 8px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(11,76,143,0.08);
+            margin-bottom: 6px;
+        }
+        .m-p-avatar {
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, var(--cobalt), var(--cyan));
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 4px;
+            font-size: 18px;
+            box-shadow: 0 4px 10px rgba(11,76,143,0.20);
+        }
+        .m-p-name { font-size: 10px; font-weight: 800; color: var(--cobalt); }
+        .m-p-pts {
+            display: inline-block;
+            background: var(--brand-bright);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 8.5px; font-weight: 900;
+            margin: 3px 0 4px;
+            box-shadow: 0 3px 8px rgba(11,113,252,0.28);
+        }
+        .m-p-bar {
+            height: 4px;
+            background: rgba(11,76,143,0.10);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .m-p-bar-fill {
+            height: 100%;
+            width: 65%;
+            background: var(--brand-bright);
+            border-radius: 999px;
+        }
+        .m-p-dna {
+            background: linear-gradient(135deg, rgba(11,113,252,0.10), rgba(23,200,212,0.12));
+            border: 0.5px solid rgba(11,113,252,0.20);
+            border-radius: 12px;
+            padding: 8px;
+            margin-bottom: 6px;
+        }
+        .m-p-dna-title { font-size: 8.5px; font-weight: 800; color: var(--cobalt); margin-bottom: 4px; }
+        .m-p-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+        .m-p-tag {
+            background: white;
+            padding: 3px 7px;
+            border-radius: 999px;
+            font-size: 7.5px;
+            font-weight: 700;
+            color: var(--cobalt);
+            box-shadow: 0 1px 3px rgba(11,76,143,0.06);
+        }
+        .m-p-actions { display: flex; gap: 5px; }
+        .m-p-action {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            padding: 7px 4px;
+            text-align: center;
+            display: flex; flex-direction: column; gap: 2px;
+            align-items: center;
+            box-shadow: 0 2px 6px rgba(11,76,143,0.06);
+        }
+        .m-p-action span:first-child { font-size: 16px; }
+        .m-p-action span:last-child { font-size: 7.5px; font-weight: 700; color: var(--cobalt); }
 
         .feature-icon {
             font-size: 32px;
@@ -1100,7 +1592,50 @@
         <div class="hero-mockup fade-up" data-delay="2">
             <div class="phone">
                 <div class="phone-screen">
-                    <img src="assets/ss_today.png" alt="App Today" style="width: 100%; height: 100%; object-fit: cover; object-position: center top; background: #F4F8FF; display: block;">
+                    <!-- MOCKUP TODAY (HTML+CSS, sin imágenes) -->
+                    <div class="m-screen m-today">
+                        <div class="m-statusbar">
+                            <span>9:41</span>
+                            <span class="m-sb-right">📶 📶 🔋</span>
+                        </div>
+                        <div class="m-hero-pad">
+                            <div class="m-greet">
+                                <div class="m-greet-emoji">✨</div>
+                                <div>
+                                    <h4>Tu día hoy</h4>
+                                    <p>📍 Valladolid</p>
+                                </div>
+                            </div>
+                            <div class="m-toggle">
+                                <span class="m-toggle-pill active">🪄 Planes</span>
+                                <span class="m-toggle-pill">🎫 Eventos</span>
+                                <span class="m-toggle-pill">📅 Semana</span>
+                            </div>
+                            <div class="m-plan-card">
+                                <div class="m-plan-head">
+                                    <span class="m-plan-emoji">🌳</span>
+                                    <div>
+                                        <div class="m-plan-title">Mañana en el Pinar</div>
+                                        <div class="m-plan-meta">Outdoor · 11:00 · Gratis</div>
+                                    </div>
+                                </div>
+                                <p class="m-plan-desc">Perfecto para 3-7 años. Rutas cortas y zonas de pícnic.</p>
+                                <div class="m-plan-cta">✨ Guardar plan</div>
+                            </div>
+                            <div class="m-plan-card slim">
+                                <div class="m-plan-head">
+                                    <span class="m-plan-emoji">🏛️</span>
+                                    <div>
+                                        <div class="m-plan-title">Museo Ciencia</div>
+                                        <div class="m-plan-meta">Indoor · 17:00 · 5€</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="m-nav">
+                            <span>⚔️</span><span>🧡</span><span class="active">✨</span><span class="orb">📍</span><span>🏆</span><span>💝</span><span>👤</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1145,7 +1680,22 @@
             <div class="features-grid">
                 <div class="feature-card fade-up">
                     <div class="feature-mockup">
-                        <img src="assets/ss_map.png" alt="Map">
+                        <div class="m-screen m-map">
+                            <div class="m-map-tiles"></div>
+                            <div class="m-search-bar">🔍 ¿Qué buscas hoy?</div>
+                            <div class="m-chips">
+                                <span class="m-chip active">Todo</span>
+                                <span class="m-chip">🌳 Parques</span>
+                                <span class="m-chip">🎓 Museos</span>
+                            </div>
+                            <div class="m-pin m-pin-1">📍</div>
+                            <div class="m-pin m-pin-2">🌳</div>
+                            <div class="m-pin m-pin-3 me">🎯</div>
+                            <div class="m-fab">+</div>
+                            <div class="m-nav">
+                                <span>⚔️</span><span>🧡</span><span>✨</span><span class="orb active">📍</span><span>🏆</span><span>💝</span><span>👤</span>
+                            </div>
+                        </div>
                     </div>
                     <span class="feature-icon">📍</span>
                     <h3 class="feature-title" data-en="Interactive 3D Map">Mapa 3D Interactivo</h3>
@@ -1153,7 +1703,22 @@
                 </div>
                 <div class="feature-card fade-up" data-delay="1">
                     <div class="feature-mockup">
-                        <img src="assets/ss_today.png" alt="Today">
+                        <div class="m-screen m-today">
+                            <div class="m-statusbar"><span>9:41</span><span class="m-sb-right">📶 🔋</span></div>
+                            <div class="m-hero-pad">
+                                <div class="m-greet"><div class="m-greet-emoji">✨</div><div><h4>Tu día hoy</h4><p>📍 Valladolid</p></div></div>
+                                <div class="m-toggle">
+                                    <span class="m-toggle-pill active">🪄 Planes</span>
+                                    <span class="m-toggle-pill">🎫 Eventos</span>
+                                </div>
+                                <div class="m-plan-card">
+                                    <div class="m-plan-head"><span class="m-plan-emoji">🌳</span><div><div class="m-plan-title">Pinar de Antequera</div><div class="m-plan-meta">11:00 · Gratis</div></div></div>
+                                    <div class="m-plan-cta">✨ Guardar</div>
+                                </div>
+                                <div class="m-plan-card slim"><div class="m-plan-head"><span class="m-plan-emoji">🏛️</span><div><div class="m-plan-title">Museo Ciencia</div><div class="m-plan-meta">17:00 · 5€</div></div></div></div>
+                            </div>
+                            <div class="m-nav"><span>⚔️</span><span>🧡</span><span class="active">✨</span><span class="orb">📍</span><span>🏆</span><span>💝</span><span>👤</span></div>
+                        </div>
                     </div>
                     <span class="feature-icon">✨</span>
                     <h3 class="feature-title" data-en="Today — AI Concierge">Today — IA Concierge</h3>
@@ -1161,7 +1726,22 @@
                 </div>
                 <div class="feature-card fade-up" data-delay="2">
                     <div class="feature-mockup">
-                        <img src="assets/ss_care.png" alt="Care">
+                        <div class="m-screen m-care">
+                            <div class="m-care-header">
+                                <div class="m-care-avatar">🧡</div>
+                                <div><div class="m-care-name">Care</div><div class="m-care-sub">Coach IA · 24/7</div></div>
+                            </div>
+                            <div class="m-care-chat">
+                                <div class="m-bubble user">Mi hijo de 4 años tiene rabietas cuando le digo no…</div>
+                                <div class="m-bubble bot">
+                                    <strong>Te entiendo 💙</strong> A los 4 años el cerebro emocional aún no regula bien la frustración. Prueba:
+                                    <br><br>1. Bajarte a su altura<br>2. Validar la emoción<br>3. Ofrecer 2 opciones simples
+                                </div>
+                                <div class="m-bubble user typing"><span></span><span></span><span></span></div>
+                            </div>
+                            <div class="m-care-input"><span class="m-input-text">Pregunta a Care…</span><span class="m-send">↑</span></div>
+                            <div class="m-nav"><span>⚔️</span><span class="active">🧡</span><span>✨</span><span class="orb">📍</span><span>🏆</span><span>💝</span><span>👤</span></div>
+                        </div>
                     </div>
                     <span class="feature-icon">🤖</span>
                     <h3 class="feature-title" data-en="Care — AI Coach">Care — Coach IA</h3>
@@ -1169,7 +1749,33 @@
                 </div>
                 <div class="feature-card fade-up" data-delay="3">
                     <div class="feature-mockup">
-                        <img src="assets/ss_quests.png" alt="Quests">
+                        <div class="m-screen m-quests">
+                            <div class="m-q-header">
+                                <h4>⚔️ Quests</h4>
+                                <p>Misiones Familiares</p>
+                                <div class="m-q-stats">
+                                    <div class="m-q-stat"><span class="m-q-stat-val">5</span><span class="m-q-stat-lbl">Libres</span></div>
+                                    <div class="m-q-stat"><span class="m-q-stat-val done">3</span><span class="m-q-stat-lbl">Hechas</span></div>
+                                    <div class="m-q-stat"><span class="m-q-stat-val">240</span><span class="m-q-stat-lbl">Puntos</span></div>
+                                </div>
+                            </div>
+                            <div class="m-q-card">
+                                <span class="m-q-icon">🌳</span>
+                                <div class="m-q-text"><div class="m-q-title">Paseo sin Pantallas</div><div class="m-q-pts">+50 pts</div></div>
+                                <div class="m-q-check">✓</div>
+                            </div>
+                            <div class="m-q-card">
+                                <span class="m-q-icon">🥞</span>
+                                <div class="m-q-text"><div class="m-q-title">Desayuno Familiar</div><div class="m-q-pts">+40 pts</div></div>
+                                <div class="m-q-check"></div>
+                            </div>
+                            <div class="m-q-card">
+                                <span class="m-q-icon">📖</span>
+                                <div class="m-q-text"><div class="m-q-title">Cuento en voz alta</div><div class="m-q-pts">+60 pts</div></div>
+                                <div class="m-q-check"></div>
+                            </div>
+                            <div class="m-nav"><span class="active">⚔️</span><span>🧡</span><span>✨</span><span class="orb">📍</span><span>🏆</span><span>💝</span><span>👤</span></div>
+                        </div>
                     </div>
                     <span class="feature-icon">⚔️</span>
                     <h3 class="feature-title" data-en="Quests — Missions">Quests — Misiones</h3>
@@ -1177,7 +1783,24 @@
                 </div>
                 <div class="feature-card fade-up">
                     <div class="feature-mockup">
-                        <img src="assets/ss_moments.png" alt="Moments">
+                        <div class="m-screen m-moments">
+                            <div class="m-mom-header">
+                                <h4>💝 Moments</h4>
+                                <p>Vuestra Tribu privada</p>
+                            </div>
+                            <div class="m-mom-card">
+                                <div class="m-mom-meta"><div class="m-mom-av">👨</div><div><div class="m-mom-name">Papá</div><div class="m-mom-time">hace 2h</div></div></div>
+                                <div class="m-mom-img m-mom-img-1"></div>
+                                <div class="m-mom-cap">¡Primera bici sin ruedines! 🚲</div>
+                                <div class="m-mom-reacts"><span>❤️ 3</span><span>🥰 2</span><span>💬</span></div>
+                            </div>
+                            <div class="m-mom-card slim">
+                                <div class="m-mom-meta"><div class="m-mom-av">👩</div><div><div class="m-mom-name">Mamá</div><div class="m-mom-time">ayer</div></div></div>
+                                <div class="m-mom-img m-mom-img-2"></div>
+                            </div>
+                            <div class="m-mom-fab">📷</div>
+                            <div class="m-nav"><span>⚔️</span><span>🧡</span><span>✨</span><span class="orb">📍</span><span>🏆</span><span class="active">💝</span><span>👤</span></div>
+                        </div>
                     </div>
                     <span class="feature-icon">💝</span>
                     <h3 class="feature-title" data-en="Moments — Memories">Moments — Recuerdos</h3>
@@ -1185,7 +1808,33 @@
                 </div>
                 <div class="feature-card fade-up" data-delay="1">
                     <div class="feature-mockup">
-                        <img src="assets/ss_ranking.png" alt="Ranking">
+                        <div class="m-screen m-ranking">
+                            <div class="m-r-header"><h4>🏆 TOP TRIBU</h4><p>Esta semana</p></div>
+                            <div class="m-r-toggle"><span class="active">🌟 Sitios</span><span>🤝 Miembros</span></div>
+                            <div class="m-r-podium">
+                                <div class="m-r-pod medium">
+                                    <div class="m-r-pod-medal">🥈</div>
+                                    <div class="m-r-pod-avatar">📍</div>
+                                    <div class="m-r-pod-name">Pinar</div>
+                                    <div class="m-r-pod-pts">⭐ 4.6</div>
+                                </div>
+                                <div class="m-r-pod large">
+                                    <div class="m-r-pod-medal">🥇</div>
+                                    <div class="m-r-pod-avatar">📍</div>
+                                    <div class="m-r-pod-name">Museo</div>
+                                    <div class="m-r-pod-pts">⭐ 4.9</div>
+                                </div>
+                                <div class="m-r-pod medium">
+                                    <div class="m-r-pod-medal">🥉</div>
+                                    <div class="m-r-pod-avatar">⭐</div>
+                                    <div class="m-r-pod-name">Parque</div>
+                                    <div class="m-r-pod-pts">⭐ 4.5</div>
+                                </div>
+                            </div>
+                            <div class="m-r-row"><span>#4</span><div class="m-r-thumb"></div><div class="m-r-info">Plaza Mayor</div><div>⭐ 4.4</div></div>
+                            <div class="m-r-row"><span>#5</span><div class="m-r-thumb"></div><div class="m-r-info">Río Pisuerga</div><div>⭐ 4.3</div></div>
+                            <div class="m-nav"><span>⚔️</span><span>🧡</span><span>✨</span><span class="orb">📍</span><span class="active">🏆</span><span>💝</span><span>👤</span></div>
+                        </div>
                     </div>
                     <span class="feature-icon">🏆</span>
                     <h3 class="feature-title" data-en="Top — Gamification">Top — Gamificación</h3>
@@ -1193,7 +1842,27 @@
                 </div>
                 <div class="feature-card fade-up" data-delay="2">
                     <div class="feature-mockup">
-                        <img src="assets/ss_profile.png" alt="Profile">
+                        <div class="m-screen m-profile">
+                            <div class="m-p-hero">
+                                <div class="m-p-avatar">👨‍👩‍👧</div>
+                                <div class="m-p-name">Familia García</div>
+                                <div class="m-p-pts">1.240 PTS</div>
+                                <div class="m-p-bar"><div class="m-p-bar-fill"></div></div>
+                            </div>
+                            <div class="m-p-dna">
+                                <div class="m-p-dna-title">🧬 Vuestro ADN familiar</div>
+                                <div class="m-p-tags">
+                                    <span class="m-p-tag">🌿 Naturaleza</span>
+                                    <span class="m-p-tag">🏛️ Museos</span>
+                                    <span class="m-p-tag">🎭 Cultura</span>
+                                </div>
+                            </div>
+                            <div class="m-p-actions">
+                                <div class="m-p-action"><span>📸</span><span>Recuerdos</span></div>
+                                <div class="m-p-action"><span>🎁</span><span>Invitar</span></div>
+                            </div>
+                            <div class="m-nav"><span>⚔️</span><span>🧡</span><span>✨</span><span class="orb">📍</span><span>🏆</span><span>💝</span><span class="active">👤</span></div>
+                        </div>
                     </div>
                     <span class="feature-icon">👤</span>
                     <h3 class="feature-title" data-en="Profile &amp; Family">Perfil & Familia</h3>
