@@ -378,7 +378,8 @@ body {
     right: 0 !important;
     bottom: var(--nav-total) !important;
     overflow-y: auto !important;
-    overflow-x: hidden !important;
+    /* overflow-x: clip — antes era hidden, cortaba esquinas con border-radius + transform */
+    overflow-x: clip !important;
     background: var(--bg-app);
     padding-bottom: 8px !important;
 }
@@ -1405,7 +1406,8 @@ input:focus, textarea:focus, .post-input:focus, .review-input:focus, .auth-input
     padding: 14px 6px !important;
     text-align: center !important;
     box-sizing: border-box !important;
-    overflow: hidden !important;
+    /* overflow: visible — antes era hidden, cortaba las esquinas del border-radius */
+    overflow: visible !important;
     /* Permitir que el contenido fluya sin recortes verticales */
     height: auto !important;
     min-height: 150px !important;
