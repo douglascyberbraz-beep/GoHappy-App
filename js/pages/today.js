@@ -87,7 +87,7 @@ window.GoHappyToday = {
                 </div>
 
                 <!-- Contenedor dinámico de vistas -->
-                <div id="today-view-content" style="padding: 0 16px calc(var(--nav-total, 110px) + 24px);">
+                <div id="today-view-content" style="padding: 0 14px calc(var(--nav-total, 110px) + 24px); width:100%; box-sizing:border-box;">
                     ${window.GoHappyToday._skeletonCards(3)}
                 </div>
             </div>

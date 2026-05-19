@@ -1225,22 +1225,33 @@ input:focus, textarea:focus, .post-input:focus, .review-input:focus, .auth-input
     padding-right: 16px !important;
 }
 
-/* ── 16. TODAY plan cards — sin recortes, esquinas premium ─────── */
-.plan-card-premium {
+/* ── 16. TODAY plan/event cards — sin recortes, esquinas premium ─ */
+.plan-card-premium,
+.event-card {
     background: rgba(255,255,255,0.92) !important;
     backdrop-filter: var(--glass-blur-sm) !important;
     -webkit-backdrop-filter: var(--glass-blur-sm) !important;
-    border-radius: 28px !important;
-    padding: 22px !important;
-    margin-bottom: 16px !important;
+    border-radius: 24px !important;
+    padding: 18px !important;
+    /* Margin lateral pequeño para que el box-shadow respire sin tocar bordes */
+    margin: 0 2px 14px !important;
     border: 0.5px solid rgba(255,255,255,0.95) !important;
     box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.95),
         0 8px 28px rgba(11,76,143,0.08),
         0 2px 6px rgba(11,76,143,0.04) !important;
     overflow: hidden !important;
-    width: 100% !important;
+    width: calc(100% - 4px) !important;
     box-sizing: border-box !important;
+    position: relative !important;
+}
+/* Contenedor padre debe permitir que el box-shadow se vea */
+#today-view-content {
+    overflow: visible !important;
+}
+.today-page {
+    overflow-x: clip !important;
+    overflow-y: visible !important;
 }
 
 .plan-card-premium h3 {
@@ -1339,11 +1350,12 @@ input:focus, textarea:focus, .post-input:focus, .review-input:focus, .auth-input
     align-items: flex-end !important;
     justify-content: center !important;
     gap: 8px !important;
-    padding: 24px 16px 24px !important;
-    margin: 0 !important;
-    margin-bottom: 16px !important;
+    /* padding-top amplio para que el translateY(-8px) de .large no se corte */
+    padding: 28px 12px 30px !important;
+    margin: 0 0 16px !important;
     width: 100% !important;
     box-sizing: border-box !important;
+    overflow: visible !important;
 }
 
 /* Toggle pills sobre fondo claro — más espaciado y legible */
@@ -1363,9 +1375,10 @@ input:focus, textarea:focus, .post-input:focus, .review-input:focus, .auth-input
     justify-content: center !important;
     align-items: flex-end !important;
     gap: 8px !important;
-    padding: 10px 16px 30px !important;
+    padding: 28px 12px 30px !important;
     width: 100% !important;
     box-sizing: border-box !important;
+    overflow: visible !important;
 }
 .ranking-toggle-pills .rank-toggle-btn {
     flex: 1 !important;
@@ -1388,18 +1401,44 @@ input:focus, textarea:focus, .post-input:focus, .review-input:focus, .auth-input
 .podium-card {
     flex: 1 1 0 !important;
     min-width: 0 !important;
-    max-width: 32% !important;
-    padding: 14px 8px !important;
+    max-width: 33% !important;
+    padding: 14px 6px !important;
     text-align: center !important;
     box-sizing: border-box !important;
+    overflow: hidden !important;
+    /* Permitir que el contenido fluya sin recortes verticales */
+    height: auto !important;
+    min-height: 150px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
 }
 .podium-card.medium {
-    height: 160px !important;
+    min-height: 158px !important;
+    height: auto !important;
 }
 .podium-card.large {
-    height: 170px !important;
+    min-height: 170px !important;
+    height: auto !important;
     z-index: 2 !important;
-    transform: translateY(-8px) !important;
+    transform: translateY(-6px) !important;
+}
+.podium-info {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 0 4px !important;
+    box-sizing: border-box !important;
+}
+.podium-info h4 {
+    max-width: 100% !important;
+}
+.podium-info .stars,
+.podium-info .points {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: 100% !important;
 }
 .podium-rank {
     font-size: 22px !important;
