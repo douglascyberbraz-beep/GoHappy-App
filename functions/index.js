@@ -15,19 +15,23 @@ const db = getFirestore();
 // Clave Gemini como Secret de Firebase (nunca en código)
 const GEMINI_KEY = defineSecret('GEMINI_KEY');
 
-// Modelos en orden de preferencia. Si uno falla con 429/503, intentamos el siguiente.
-// Verificado 2026-05-10: gemini-1.5-* RETIRADOS (404). 2.0-flash agotado (429).
-// LITE tienen MÁS cuota free tier (10x más TPM) → ideal como fallback.
+// Modelos: FLASH-LITE PRIMERO porque es 2-3x más rápido y tiene 10x más cuota.
+// La calidad para nuestro caso (planes/eventos) es suficiente.
+// Solo subimos a flash regular si lite falla.
 const GEMINI_MODELS = [
-    'gemini-2.5-flash',           // calidad alta, primera opción
-    'gemini-flash-latest',         // alias estable
-    'gemini-2.5-flash-lite',       // más cuota (fallback rápido)
-    'gemini-flash-lite-latest'     // alias lite
+    'gemini-2.5-flash-lite',       // ~1-2s respuesta, máxima cuota → DEFAULT
+    'gemini-flash-lite-latest',    // alias estable lite
+    'gemini-2.5-flash',            // fallback calidad alta (~3-5s)
+    'gemini-flash-latest'          // último fallback
 ];
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 // Cache TTL — respuestas idénticas se sirven desde caché
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hora
+// Eventos y planes son muy estables → 6h es razonable y reduce llamadas drásticamente
+const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 horas
+
+// Timeout por modelo (corto para fallar rápido y probar el siguiente)
+const MODEL_TIMEOUT_MS = 12000;
 
 // BETA TEST MODE: TODOS los usuarios disfrutan PREMIUM ilimitado
 // Al lanzar producción, restablecer límites por plan
@@ -182,11 +186,22 @@ exports.geminiProxy = onRequest(
                 ]
             };
 
+            // GenerationConfig optimizada para velocidad
+            const baseGenConfig = {
+                temperature: 0.7,          // creatividad moderada (más rápido que 0.9+)
+                topP: 0.85,                 // limita exploración → respuestas más rápidas
+                maxOutputTokens: 2048,      // suficiente para 6 eventos/planes JSON
+                candidateCount: 1
+            };
+
             if (needsSearch) {
                 // Activar Search Grounding (no compatible con response_mime_type=json)
                 body.tools = [{ googleSearch: {} }];
+                body.generationConfig = baseGenConfig;
             } else if (expectJson) {
-                body.generationConfig = { response_mime_type: 'application/json' };
+                body.generationConfig = { ...baseGenConfig, response_mime_type: 'application/json' };
+            } else {
+                body.generationConfig = baseGenConfig;
             }
 
             // Intentar cada modelo en orden hasta encontrar uno disponible
@@ -200,7 +215,7 @@ exports.geminiProxy = onRequest(
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(body),
-                        signal: AbortSignal.timeout(25000)
+                        signal: AbortSignal.timeout(MODEL_TIMEOUT_MS)
                     });
 
                     if (r.ok) {

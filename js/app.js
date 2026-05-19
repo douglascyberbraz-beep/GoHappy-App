@@ -67,6 +67,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         try { window.GoHappyProactive.init(); } catch (e) {}
     }
 
+    // PREFETCH: calentar caches de Today en background tan pronto haya auth
+    // Esto hace que cuando el usuario abra Today, ya tenga datos listos en <100ms
+    const prefetchTodayData = async () => {
+        try {
+            const user = window.GoHappyAuth?.checkAuth?.();
+            if (!user || user.isGuest) return;
+            const coords = window.lastKnownCoords || localStorage.getItem('GoHappy_last_coords') || '41.6520,-4.7286';
+
+            // Prefetch en paralelo (fire-and-forget) — la respuesta queda cacheada
+            if (window.GoHappyAI?.getRealEvents) {
+                window.GoHappyAI.getRealEvents(coords, 'finde').catch(() => {});
+            }
+            const prefs = localStorage.getItem('GoHappy_family_prefs');
+            if (prefs && window.GoHappyAI?.getTodayActivities) {
+                try {
+                    window.GoHappyAI.getTodayActivities(coords, JSON.parse(prefs)).catch(() => {});
+                } catch (e) {}
+            }
+        } catch (e) { /* silent */ }
+    };
+
+    // Esperar 2s tras splash para no competir con el render inicial
+    setTimeout(prefetchTodayData, 2500);
+
     // Banner de cookies (GDPR/UK GDPR) — primera visita
     if (window.GoHappyCookies) {
         try { window.GoHappyCookies.init(); } catch (e) { console.warn('cookies init:', e); }

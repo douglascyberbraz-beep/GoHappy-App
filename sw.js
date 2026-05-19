@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gohappy-cache-v5.3.1';
+const CACHE_NAME = 'gohappy-cache-v5.4.0';
 const TILE_CACHE = 'gohappy-tiles-v1.3.0';
 
 const ASSETS = [
@@ -105,6 +105,28 @@ self.addEventListener('fetch', (event) => {
         url.hostname.includes('identitytoolkit.googleapis.com') ||
         url.hostname.includes('firestore.googleapis.com')) {
         event.respondWith(fetch(event.request).catch(() => new Response('{}', { headers: { 'Content-Type': 'application/json' } })));
+        return;
+    }
+
+    // JS/CSS: Stale-While-Revalidate (respuesta instantánea + actualización background)
+    // Esto es CLAVE para que la app cargue rápido en cada visita
+    if (event.request.destination === 'script' ||
+        event.request.destination === 'style' ||
+        url.pathname.endsWith('.js') ||
+        url.pathname.endsWith('.css')) {
+        event.respondWith(
+            caches.open(CACHE_NAME).then(cache =>
+                cache.match(event.request).then(cached => {
+                    const networkFetch = fetch(event.request).then(response => {
+                        if (response && response.ok && response.type !== 'opaque') {
+                            cache.put(event.request, response.clone());
+                        }
+                        return response;
+                    }).catch(() => cached);
+                    return cached || networkFetch;
+                })
+            )
+        );
         return;
     }
 
