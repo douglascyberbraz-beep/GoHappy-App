@@ -67,7 +67,7 @@ window.GoHappyMoments = {
 
                 <!-- Feed de momentos -->
                 <div id="moments-feed" class="moments-feed stagger-group">
-                    <div class="center-text p-40"><div class="typing-dots"><span></span><span></span><span></span></div><p style="margin-top:12px; color:var(--text-secondary); font-size:13px;">Cargando vuestros momentos...</p></div>
+                    <div class="center-text p-40"><div class="typing-dots"><span></span><span></span><span></span></div><p style="margin-top:12px; color:var(--text-secondary); font-size:13px;">${(window.GoHappyI18n?.lang === 'en') ? 'Loading your moments…' : 'Cargando vuestros momentos…'}</p></div>
                 </div>
 
                 <!-- Spacer para nav flotante -->
@@ -190,6 +190,134 @@ window.GoHappyMoments = {
                 }
                 .reaction-count { font-size: 12px; }
 
+                /* ─── Comentarios familiares ─── */
+                .comments-toggle {
+                    display: flex; align-items: center; gap: 6px;
+                    margin: 4px 14px 14px;
+                    padding: 7px 14px;
+                    background: rgba(11,76,143,0.06);
+                    color: var(--cobalt);
+                    border: 0.5px solid rgba(11,76,143,0.10);
+                    border-radius: 999px;
+                    font-size: 12.5px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: background 0.18s;
+                }
+                .comments-toggle:hover { background: rgba(11,76,143,0.10); }
+                .comments-panel {
+                    border-top: 0.5px solid rgba(11,76,143,0.08);
+                    padding: 12px 16px 14px;
+                    background: rgba(244,248,255,0.5);
+                }
+                .comments-list {
+                    display: flex; flex-direction: column; gap: 10px;
+                    margin-bottom: 12px;
+                    max-height: 320px;
+                    overflow-y: auto;
+                }
+                .comments-empty, .comments-loading {
+                    text-align: center;
+                    font-size: 12px;
+                    color: var(--text-tertiary);
+                    padding: 14px 8px;
+                    font-style: italic;
+                }
+                .comment-item {
+                    display: flex; gap: 10px; align-items: flex-start;
+                }
+                .comment-avatar-small {
+                    width: 30px; height: 30px;
+                    border-radius: 50%;
+                    background: linear-gradient(135deg, var(--cobalt), var(--cyan, #17C8D4));
+                    color: white;
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 14px;
+                    flex-shrink: 0;
+                    box-shadow: 0 2px 6px rgba(11,76,143,0.18);
+                }
+                .comment-body {
+                    flex: 1; min-width: 0;
+                    background: white;
+                    border-radius: 14px;
+                    padding: 8px 12px;
+                    box-shadow: 0 1px 3px rgba(11,76,143,0.06);
+                }
+                .comment-meta {
+                    display: flex; align-items: baseline; gap: 8px;
+                    font-size: 12px; color: var(--cobalt);
+                    margin-bottom: 2px;
+                }
+                .comment-meta strong { font-weight: 800; }
+                .comment-time {
+                    font-size: 10.5px; font-weight: 500;
+                    color: var(--text-tertiary);
+                }
+                .comment-text {
+                    font-size: 13px;
+                    color: var(--text-primary);
+                    line-height: 1.4;
+                    word-wrap: break-word;
+                    overflow-wrap: anywhere;
+                }
+                .comment-compose {
+                    display: flex; gap: 8px; align-items: center;
+                }
+                .comment-input {
+                    flex: 1; min-width: 0;
+                    background: white;
+                    border: 0.5px solid rgba(11,76,143,0.12);
+                    border-radius: 999px;
+                    padding: 9px 14px;
+                    font-size: 13px;
+                    color: var(--text-primary);
+                    font-family: -apple-system, sans-serif;
+                    outline: none;
+                }
+                .comment-input:focus { border-color: var(--cobalt); }
+                .comment-send-btn {
+                    width: 36px; height: 36px;
+                    border-radius: 50%;
+                    background: var(--brand-bright);
+                    color: white;
+                    border: none;
+                    font-size: 18px; font-weight: 800;
+                    cursor: pointer;
+                    flex-shrink: 0;
+                    box-shadow: 0 4px 10px rgba(11,113,252,0.28);
+                }
+                .comment-send-btn:active { transform: scale(0.92); }
+                .comment-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+                /* ─── Banner "Hace 1 año" ─── */
+                .one-year-ago-banner {
+                    display: flex; align-items: center; gap: 12px;
+                    margin: 0 0 18px;
+                    padding: 14px 16px;
+                    background: linear-gradient(135deg, rgba(255,200,100,0.18), rgba(255,150,80,0.14));
+                    border: 0.5px solid rgba(255,180,80,0.32);
+                    border-radius: 18px;
+                    box-shadow: 0 4px 14px rgba(255,150,50,0.10);
+                }
+                .oya-icon { font-size: 28px; flex-shrink: 0; }
+                .oya-text { flex: 1; min-width: 0; }
+                .oya-title {
+                    font-weight: 800; font-size: 13px;
+                    color: #8B5C00;
+                    margin-bottom: 2px;
+                }
+                .oya-sub {
+                    font-size: 12px; color: #6B4500;
+                    overflow: hidden; text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                .oya-thumb {
+                    width: 56px; height: 56px;
+                    border-radius: 12px; object-fit: cover;
+                    flex-shrink: 0;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+                }
+
                 .moments-empty {
                     text-align: center; padding: 40px 24px;
                     background: rgba(255,255,255,0.6);
@@ -250,55 +378,103 @@ window.GoHappyMoments = {
         await window.GoHappyMoments._loadFeed(user);
     },
 
+    // Listener en tiempo real (familia social)
+    _unsubFeed: null,
+    _knownIds: new Set(),
+
     _loadFeed: async (user) => {
         const feed = document.getElementById('moments-feed');
         if (!feed) return;
 
+        // Cleanup listener anterior si lo había
+        if (window.GoHappyMoments._unsubFeed) {
+            try { window.GoHappyMoments._unsubFeed(); } catch (e) {}
+            window.GoHappyMoments._unsubFeed = null;
+        }
+
+        const scope = user?.familyId || user?.uid || null;
+        const lang = window.GoHappyI18n?.lang || 'es';
+
+        if (!scope) {
+            feed.innerHTML = `
+                <div class="moments-empty">
+                    <div class="moments-empty-icon">🔐</div>
+                    <div class="moments-empty-title">${lang === 'en' ? 'Sign in' : 'Inicia sesión'}</div>
+                    <div class="moments-empty-text">${lang === 'en' ? 'To see and share moments with your family.' : 'Para ver y compartir momentos con tu familia.'}</div>
+                </div>
+            `;
+            return;
+        }
+
+        // Real-time listener — auto-refresca cuando otro miembro publica
         try {
-            // Determinar ámbito: familia si tiene, si no su propio uid
-            const scope = user?.familyId || user?.uid || null;
-
-            if (!scope) {
-                feed.innerHTML = `
-                    <div class="moments-empty">
-                        <div class="moments-empty-icon">🔐</div>
-                        <div class="moments-empty-title">Inicia sesión</div>
-                        <div class="moments-empty-text">Para ver y compartir momentos con tu familia.</div>
-                    </div>
-                `;
-                return;
-            }
-
-            // Query: últimos 30 días, ordenados desc
-            const snap = await window.GoHappyDB.collection('moments')
+            window.GoHappyMoments._unsubFeed = window.GoHappyDB.collection('moments')
                 .where('familyId', '==', scope)
                 .orderBy('createdAt', 'desc')
                 .limit(50)
-                .get();
+                .onSnapshot((snap) => {
+                    if (snap.empty) {
+                        const T = window.t || (k => k);
+                        feed.innerHTML = `
+                            <div class="moments-empty">
+                                <div class="moments-empty-icon">📸</div>
+                                <div class="moments-empty-title">${T('moments.empty.title')}</div>
+                                <div class="moments-empty-text">${T('moments.empty.text')}</div>
+                            </div>
+                        `;
+                        return;
+                    }
 
-            if (snap.empty) {
-                const T = window.t || (k => k);
-                feed.innerHTML = `
-                    <div class="moments-empty">
-                        <div class="moments-empty-icon">📸</div>
-                        <div class="moments-empty-title">${T('moments.empty.title')}</div>
-                        <div class="moments-empty-text">${T('moments.empty.text')}</div>
-                    </div>
-                `;
-                return;
-            }
+                    const moments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-            const moments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            feed.innerHTML = moments.map(m => window.GoHappyMoments._renderMomentCard(m, user)).join('');
+                    // Detectar nuevos posts de OTROS miembros (no mío) → toast
+                    const newOnes = moments.filter(m => !window.GoHappyMoments._knownIds.has(m.id));
+                    const hasInitialLoad = window.GoHappyMoments._knownIds.size > 0;
+                    if (hasInitialLoad) {
+                        newOnes
+                            .filter(m => m.userId !== user.uid)
+                            .forEach(m => {
+                                const author = m.userName || (lang === 'en' ? 'Family member' : 'Alguien de la familia');
+                                window.GoHappyToast && window.GoHappyToast.info(
+                                    lang === 'en' ? `📸 ${author} just shared a moment` : `📸 ${author} ha compartido un momento`,
+                                    3500
+                                );
+                            });
+                    }
+                    moments.forEach(m => window.GoHappyMoments._knownIds.add(m.id));
 
-            // Bind reacciones
-            feed.querySelectorAll('.reaction-btn').forEach(btn => {
-                btn.onclick = () => window.GoHappyMoments._toggleReaction(btn.dataset.moment, btn.dataset.emoji, user);
-            });
+                    // Banner "Hace 1 año"
+                    const oneYearAgoHtml = window.GoHappyMoments._buildOneYearAgo(moments, user);
 
+                    feed.innerHTML = oneYearAgoHtml + moments.map(m => window.GoHappyMoments._renderMomentCard(m, user)).join('');
+
+                    // Bind reacciones
+                    feed.querySelectorAll('.reaction-btn').forEach(btn => {
+                        btn.onclick = () => window.GoHappyMoments._toggleReaction(btn.dataset.moment, btn.dataset.emoji, user);
+                    });
+
+                    // Bind comentarios — toggle panel
+                    feed.querySelectorAll('.comments-toggle').forEach(btn => {
+                        btn.onclick = () => window.GoHappyMoments._toggleCommentsPanel(btn.dataset.moment, user);
+                    });
+                    // Bind enviar comentario
+                    feed.querySelectorAll('.comment-send-btn').forEach(btn => {
+                        btn.onclick = () => window.GoHappyMoments._sendComment(btn.dataset.moment, user);
+                    });
+                    feed.querySelectorAll('.comment-input').forEach(inp => {
+                        inp.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                window.GoHappyMoments._sendComment(inp.dataset.moment, user);
+                            }
+                        });
+                    });
+                }, (err) => {
+                    console.error('Moments listener error:', err);
+                    feed.innerHTML = `<div class="moments-empty"><div class="moments-empty-icon">⚠️</div><div class="moments-empty-title">${lang === 'en' ? 'Could not load' : 'No se pudo cargar'}</div></div>`;
+                });
         } catch (e) {
-            console.error('Moments _loadFeed error:', e);
-            feed.innerHTML = `<div class="moments-empty"><div class="moments-empty-icon">⚠️</div><div class="moments-empty-title">No se pudo cargar</div><div class="moments-empty-text">Inténtalo de nuevo en unos segundos.</div></div>`;
+            console.error('Moments _loadFeed setup error:', e);
         }
     },
 
@@ -323,8 +499,14 @@ window.GoHappyMoments = {
             </button>`;
         }).join('');
 
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const commentsCount = m.commentsCount || 0;
+        const commentsLabel = lang === 'en'
+            ? (commentsCount === 0 ? 'Comment' : `${commentsCount} comment${commentsCount > 1 ? 's' : ''}`)
+            : (commentsCount === 0 ? 'Comentar' : `${commentsCount} comentario${commentsCount > 1 ? 's' : ''}`);
+
         return `
-            <div class="moment-card card-anim">
+            <div class="moment-card card-anim" data-moment-id="${m.id}">
                 <div class="moment-header">
                     <div class="moment-avatar">${safeAvatar}</div>
                     <div class="moment-meta">
@@ -335,8 +517,144 @@ window.GoHappyMoments = {
                 ${m.imageData ? `<img class="moment-image" src="${m.imageData}" alt="momento">` : ''}
                 ${safeCaption ? `<div class="moment-caption">${safeCaption}</div>` : ''}
                 <div class="moment-reactions">${reactionsHtml}</div>
+                <button class="comments-toggle" data-moment="${m.id}">
+                    💬 <span class="comments-label">${commentsLabel}</span>
+                </button>
+                <div class="comments-panel" id="comments-${m.id}" style="display:none;">
+                    <div class="comments-list" id="comments-list-${m.id}">
+                        <div class="comments-loading">${lang === 'en' ? 'Loading…' : 'Cargando…'}</div>
+                    </div>
+                    <div class="comment-compose">
+                        <div class="comment-avatar-small">${user?.photo || '👤'}</div>
+                        <input class="comment-input" data-moment="${m.id}" type="text" placeholder="${lang === 'en' ? 'Write a comment…' : 'Escribe un comentario…'}" maxlength="280">
+                        <button class="comment-send-btn" data-moment="${m.id}">↑</button>
+                    </div>
+                </div>
             </div>
         `;
+    },
+
+    // ─── Banner "Hace 1 año" (memoria nostálgica) ───
+    _buildOneYearAgo: (moments, user) => {
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const today = new Date();
+        const targetMonth = today.getMonth();
+        const targetDay = today.getDate();
+        const targetYear = today.getFullYear() - 1;
+
+        const memory = moments.find(m => {
+            const d = m.createdAt?.toDate ? m.createdAt.toDate() : null;
+            if (!d) return false;
+            return d.getFullYear() === targetYear && d.getMonth() === targetMonth && d.getDate() === targetDay;
+        });
+        if (!memory) return '';
+
+        const author = memory.userName || (lang === 'en' ? 'Family' : 'Familia');
+        const caption = String(memory.caption || '').slice(0, 60);
+        return `
+            <div class="one-year-ago-banner">
+                <div class="oya-icon">🗓️</div>
+                <div class="oya-text">
+                    <div class="oya-title">${lang === 'en' ? '1 year ago today' : 'Hace 1 año, tal día como hoy'}</div>
+                    <div class="oya-sub">${author}${caption ? ' · ' + caption : ''}</div>
+                </div>
+                ${memory.imageData ? `<img class="oya-thumb" src="${memory.imageData}" alt="">` : ''}
+            </div>
+        `;
+    },
+
+    // ─── COMENTARIOS familiares ───
+    _toggleCommentsPanel: async (momentId, user) => {
+        const panel = document.getElementById(`comments-${momentId}`);
+        if (!panel) return;
+        const isOpen = panel.style.display !== 'none';
+        if (isOpen) {
+            panel.style.display = 'none';
+            return;
+        }
+        panel.style.display = 'block';
+        await window.GoHappyMoments._loadComments(momentId, user);
+    },
+
+    _loadComments: async (momentId, user) => {
+        const list = document.getElementById(`comments-list-${momentId}`);
+        if (!list) return;
+        const lang = window.GoHappyI18n?.lang || 'es';
+        try {
+            const snap = await window.GoHappyDB
+                .collection('moments').doc(momentId)
+                .collection('comments')
+                .orderBy('createdAt', 'asc')
+                .limit(50)
+                .get();
+            if (snap.empty) {
+                list.innerHTML = `<div class="comments-empty">${lang === 'en' ? 'Be the first to comment 💬' : 'Sé el primero en comentar 💬'}</div>`;
+                return;
+            }
+            const sec = window.GoHappySecurity;
+            const safe = (s) => sec ? sec.safe(s || '') : String(s || '').replace(/[<>]/g, '');
+            list.innerHTML = snap.docs.map(d => {
+                const c = d.data();
+                const time = c.createdAt?.toDate ? window.GoHappyMoments._timeAgo(c.createdAt.toDate()) : '';
+                return `
+                    <div class="comment-item">
+                        <div class="comment-avatar-small">${c.userPhoto || '👤'}</div>
+                        <div class="comment-body">
+                            <div class="comment-meta">
+                                <strong>${safe(c.userName || 'Familia')}</strong>
+                                <span class="comment-time">${time}</span>
+                            </div>
+                            <div class="comment-text">${safe(c.text)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch (e) {
+            console.warn('comments load error:', e?.message);
+            list.innerHTML = `<div class="comments-empty">${lang === 'en' ? 'Could not load comments' : 'No se han podido cargar los comentarios'}</div>`;
+        }
+    },
+
+    _sendComment: async (momentId, user) => {
+        if (!user || user.isGuest) return;
+        const input = document.querySelector(`.comment-input[data-moment="${momentId}"]`);
+        if (!input) return;
+        const text = input.value.trim().slice(0, 280);
+        if (!text) return;
+        const lang = window.GoHappyI18n?.lang || 'es';
+
+        const btn = document.querySelector(`.comment-send-btn[data-moment="${momentId}"]`);
+        if (btn) btn.disabled = true;
+        input.disabled = true;
+
+        try {
+            await window.GoHappyDB
+                .collection('moments').doc(momentId)
+                .collection('comments')
+                .add({
+                    userId: user.uid,
+                    userName: user.nickname || user.email?.split('@')[0] || 'Familia',
+                    userPhoto: user.photo || '👤',
+                    text,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            // Incrementar contador en el doc padre (best-effort)
+            try {
+                await window.GoHappyDB.collection('moments').doc(momentId).update({
+                    commentsCount: firebase.firestore.FieldValue.increment(1)
+                });
+            } catch (e) {}
+
+            input.value = '';
+            await window.GoHappyMoments._loadComments(momentId, user);
+            window.GoHappySound && window.GoHappySound.play('like');
+        } catch (e) {
+            console.warn('send comment error:', e?.message);
+            window.GoHappyToast && window.GoHappyToast.error(lang === 'en' ? 'Could not post comment' : 'No se pudo publicar el comentario');
+        } finally {
+            input.disabled = false;
+            if (btn) btn.disabled = false;
+        }
     },
 
     _handleImageSelected: async (file, user) => {
@@ -412,16 +730,37 @@ window.GoHappyMoments = {
 
             try {
                 await window.GoHappyMoments._publishMoment(imageData, caption, user);
+
+                // Sprint 2: extraer intereses del caption → family_context
+                try {
+                    if (window.GoHappyContext && caption) {
+                        const INTERESTS = [
+                            { tag:'nature',     re:/parque|park|playa|beach|monta[ñn]a|mountain|bosque|forest|naturaleza|nature/i },
+                            { tag:'museum',    re:/museo|museum|exposici[oó]n|exhibition/i },
+                            { tag:'sports',    re:/f[uú]tbol|football|deporte|sport|bici|bike|patin|skat|natac|swim/i },
+                            { tag:'food',      re:/restaur|comida|food|helado|ice ?cream|pizza|brunch/i },
+                            { tag:'culture',   re:/teatro|theater|concierto|concert|cine|cinema|libro|book/i },
+                            { tag:'animals',   re:/zoo|acuario|aquarium|animal|perro|dog|gato|cat|granja|farm/i },
+                            { tag:'water',     re:/piscina|pool|playa|beach|r[ií]o|river|lago|lake/i },
+                            { tag:'adventure', re:/aventura|adventure|escalada|climb|tirolina|zipline|kart/i }
+                        ];
+                        const text = caption.toLowerCase();
+                        INTERESTS.forEach(({ tag, re }) => {
+                            if (re.test(text)) window.GoHappyContext.addInterest(tag);
+                        });
+                        window.GoHappyContext.addActivity('moment_shared', { caption: caption.slice(0, 80) });
+                    }
+                } catch (e) { /* ignore */ }
+
                 modal.remove();
                 window.GoHappySound && window.GoHappySound.play('success');
                 window.GoHappyToast.points(window.t ? window.t('moments.published') : '¡Momento compartido! +20 pts ✨');
-                // Recargar feed
-                setTimeout(() => window.GoHappyMoments._loadFeed(user), 500);
+                // Real-time listener refresca solo
             } catch (e) {
                 console.error('Publish error:', e);
                 publishBtn.disabled = false;
-                publishBtn.textContent = '📤  Compartir con la familia';
-                window.GoHappyToast.error(e.message || 'No se pudo publicar.');
+                publishBtn.textContent = window.t ? window.t('moments.publish') : '📤  Compartir con la familia';
+                window.GoHappyToast.error(e.message || (window.t ? window.t('moments.publish.fail') : 'No se pudo publicar.'));
             }
         };
     },
@@ -482,10 +821,7 @@ window.GoHappyMoments = {
 
             const updated = { ...reactions, [emoji]: newList };
             await ref.update({ reactions: updated });
-
-            // Refresh feed (visual update rápido)
-            await window.GoHappyMoments._loadFeed(user);
-
+            // El listener real-time refresca el feed automáticamente
             window.GoHappySound && window.GoHappySound.play('like');
         } catch (e) {
             console.warn('toggleReaction error:', e);

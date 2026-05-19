@@ -78,6 +78,16 @@ window.GoHappyProfile = {
                     </div>
                 </div>
 
+                <!-- Flujo D: Family DNA (perfil familiar generado por IA) -->
+                <div id="family-dna-box" style="margin: 20px 16px; padding: 22px; border-radius: 28px; background: linear-gradient(135deg, rgba(11,113,252,0.08), rgba(23,200,212,0.10)); border: 0.5px solid rgba(11,76,143,0.15); backdrop-filter: blur(14px) saturate(180%); box-shadow: 0 6px 20px rgba(11,76,143,0.08); display:none;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                        <span style="font-size:24px;">🧬</span>
+                        <h3 style="color:var(--primary-cobalt); font-weight:900; margin:0; font-size:1rem;" id="dna-title">${(window.GoHappyI18n?.lang === 'en') ? 'Your family DNA' : 'Vuestro ADN familiar'}</h3>
+                    </div>
+                    <div id="dna-tags" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;"></div>
+                    <p id="dna-insight" style="font-size:13px; color:var(--text-primary); line-height:1.45; margin:0;"></p>
+                </div>
+
                 <div class="referral-premium-box premium-glass" style="margin: 20px 0; padding: 25px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.4);">
                     <div style="text-align: center; margin-bottom: 20px;">
                         <h3 style="color: var(--primary-cobalt); font-weight: 900; margin: 0;">${T('profile.referral.title')}</h3>
@@ -120,6 +130,26 @@ window.GoHappyProfile = {
                     </div>
                 </div>
 
+                <!-- Acceso rápido a páginas extra -->
+                <div class="account-actions-list" style="margin-bottom: 12px;">
+                    <button class="action-list-item" data-goto-page="memories">
+                        <span>📸 ${(window.GoHappyI18n?.lang === 'en') ? 'Memories album' : 'Álbum de recuerdos'}</span>
+                        <span class="arrow">→</span>
+                    </button>
+                    <button class="action-list-item" data-goto-page="news_events">
+                        <span>🗞️ ${(window.GoHappyI18n?.lang === 'en') ? 'News & local events' : 'Noticias y eventos locales'}</span>
+                        <span class="arrow">→</span>
+                    </button>
+                    <button class="action-list-item" data-goto-page="safe">
+                        <span>🛡️ ${(window.GoHappyI18n?.lang === 'en') ? 'Community safety alerts' : 'Alertas de seguridad'}</span>
+                        <span class="arrow">→</span>
+                    </button>
+                    <button class="action-list-item" data-goto-page="tribu">
+                        <span>🏘️ ${(window.GoHappyI18n?.lang === 'en') ? 'Tribe community' : 'Comunidad Tribu'}</span>
+                        <span class="arrow">→</span>
+                    </button>
+                </div>
+
                 <div class="account-actions-list">
                     <button id="terms-link" class="action-list-item">
                         <span>${T('profile.terms')}</span>
@@ -135,8 +165,25 @@ window.GoHappyProfile = {
         // Interaction logic
         document.getElementById('logout-btn').onclick = () => window.GoHappyAuth.logout();
 
+        // Bindings de navegación a páginas extra
+        document.querySelectorAll('[data-goto-page]').forEach(btn => {
+            btn.onclick = () => {
+                const target = btn.dataset.gotoPage;
+                if (target && window.GoHappyApp?.loadPage) window.GoHappyApp.loadPage(target);
+            };
+        });
+        document.querySelectorAll('[data-goto]').forEach(btn => {
+            btn.onclick = () => {
+                const target = btn.dataset.goto;
+                if (target && window.GoHappyApp?.loadPage) window.GoHappyApp.loadPage(target);
+            };
+        });
+
         // Cargar datos de familia de forma asíncrona (no bloquea el render)
         window.GoHappyProfile._loadFamilySection(user);
+
+        // Flujo D: renderizar ADN familiar desde family_context
+        window.GoHappyProfile._renderFamilyDNA();
 
         // ─── REFERIDO: URL base configurable ───
         const INVITE_BASE_URL = 'https://douglascyberbraz-beep.github.io/GoHappy-App/';
@@ -466,6 +513,80 @@ window.GoHappyProfile = {
             modal.querySelector('#cd-ok').onclick = () => { modal.remove(); resolve(true); };
             modal.querySelector('#cd-cancel').onclick = () => { modal.remove(); resolve(false); };
         });
+    },
+
+    // ───────────── Flujo D: ADN Familiar ─────────────
+    _renderFamilyDNA: () => {
+        try {
+            const ctx = window.GoHappyContext?.get?.();
+            const box = document.getElementById('family-dna-box');
+            if (!box || !ctx) return;
+
+            const interests   = (ctx.interests || []).slice(0, 6);
+            const ages        = ctx.childrenAges || [];
+            const stats       = ctx.stats || {};
+            const totalSignal = interests.length + ages.length + (stats.questsCompleted || 0) + (stats.momentsShared || 0);
+
+            // Si todavía no hay señal suficiente, ocultar
+            if (totalSignal < 2) return;
+
+            const lang = window.GoHappyI18n?.lang || 'es';
+            const labelMap = {
+                nature:    lang === 'en' ? '🌿 Nature' : '🌿 Naturaleza',
+                museum:    lang === 'en' ? '🏛️ Museums' : '🏛️ Museos',
+                sports:    lang === 'en' ? '⚽ Sports' : '⚽ Deporte',
+                food:      lang === 'en' ? '🍽️ Food' : '🍽️ Comida',
+                culture:   lang === 'en' ? '🎭 Culture' : '🎭 Cultura',
+                animals:   lang === 'en' ? '🐾 Animals' : '🐾 Animales',
+                water:     lang === 'en' ? '💧 Water' : '💧 Agua',
+                adventure: lang === 'en' ? '🧗 Adventure' : '🧗 Aventura'
+            };
+
+            // Chips de intereses
+            const chipsHtml = interests.map(tag => `
+                <span style="display:inline-flex; align-items:center; gap:4px; padding:6px 12px; background:white; border-radius:999px; font-size:12px; font-weight:700; color:var(--primary-cobalt); box-shadow:0 2px 6px rgba(11,76,143,0.08);">
+                    ${labelMap[tag] || tag}
+                </span>
+            `).join('');
+            document.getElementById('dna-tags').innerHTML = chipsHtml;
+
+            // Insight narrativo
+            const topInterest = interests[0] ? (labelMap[interests[0]] || interests[0]).replace(/^\S+\s/, '') : null;
+            const childrenStr = ages.length
+                ? (lang === 'en' ? `${ages.length} child${ages.length>1?'ren':''} (ages ${ages.join(', ')})` : `${ages.length} hij${ages.length>1?'os':'o'} (${ages.join(', ')} años)`)
+                : null;
+
+            const parts = [];
+            if (childrenStr) parts.push(childrenStr);
+            if (topInterest) parts.push(
+                lang === 'en'
+                    ? `loves ${topInterest.toLowerCase()}`
+                    : `disfruta ${topInterest.toLowerCase()}`
+            );
+            if (stats.questsCompleted) parts.push(
+                lang === 'en'
+                    ? `${stats.questsCompleted} quests done`
+                    : `${stats.questsCompleted} misiones cumplidas`
+            );
+            if (stats.momentsShared) parts.push(
+                lang === 'en'
+                    ? `${stats.momentsShared} memories captured`
+                    : `${stats.momentsShared} recuerdos guardados`
+            );
+
+            const insight = parts.length
+                ? (lang === 'en'
+                    ? `A family of ${parts.join(', ')}. We tailor every plan to that.`
+                    : `Una familia de ${parts.join(', ')}. Adaptamos cada propuesta a eso.`)
+                : (lang === 'en'
+                    ? 'Use the app for a few days and we\'ll show your family\'s pattern here.'
+                    : 'Usa la app unos días y aquí aparecerá vuestro patrón familiar.');
+            document.getElementById('dna-insight').textContent = insight;
+
+            box.style.display = 'block';
+        } catch (e) {
+            console.warn('[Profile] DNA render error:', e?.message);
+        }
     }
 };
 

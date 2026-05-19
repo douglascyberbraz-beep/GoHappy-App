@@ -4,10 +4,14 @@ window.GoHappyTribu = {
     activeTab: 'comunidad', // 'comunidad', 'eventos', 'noticias'
 
     render: async (container) => {
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const sub = lang === 'en'
+            ? 'Share and connect with families like yours'
+            : 'Comparte y conecta con familias como la tuya';
         container.innerHTML = `
             <div class="unified-hero">
                 <h2 id="tribu-title">🏘️ Tribu</h2>
-                <p>Comparte y conecta con familias como la tuya</p>
+                <p>${sub}</p>
             </div>
             
             <div id="tribu-content" class="content-list stagger-group" style="padding-bottom: 100px; width: 100%; display: flex; flex-direction: column; align-items: center;">

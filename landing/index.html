@@ -1,12 +1,35 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" id="html-root">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>GoHappy Family — Tu camino a la alegría en familia</title>
-    <meta name="description" content="La app premium para familias modernas. Mapa 3D con planes locales, misiones familiares con IA, alertas de seguridad comunitarias y tribu de padres. Descarga gratis.">
-    <meta name="keywords" content="app familias, planes en familia, ocio familiar, padres, niños, mapa familiar, misiones familia, GoHappy">
+    <title id="page-title" data-en="GoHappy Family — Your path to family joy">GoHappy Family — Tu camino a la alegría en familia</title>
+    <meta name="description" id="meta-desc" data-en="The premium app for modern families. 3D map with local plans, AI-powered family missions, community safety alerts and a parent tribe. Free download." content="La app premium para familias modernas. Mapa 3D con planes locales, misiones familiares con IA, alertas de seguridad comunitarias y tribu de padres. Descarga gratis.">
+    <meta name="keywords" content="family app, family plans, parenting, kids activities, family map, GoHappy">
     <meta name="theme-color" content="#0B4C8F">
+
+    <!-- ─── Idioma: auto-detección síncrona ANTES de renderizar ─── -->
+    <script>
+        (function() {
+            try {
+                var stored = localStorage.getItem('GoHappy_lang');
+                var lang;
+                if (stored === 'es' || stored === 'en') {
+                    lang = stored;
+                } else {
+                    var nav = (navigator.language || 'es').toLowerCase();
+                    lang = nav.startsWith('es') ? 'es' : 'en';
+                    try {
+                        var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+                        if (tz.indexOf('Madrid') >= 0 || tz.indexOf('Canary') >= 0) lang = 'es';
+                        else if (tz.indexOf('London') >= 0 || tz.indexOf('Dublin') >= 0 || tz.indexOf('Belfast') >= 0) lang = 'en';
+                    } catch(e) {}
+                }
+                window.__landingLang = lang;
+                document.documentElement.lang = lang;
+            } catch(e) { window.__landingLang = 'es'; }
+        })();
+    </script>
 
     <!-- Open Graph / Social -->
     <meta property="og:title" content="GoHappy Family — Tu camino a la alegría">
@@ -636,9 +659,12 @@
         .feature-mockup img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            object-position: top;
+            object-fit: contain;
+            object-position: center top;
+            background: #F4F8FF;
             border-radius: 40px;
+            padding-top: 42px; /* deja espacio para la Dynamic Island */
+            box-sizing: border-box;
         }
 
         .feature-icon {
@@ -1033,12 +1059,12 @@
             <span>GoHappy</span>
         </a>
         <ul class="nav-links">
-            <li><a href="#features">Funcionalidades</a></li>
-            <li><a href="#how">Cómo funciona</a></li>
-            <li><a href="#pricing">Precio</a></li>
+            <li><a href="#features" data-en="Features">Funcionalidades</a></li>
+            <li><a href="#how" data-en="How it works">Cómo funciona</a></li>
+            <li><a href="#pricing" data-en="Pricing">Precio</a></li>
             <li><a href="#faq">FAQ</a></li>
         </ul>
-        <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="nav-cta">Probar gratis →</a>
+        <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="nav-cta" data-en="Try free →">Probar gratis →</a>
     </nav>
 
     <!-- ════════════ HERO ════════════ -->
@@ -1046,32 +1072,32 @@
         <div>
             <div class="hero-eyebrow fade-up">
                 <span class="dot"></span>
-                BETA ABIERTA · ESPAÑA
+                <span data-en="OPEN BETA · UK & SPAIN">BETA ABIERTA · ESPAÑA</span>
             </div>
-            <h1 class="hero-title fade-up" data-delay="1">
+            <h1 class="hero-title fade-up" data-delay="1" data-en='Your path to <span class="gradient">family joy.</span>'>
                 Tu camino a la
                 <span class="gradient">alegría en familia.</span>
             </h1>
-            <p class="hero-subtitle fade-up" data-delay="2">
+            <p class="hero-subtitle fade-up" data-delay="2" data-en="Stop searching, start living. The premium app that connects modern families with real plans, smart AI and a community that truly cares.">
                 Stop searching, start living. La app premium que une a las familias modernas con planes reales, IA inteligente y una comunidad que sí cuida de los suyos.
             </p>
             <div class="hero-actions fade-up" data-delay="3">
-                <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="btn btn-primary">
+                <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="btn btn-primary" data-en="Try free now →">
                     Probar gratis ahora →
                 </a>
-                <a href="#how" class="btn btn-secondary">Ver cómo funciona</a>
+                <a href="#how" class="btn btn-secondary" data-en="See how it works">Ver cómo funciona</a>
             </div>
             <div class="hero-trust fade-up" data-delay="4">
-                <span><span class="check">✓</span> Sin tarjeta de crédito</span>
-                <span><span class="check">✓</span> Funciona en iOS y Android</span>
-                <span><span class="check">✓</span> 100% en español</span>
+                <span data-en='<span class="check">✓</span> No credit card'><span class="check">✓</span> Sin tarjeta de crédito</span>
+                <span data-en='<span class="check">✓</span> Works on iOS and Android'><span class="check">✓</span> Funciona en iOS y Android</span>
+                <span data-en='<span class="check">✓</span> ES &amp; EN auto-detected'><span class="check">✓</span> 100% en español</span>
             </div>
         </div>
 
         <div class="hero-mockup fade-up" data-delay="2">
             <div class="phone">
                 <div class="phone-screen">
-                    <img src="assets/ss_today.png" alt="App Today" style="width: 100%; height: 100%; object-fit: cover; object-position: top;">
+                    <img src="assets/ss_today.png" alt="App Today" style="width: 100%; height: 100%; object-fit: contain; object-position: center top; background: #F4F8FF; padding-top: 44px; box-sizing: border-box;">
                 </div>
             </div>
         </div>
@@ -1081,25 +1107,25 @@
     <section class="problem">
         <div class="container">
             <div class="section-header center fade-up">
-                <span class="section-eyebrow">El problema real</span>
-                <h2 class="section-title">Pasáis horas buscando planes en familia.<br><span class="gradient">Y casi siempre acabáis en casa.</span></h2>
+                <span class="section-eyebrow" data-en="The real problem">El problema real</span>
+                <h2 class="section-title" data-en='You spend hours looking for family plans.<br><span class="gradient">And usually end up staying home.</span>'>Pasáis horas buscando planes en familia.<br><span class="gradient">Y casi siempre acabáis en casa.</span></h2>
             </div>
-            <p class="problem-quote fade-up" data-delay="1">
+            <p class="problem-quote fade-up" data-delay="1" data-en='<span class="strike">&quot;What shall we do today with the kids?&quot;</span><br>Write that question down. <strong>GoHappy answers it for you.</strong>'>
                 <span class="strike">"¿Qué hacemos hoy con los niños?"</span><br>
                 Apuntad esa pregunta. <strong>GoHappy la responde por ti.</strong>
             </p>
             <div class="problem-stats">
                 <div class="stat-card fade-up" data-delay="1">
                     <div class="stat-num">73%</div>
-                    <div class="stat-label">de las familias dice no encontrar planes para su edad/zona</div>
+                    <div class="stat-label" data-en="of families can't find plans for their kids' age/area">de las familias dice no encontrar planes para su edad/zona</div>
                 </div>
                 <div class="stat-card fade-up" data-delay="2">
-                    <div class="stat-num">2,5h</div>
-                    <div class="stat-label">a la semana buscando ocio familiar en Google y redes</div>
+                    <div class="stat-num" data-en="2.5h">2,5h</div>
+                    <div class="stat-label" data-en="per week searching family activities on Google and social media">a la semana buscando ocio familiar en Google y redes</div>
                 </div>
                 <div class="stat-card fade-up" data-delay="3">
                     <div class="stat-num">68%</div>
-                    <div class="stat-label">acaba quedándose en casa por no decidir a tiempo</div>
+                    <div class="stat-label" data-en="end up staying home because they can't decide in time">acaba quedándose en casa por no decidir a tiempo</div>
                 </div>
             </div>
         </div>
@@ -1109,66 +1135,66 @@
     <section id="features">
         <div class="container">
             <div class="section-header center fade-up">
-                <span class="section-eyebrow">Todo en una app</span>
-            <h2 class="section-title">7 superpoderes para <span class="gradient">familias modernas.</span></h2>
-                <p class="section-subtitle">Cada pestaña resuelve un problema real. Sin anuncios, sin perderse en menús infinitos.</p>
+                <span class="section-eyebrow" data-en="All in one app">Todo en una app</span>
+            <h2 class="section-title" data-en='7 superpowers for <span class="gradient">modern families.</span>'>7 superpoderes para <span class="gradient">familias modernas.</span></h2>
+                <p class="section-subtitle" data-en="Every tab solves a real problem. No ads, no getting lost in endless menus.">Cada pestaña resuelve un problema real. Sin anuncios, sin perderse en menús infinitos.</p>
             </div>
             <div class="features-grid">
                 <div class="feature-card fade-up">
                     <div class="feature-mockup">
-                        <img src="assets/ss_map.png" alt="Mapa">
+                        <img src="assets/ss_map.png" alt="Map">
                     </div>
                     <span class="feature-icon">📍</span>
-                    <h3 class="feature-title">Mapa 3D Interactivo</h3>
-                    <p class="feature-desc">Explora tu zona con un mapa estilo gaming. Edificios 3D y reseñas reales de padres para encontrar siempre el lugar perfecto.</p>
+                    <h3 class="feature-title" data-en="Interactive 3D Map">Mapa 3D Interactivo</h3>
+                    <p class="feature-desc" data-en="Explore your area with a gaming-style map. 3D buildings and real reviews from parents so you always find the perfect spot.">Explora tu zona con un mapa estilo gaming. Edificios 3D y reseñas reales de padres para encontrar siempre el lugar perfecto.</p>
                 </div>
                 <div class="feature-card fade-up" data-delay="1">
                     <div class="feature-mockup">
                         <img src="assets/ss_today.png" alt="Today">
                     </div>
                     <span class="feature-icon">✨</span>
-                    <h3 class="feature-title">Today — IA Concierge</h3>
-                    <p class="feature-desc">Olvídate de buscar. Tu asistente IA diseña 3 planes personalizados cada día según la edad de tus hijos, el clima y vuestra ubicación.</p>
+                    <h3 class="feature-title" data-en="Today — AI Concierge">Today — IA Concierge</h3>
+                    <p class="feature-desc" data-en="Stop searching. Your AI assistant designs 3 personalised plans every day based on your kids' ages, the weather and your location.">Olvídate de buscar. Tu asistente IA diseña 3 planes personalizados cada día según la edad de tus hijos, el clima y vuestra ubicación.</p>
                 </div>
                 <div class="feature-card fade-up" data-delay="2">
                     <div class="feature-mockup">
                         <img src="assets/ss_care.png" alt="Care">
                     </div>
                     <span class="feature-icon">🤖</span>
-                    <h3 class="feature-title">Care — Coach IA</h3>
-                    <p class="feature-desc">Tu asesor de crianza 24/7. Resuelve dudas pedagógicas y recibe consejos expertos personalizados por IA en cualquier momento.</p>
+                    <h3 class="feature-title" data-en="Care — AI Coach">Care — Coach IA</h3>
+                    <p class="feature-desc" data-en="Your 24/7 parenting advisor. Resolve doubts and get personalised expert advice powered by AI anytime.">Tu asesor de crianza 24/7. Resuelve dudas pedagógicas y recibe consejos expertos personalizados por IA en cualquier momento.</p>
                 </div>
                 <div class="feature-card fade-up" data-delay="3">
                     <div class="feature-mockup">
                         <img src="assets/ss_quests.png" alt="Quests">
                     </div>
                     <span class="feature-icon">⚔️</span>
-                    <h3 class="feature-title">Quests — Misiones</h3>
-                    <p class="feature-desc">Convierte el día a día en una aventura familiar. Completa retos, gana puntos y fortalece el vínculo mientras jugáis juntos.</p>
+                    <h3 class="feature-title" data-en="Quests — Missions">Quests — Misiones</h3>
+                    <p class="feature-desc" data-en="Turn everyday life into a family adventure. Complete challenges, earn points and strengthen your bond while playing together.">Convierte el día a día en una aventura familiar. Completa retos, gana puntos y fortalece el vínculo mientras jugáis juntos.</p>
                 </div>
                 <div class="feature-card fade-up">
                     <div class="feature-mockup">
                         <img src="assets/ss_moments.png" alt="Moments">
                     </div>
                     <span class="feature-icon">💝</span>
-                    <h3 class="feature-title">Moments — Recuerdos</h3>
-                    <p class="feature-desc">El lugar más seguro para vuestros recuerdos. Un diario privado para guardar fotos y anécdotas lejos de las redes sociales convencionales.</p>
+                    <h3 class="feature-title" data-en="Moments — Memories">Moments — Recuerdos</h3>
+                    <p class="feature-desc" data-en="The safest place for your memories. A private diary to keep photos and stories away from conventional social media.">El lugar más seguro para vuestros recuerdos. Un diario privado para guardar fotos y anécdotas lejos de las redes sociales convencionales.</p>
                 </div>
                 <div class="feature-card fade-up" data-delay="1">
                     <div class="feature-mockup">
                         <img src="assets/ss_ranking.png" alt="Ranking">
                     </div>
                     <span class="feature-icon">🏆</span>
-                    <h3 class="feature-title">Top — Gamificación</h3>
-                    <p class="feature-desc">Compite sano con otras familias. Sube de nivel, gana medallas y descubre quiénes son los miembros más activos de la comunidad.</p>
+                    <h3 class="feature-title" data-en="Top — Gamification">Top — Gamificación</h3>
+                    <p class="feature-desc" data-en="Compete fairly with other families. Level up, earn medals and discover the most active members of the community.">Compite sano con otras familias. Sube de nivel, gana medallas y descubre quiénes son los miembros más activos de la comunidad.</p>
                 </div>
                 <div class="feature-card fade-up" data-delay="2">
                     <div class="feature-mockup">
-                        <img src="assets/ss_profile.png" alt="Perfil">
+                        <img src="assets/ss_profile.png" alt="Profile">
                     </div>
                     <span class="feature-icon">👤</span>
-                    <h3 class="feature-title">Perfil & Familia</h3>
-                    <p class="feature-desc">Gestiona tu tribu privada. Invita a miembros con códigos seguros, sigue vuestro progreso y acumulad puntos por cada aventura.</p>
+                    <h3 class="feature-title" data-en="Profile &amp; Family">Perfil & Familia</h3>
+                    <p class="feature-desc" data-en="Manage your private tribe. Invite members with secure codes, track your progress and earn points on every adventure.">Gestiona tu tribu privada. Invita a miembros con códigos seguros, sigue vuestro progreso y acumulad puntos por cada aventura.</p>
                 </div>
             </div>
         </div>
@@ -1178,29 +1204,29 @@
     <section id="how" style="background: linear-gradient(180deg, transparent, rgba(11,76,143,0.04));">
         <div class="container">
             <div class="section-header center fade-up">
-                <span class="section-eyebrow">Empieza en 60 segundos</span>
-                <h2 class="section-title">Cómo funciona.</h2>
-                <p class="section-subtitle">Sin tutoriales infinitos. Te registras, dices cómo es tu familia y empiezas a vivir.</p>
+                <span class="section-eyebrow" data-en="Start in 60 seconds">Empieza en 60 segundos</span>
+                <h2 class="section-title" data-en="How it works.">Cómo funciona.</h2>
+                <p class="section-subtitle" data-en="No endless tutorials. Sign up, tell us about your family and start living.">Sin tutoriales infinitos. Te registras, dices cómo es tu familia y empiezas a vivir.</p>
             </div>
             <div class="steps">
                 <div class="step fade-up">
                     <div class="step-num">1</div>
-                    <h3 class="step-title">Crea tu tribu</h3>
-                    <p class="step-desc">Te registras gratis en 30 segundos y eliges si creas una familia o te unes con un código de 6 letras.</p>
+                    <h3 class="step-title" data-en="Create your tribe">Crea tu tribu</h3>
+                    <p class="step-desc" data-en="Sign up free in 30 seconds and choose whether to create a family or join one with a 6-letter code.">Te registras gratis en 30 segundos y eliges si creas una familia o te unes con un código de 6 letras.</p>
                 </div>
                 <div class="step fade-up" data-delay="1">
                     <div class="step-num">2</div>
-                    <h3 class="step-title">Cuéntanos quiénes sois</h3>
-                    <p class="step-desc">Edades de los niños, presupuesto, distancia. La IA aprende y te propone planes que de verdad encajan.</p>
+                    <h3 class="step-title" data-en="Tell us about you">Cuéntanos quiénes sois</h3>
+                    <p class="step-desc" data-en="Kids' ages, budget, distance. The AI learns and suggests plans that really fit.">Edades de los niños, presupuesto, distancia. La IA aprende y te propone planes que de verdad encajan.</p>
                 </div>
                 <div class="step fade-up" data-delay="2">
                     <div class="step-num">3</div>
-                    <h3 class="step-title">Vivid en familia</h3>
-                    <p class="step-desc">Cada día, 3 planes premium listos para hacer. Completa misiones, gana puntos y comparte recuerdos.</p>
+                    <h3 class="step-title" data-en="Live as a family">Vivid en familia</h3>
+                    <p class="step-desc" data-en="Every day, 3 premium plans ready to enjoy. Complete missions, earn points and share memories.">Cada día, 3 planes premium listos para hacer. Completa misiones, gana puntos y comparte recuerdos.</p>
                 </div>
             </div>
             <div class="text-center mt-32 fade-up" data-delay="3">
-                <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="btn btn-primary">Empezar ahora gratis</a>
+                <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="btn btn-primary" data-en="Get started free">Empezar ahora gratis</a>
             </div>
         </div>
     </section>
@@ -1209,40 +1235,40 @@
     <section id="pricing">
         <div class="container">
             <div class="section-header center fade-up">
-                <span class="section-eyebrow">Precios honestos</span>
-                <h2 class="section-title">Empieza gratis.<br><span class="gradient">Crece cuando quieras.</span></h2>
-                <p class="section-subtitle">Sin anuncios. Sin venta de datos. Solo dos planes claros.</p>
+                <span class="section-eyebrow" data-en="Honest pricing">Precios honestos</span>
+                <h2 class="section-title" data-en='Start free.<br><span class="gradient">Grow when you want.</span>'>Empieza gratis.<br><span class="gradient">Crece cuando quieras.</span></h2>
+                <p class="section-subtitle" data-en="No ads. No data selling. Just two clear plans.">Sin anuncios. Sin venta de datos. Solo dos planes claros.</p>
             </div>
             <div class="pricing-grid">
                 <div class="price-card fade-up">
-                    <div class="price-name">Gratis</div>
-                    <div class="price-tag">0€</div>
-                    <div class="price-period">Para siempre, sin tarjeta</div>
+                    <div class="price-name" data-en="Free">Gratis</div>
+                    <div class="price-tag" data-en="£0 / €0">0€</div>
+                    <div class="price-period" data-en="Forever, no card needed">Para siempre, sin tarjeta</div>
                     <ul class="price-features">
-                        <li>Mapa 3D y reseñas de la comunidad</li>
-                        <li>3 planes IA al día (Today)</li>
-                        <li>3 misiones familiares activas</li>
-                        <li>Alertas de seguridad ilimitadas</li>
-                        <li>Ranking y gamificación completa</li>
-                        <li>News y becas locales</li>
+                        <li data-en="3D Map and community reviews">Mapa 3D y reseñas de la comunidad</li>
+                        <li data-en="3 AI plans per day (Today)">3 planes IA al día (Today)</li>
+                        <li data-en="3 active family missions">3 misiones familiares activas</li>
+                        <li data-en="Unlimited safety alerts">Alertas de seguridad ilimitadas</li>
+                        <li data-en="Full ranking and gamification">Ranking y gamificación completa</li>
+                        <li data-en="Local news and grants">News y becas locales</li>
                     </ul>
-                    <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="price-cta">Empezar gratis</a>
+                    <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="price-cta" data-en="Start free">Empezar gratis</a>
                 </div>
                 <div class="price-card premium fade-up" data-delay="1">
-                    <span class="price-badge">Más popular</span>
+                    <span class="price-badge" data-en="Most popular">Más popular</span>
                     <div class="price-name">Premium</div>
-                    <div class="price-tag">4,99€ <small>/mes</small></div>
-                    <div class="price-period">Cancela cuando quieras</div>
+                    <div class="price-tag" data-en="£4.49 <small>/month</small>">4,99€ <small>/mes</small></div>
+                    <div class="price-period" data-en="Cancel anytime">Cancela cuando quieras</div>
                     <ul class="price-features">
-                        <li>Todo lo del plan Gratis</li>
-                        <li><strong>Tribu privada</strong> con hasta 6 familiares</li>
-                        <li><strong>Planes IA ilimitados</strong> en Today</li>
-                        <li><strong>Misiones ilimitadas</strong> + mensuales 500pts</li>
-                        <li>Chat con GoHappy IA personal</li>
-                        <li>Memorias en alta resolución sin límites</li>
-                        <li>Soporte prioritario</li>
+                        <li data-en="Everything in Free">Todo lo del plan Gratis</li>
+                        <li data-en="<strong>Private tribe</strong> with up to 6 family members"><strong>Tribu privada</strong> con hasta 6 familiares</li>
+                        <li data-en="<strong>Unlimited AI plans</strong> in Today"><strong>Planes IA ilimitados</strong> en Today</li>
+                        <li data-en="<strong>Unlimited missions</strong> + monthly 500pts"><strong>Misiones ilimitadas</strong> + mensuales 500pts</li>
+                        <li data-en="Chat with personal GoHappy AI">Chat con GoHappy IA personal</li>
+                        <li data-en="Unlimited high-resolution memories">Memorias en alta resolución sin límites</li>
+                        <li data-en="Priority support">Soporte prioritario</li>
                     </ul>
-                    <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="price-cta">Probar Premium</a>
+                    <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="price-cta" data-en="Try Premium">Probar Premium</a>
                 </div>
             </div>
         </div>
@@ -1252,33 +1278,33 @@
     <section id="faq">
         <div class="container">
             <div class="section-header center fade-up">
-                <span class="section-eyebrow">Dudas frecuentes</span>
-                <h2 class="section-title">Lo que se pregunta todo el mundo.</h2>
+                <span class="section-eyebrow" data-en="Frequently asked">Dudas frecuentes</span>
+                <h2 class="section-title" data-en="What everyone asks.">Lo que se pregunta todo el mundo.</h2>
             </div>
             <div class="faq-list">
                 <details class="faq-item fade-up">
-                    <summary>¿Necesito instalar algo de las tiendas?</summary>
-                    <p>No. GoHappy es una PWA (Progressive Web App): se instala desde el navegador directamente como una app nativa. En iPhone, abres Safari y le das a "Añadir a pantalla de inicio". En Android, Chrome te lo propone automáticamente. Funciona offline.</p>
+                    <summary data-en="Do I need to install anything from the app stores?">¿Necesito instalar algo de las tiendas?</summary>
+                    <p data-en='No. GoHappy is a PWA (Progressive Web App): it installs directly from the browser like a native app. On iPhone, open Safari and tap "Add to Home Screen". On Android, Chrome offers it automatically. Works offline.'>No. GoHappy es una PWA (Progressive Web App): se instala desde el navegador directamente como una app nativa. En iPhone, abres Safari y le das a "Añadir a pantalla de inicio". En Android, Chrome te lo propone automáticamente. Funciona offline.</p>
                 </details>
                 <details class="faq-item fade-up" data-delay="1">
-                    <summary>¿La IA es real o son respuestas pre-grabadas?</summary>
-                    <p>Es 100% real. Usamos Gemini 2.5 Flash de Google, accedido a través de un proxy seguro propio. Cada plan que ves en Today está generado en vivo basándose en tu ubicación, edad de los niños, clima y preferencias.</p>
+                    <summary data-en="Is the AI real or pre-recorded answers?">¿La IA es real o son respuestas pre-grabadas?</summary>
+                    <p data-en="100% real. We use Google's Gemini 2.5 Flash, accessed through our own secure proxy. Every plan you see in Today is generated live based on your location, kids' ages, weather and preferences.">Es 100% real. Usamos Gemini 2.5 Flash de Google, accedido a través de un proxy seguro propio. Cada plan que ves en Today está generado en vivo basándose en tu ubicación, edad de los niños, clima y preferencias.</p>
                 </details>
                 <details class="faq-item fade-up" data-delay="2">
-                    <summary>¿Mis datos están seguros?</summary>
-                    <p>Sí. GoHappy nunca vende ni comparte tus datos. Almacenamos en Firebase (Google Cloud, GDPR-compliant, servidores en Europa). La IA solo recibe tu ubicación aproximada y preferencias, nunca datos personales identificativos.</p>
+                    <summary data-en="Is my data safe?">¿Mis datos están seguros?</summary>
+                    <p data-en="Yes. GoHappy never sells or shares your data. We store on Firebase (Google Cloud, GDPR/UK-GDPR compliant, EU servers). The AI only receives your approximate location and preferences, never personally identifying data.">Sí. GoHappy nunca vende ni comparte tus datos. Almacenamos en Firebase (Google Cloud, GDPR-compliant, servidores en Europa). La IA solo recibe tu ubicación aproximada y preferencias, nunca datos personales identificativos.</p>
                 </details>
                 <details class="faq-item fade-up" data-delay="3">
-                    <summary>¿Funciona en mi ciudad?</summary>
-                    <p>GoHappy funciona en toda España y Latinoamérica de habla hispana. La IA conoce parques, museos, eventos y becas locales de cualquier ciudad. Si vives en zona rural, prueba a poner el municipio mayor más cercano.</p>
+                    <summary data-en="Does it work in my city?">¿Funciona en mi ciudad?</summary>
+                    <p data-en="GoHappy works across the UK, Spain and Spanish-speaking Latin America. The AI knows parks, museums, events and local grants in any city. If you live in a rural area, try the largest nearby town.">GoHappy funciona en toda España y Latinoamérica de habla hispana. La IA conoce parques, museos, eventos y becas locales de cualquier ciudad. Si vives en zona rural, prueba a poner el municipio mayor más cercano.</p>
                 </details>
                 <details class="faq-item fade-up" data-delay="4">
-                    <summary>¿Cómo cancelo Premium?</summary>
-                    <p>Desde tu perfil → Suscripción → Cancelar. Sin formularios, sin llamadas, sin retenciones. Mantienes el acceso hasta el final del período pagado.</p>
+                    <summary data-en="How do I cancel Premium?">¿Cómo cancelo Premium?</summary>
+                    <p data-en="From your Profile → Subscription → Cancel. No forms, no calls, no retention tactics. You keep access until the end of your paid period.">Desde tu perfil → Suscripción → Cancelar. Sin formularios, sin llamadas, sin retenciones. Mantienes el acceso hasta el final del período pagado.</p>
                 </details>
                 <details class="faq-item fade-up" data-delay="5">
-                    <summary>¿Tenéis app para Android e iOS?</summary>
-                    <p>Sí. Estamos preparando los APK firmados para Google Play y la build TestFlight para iOS. Mientras, la PWA ofrece exactamente la misma experiencia, instalándose como app nativa en ambos sistemas.</p>
+                    <summary data-en="Do you have Android and iOS apps?">¿Tenéis app para Android e iOS?</summary>
+                    <p data-en="Yes. We're preparing signed APKs for Google Play and the TestFlight build for iOS. Meanwhile, the PWA offers exactly the same experience, installing as a native app on both systems.">Sí. Estamos preparando los APK firmados para Google Play y la build TestFlight para iOS. Mientras, la PWA ofrece exactamente la misma experiencia, instalándose como app nativa en ambos sistemas.</p>
                 </details>
             </div>
         </div>
@@ -1288,12 +1314,12 @@
     <section>
         <div class="container">
             <div class="cta-final fade-up">
-                <h2>Empezad hoy.</h2>
-                <p>Vuestra próxima aventura familiar está a un clic. Sin tarjeta. Sin spam. 100% gratis para empezar.</p>
-                <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="btn">📱 Abrir GoHappy ahora</a>
+                <h2 data-en="Start today.">Empezad hoy.</h2>
+                <p data-en="Your next family adventure is one click away. No card. No spam. 100% free to start.">Vuestra próxima aventura familiar está a un clic. Sin tarjeta. Sin spam. 100% gratis para empezar.</p>
+                <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="btn" data-en="📱 Open GoHappy now">📱 Abrir GoHappy ahora</a>
                 <div class="cta-qr" id="qr-container">
                     <div id="qrcode"></div>
-                    <div class="cta-qr-label">Escanea con tu móvil</div>
+                    <div class="cta-qr-label" data-en="Scan with your phone">Escanea con tu móvil</div>
                 </div>
             </div>
         </div>
@@ -1308,43 +1334,74 @@
                         <img src="assets/logo.png?v=4.9.0" alt="GoHappy">
                         <span>GoHappy Family</span>
                     </div>
-                    <p class="footer-tag">La comunidad real para familias modernas. Tu camino a la alegría empieza aquí.</p>
+                    <p class="footer-tag" data-en="The real community for modern families. Your path to joy starts here.">La comunidad real para familias modernas. Tu camino a la alegría empieza aquí.</p>
                 </div>
                 <div class="footer-col">
-                    <h4>Producto</h4>
+                    <h4 data-en="Product">Producto</h4>
                     <ul>
-                        <li><a href="#features">Funcionalidades</a></li>
-                        <li><a href="#how">Cómo funciona</a></li>
-                        <li><a href="#pricing">Precio</a></li>
-                        <li><a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank">Probar Beta</a></li>
+                        <li><a href="#features" data-en="Features">Funcionalidades</a></li>
+                        <li><a href="#how" data-en="How it works">Cómo funciona</a></li>
+                        <li><a href="#pricing" data-en="Pricing">Precio</a></li>
+                        <li><a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" data-en="Try Beta">Probar Beta</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
-                    <h4>Empresa</h4>
+                    <h4 data-en="Company">Empresa</h4>
                     <ul>
-                        <li><a href="#">Sobre nosotros</a></li>
-                        <li><a href="#">Blog</a></li>
-                        <li><a href="mailto:hola@gohappyfamily.app">Contacto</a></li>
+                        <li><a href="mailto:hola@gohappyfamily.app?subject=Sobre%20GoHappy" data-en="About us">Sobre nosotros</a></li>
+                        <li><a href="mailto:hola@gohappyfamily.app?subject=Blog" data-en="Blog (coming soon)">Blog (próximamente)</a></li>
+                        <li><a href="mailto:hola@gohappyfamily.app" data-en="Contact">Contacto</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
-                    <h4>Legal</h4>
+                    <h4 data-en="Legal">Legal</h4>
                     <ul>
-                        <li><a href="https://douglascyberbraz-beep.github.io/GoHappy-App/?page=legal&doc=terms" target="_blank">Términos</a></li>
-                        <li><a href="https://douglascyberbraz-beep.github.io/GoHappy-App/?page=legal&doc=privacy" target="_blank">Privacidad</a></li>
+                        <li><a href="https://douglascyberbraz-beep.github.io/GoHappy-App/?page=legal&doc=terms" target="_blank" data-en="Terms">Términos</a></li>
+                        <li><a href="https://douglascyberbraz-beep.github.io/GoHappy-App/?page=legal&doc=privacy" target="_blank" data-en="Privacy">Privacidad</a></li>
                         <li><a href="https://douglascyberbraz-beep.github.io/GoHappy-App/?page=legal&doc=cookies" target="_blank">Cookies</a></li>
-                        <li><a href="https://douglascyberbraz-beep.github.io/GoHappy-App/?page=legal&doc=legal" target="_blank">Aviso Legal</a></li>
+                        <li><a href="https://douglascyberbraz-beep.github.io/GoHappy-App/?page=legal&doc=legal" target="_blank" data-en="Legal Notice">Aviso Legal</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <div>© 2026 GoHappy Family. Hecho con ♥ en España.</div>
-                <div class="made">Powered by <span>Gemini IA</span> + <span>Firebase</span></div>
+                <div data-en="© 2026 GoHappy Family. Made with ♥ in Spain &amp; UK.">© 2026 GoHappy Family. Hecho con ♥ en España.</div>
+                <div class="made" data-en="Powered by <span>Gemini AI</span> + <span>Firebase</span>">Powered by <span>Gemini IA</span> + <span>Firebase</span></div>
             </div>
         </div>
     </footer>
 
     <script>
+        // ─── i18n: aplicar traducciones EN si corresponde ───
+        (function() {
+            var lang = window.__landingLang || 'es';
+            if (lang === 'en') {
+                document.querySelectorAll('[data-en]').forEach(function(el) {
+                    var t = el.getAttribute('data-en');
+                    if (t == null) return;
+                    if (el.tagName === 'META' || el.tagName === 'TITLE') {
+                        if (el.tagName === 'META') el.setAttribute('content', t);
+                        else el.textContent = t;
+                    } else {
+                        el.innerHTML = t;
+                    }
+                });
+                // Open Graph locale
+                var ogLocale = document.querySelector('meta[property="og:locale"]');
+                if (ogLocale) ogLocale.setAttribute('content', 'en_GB');
+            }
+            // Selector manual (toggle ES/EN) — fixed bottom-right
+            var sw = document.createElement('button');
+            sw.id = 'lang-switch';
+            sw.textContent = lang === 'en' ? 'ES' : 'EN';
+            sw.style.cssText = 'position:fixed;bottom:18px;right:18px;z-index:9999;background:rgba(11,76,143,0.92);color:white;border:none;border-radius:999px;padding:10px 16px;font-weight:800;font-family:-apple-system,sans-serif;font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(11,76,143,0.32);backdrop-filter:blur(12px);';
+            sw.onclick = function() {
+                var next = (window.__landingLang === 'en') ? 'es' : 'en';
+                try { localStorage.setItem('GoHappy_lang', next); } catch(e) {}
+                location.reload();
+            };
+            document.body.appendChild(sw);
+        })();
+
         // Nav scroll effect
         const nav = document.getElementById('nav');
         window.addEventListener('scroll', () => {

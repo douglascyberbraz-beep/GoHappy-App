@@ -183,7 +183,7 @@ window.GoHappyQuestsPage = {
                         quest.completadaHoy = true;
                         // window.GoHappyPoints.addPoints('QUEST', user.uid, quest.puntos);
                         window.GoHappyQuestsPage.loadQuests();
-                        window.GoHappyToast.success("¡Misión demo completada! 🎉");
+                        window.GoHappyToast.success(window.t ? window.t('quests.demo.done') : "¡Misión demo completada! 🎉");
                         return;
                     }
 
@@ -193,7 +193,7 @@ window.GoHappyQuestsPage = {
 
         } catch (e) {
             console.error(e);
-            listContainer.innerHTML = '<p class="center-text">Error al cargar misiones</p>';
+            listContainer.innerHTML = `<p class="center-text">${window.t ? window.t('quests.load.error') : 'Error al cargar misiones'}</p>`;
         }
     },
 
@@ -201,22 +201,33 @@ window.GoHappyQuestsPage = {
         const user = window.GoHappyAuth.checkAuth();
         if (!user) return;
 
-        window.GoHappyToast.info("¡Completando misión! 🚀");
+        window.GoHappyToast.info(window.t ? window.t('quests.completing') : "¡Completando misión! 🚀");
         window.GoHappySound && window.GoHappySound.play('click');
 
         const res = await window.GoHappyQuests.completarQuest(questId, questData);
         if (res.ok) {
             window.GoHappySound && window.GoHappySound.play('quest');
-            window.GoHappyToast.points(`¡Misión cumplida! +${res.puntos} pts 🎉`);
+            window.GoHappyToast.points(window.t ? window.t('quests.complete', { pts: res.puntos }) : `¡Misión cumplida! +${res.puntos} pts 🎉`);
+
+            // Sprint 2: registrar en family_context
+            try {
+                if (window.GoHappyContext) {
+                    window.GoHappyContext.addActivity('quest_completed', {
+                        title: questData?.titulo || questData?.title || '',
+                        category: questData?.categoria || null
+                    });
+                }
+            } catch (e) { /* ignore */ }
+
             window.GoHappyQuestsPage.loadQuests();
 
             // Non-blocking memory prompt via toast action
             setTimeout(() => {
-                window.GoHappyToast.info("📸 ¿Guardas un recuerdo de este momento?", 4000);
+                window.GoHappyToast.info(window.t ? window.t('quests.memory.prompt') : "📸 ¿Guardas un recuerdo de este momento?", 4000);
             }, 1200);
         } else {
             window.GoHappySound && window.GoHappySound.play('error');
-            window.GoHappyToast.error(res.error || "No se pudo completar");
+            window.GoHappyToast.error(res.error || (window.t ? window.t('quests.complete.fail') : "No se pudo completar"));
         }
     },
 

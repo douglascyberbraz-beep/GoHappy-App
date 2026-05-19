@@ -57,6 +57,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // Family Context (Sprint 1: memoria compartida) — carga en background
+    if (window.GoHappyContext) {
+        window.GoHappyContext.load().catch(e => console.warn('[Context] load:', e?.message));
+    }
+
+    // Proactive (Flujos E + F): sugerencias inteligentes al abrir
+    if (window.GoHappyProactive) {
+        try { window.GoHappyProactive.init(); } catch (e) {}
+    }
+
     // Banner de cookies (GDPR/UK GDPR) — primera visita
     if (window.GoHappyCookies) {
         try { window.GoHappyCookies.init(); } catch (e) { console.warn('cookies init:', e); }

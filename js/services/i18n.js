@@ -172,6 +172,11 @@ window.GoHappyI18n = {
             'quests.filter.monthly':'📆 Mensuales',
             'quests.filter.active':'🏃 Activas',
             'quests.complete':  '¡Misión cumplida! +{pts} pts 🎉',
+            'quests.completing':'¡Completando misión! 🚀',
+            'quests.demo.done': '¡Misión demo completada! 🎉',
+            'quests.complete.fail':'No se pudo completar',
+            'quests.load.error':'Error al cargar misiones',
+            'quests.memory.prompt':'📸 ¿Guardas un recuerdo de este momento?',
 
             // CARE
             'care.title':       'Care',
@@ -201,6 +206,7 @@ window.GoHappyI18n = {
             'moments.preview.caption':'Añade una nota (opcional)...',
             'moments.publish':  '📤  Compartir con la familia',
             'moments.published':'¡Momento compartido! +20 pts ✨',
+            'moments.publish.fail':'No se pudo publicar.',
             'moments.cancel':   'Cancelar',
 
             // RANKING
@@ -481,6 +487,11 @@ window.GoHappyI18n = {
             'quests.filter.monthly':'📆 Monthly',
             'quests.filter.active':'🏃 Active',
             'quests.complete':  'Mission complete! +{pts} pts 🎉',
+            'quests.completing':'Completing mission! 🚀',
+            'quests.demo.done': 'Demo mission complete! 🎉',
+            'quests.complete.fail':'Could not complete',
+            'quests.load.error':'Error loading missions',
+            'quests.memory.prompt':'📸 Want to save a memory of this moment?',
 
             // CARE
             'care.title':       'Care',
@@ -510,6 +521,7 @@ window.GoHappyI18n = {
             'moments.preview.caption':'Add a note (optional)...',
             'moments.publish':  '📤  Share with family',
             'moments.published':'Moment shared! +20 pts ✨',
+            'moments.publish.fail':'Could not publish.',
             'moments.cancel':   'Cancel',
 
             // RANKING

@@ -1,19 +1,33 @@
 window.GoHappySafePage = {
     render: async (container) => {
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const txt = lang === 'en' ? {
+            title: '🛡️ Safe',
+            sub: 'Safety alerts in your area',
+            ai: '✨ GoHappy AI:',
+            analyzing: 'Analysing your area...',
+            report: '⚠️ Report alert'
+        } : {
+            title: '🛡️ Safe',
+            sub: 'Alertas de seguridad en tu zona',
+            ai: '✨ GoHappy IA:',
+            analyzing: 'Analizando tu zona...',
+            report: '⚠️ Reportar Alerta'
+        };
         container.innerHTML = `
             <div class="safe-page stagger-group">
                 <div class="unified-hero">
-                    <h2>🛡️ Safe</h2>
-                    <p>Alertas de seguridad en tu zona</p>
+                    <h2>${txt.title}</h2>
+                    <p>${txt.sub}</p>
                 </div>
 
                 <div id="ai-safe-insight" class="info-alert" style="margin: 0 15px 15px 15px; padding: 12px; background: linear-gradient(135deg, rgba(11, 113, 252, 0.05), rgba(6, 254, 254, 0.1)); border-radius: 12px; border-left: 4px solid var(--primary-cobalt); font-size: 13px; color: var(--primary-cobalt); line-height: 1.4; display: none;">
-                    <span style="font-weight: 800;">✨ GoHappy IA:</span> <span id="ai-safe-text">Analizando tu zona...</span>
+                    <span style="font-weight: 800;">${txt.ai}</span> <span id="ai-safe-text">${txt.analyzing}</span>
                 </div>
 
                 <div class="safe-report-bar premium-glass" style="display: flex; justify-content: center; padding: 12px; margin-top: 10px;">
                     <button id="report-alert-btn" class="btn-primary" style="font-size: 14px;">
-                        ⚠️ Reportar Alerta
+                        ${txt.report}
                     </button>
                 </div>
 

@@ -9,11 +9,60 @@ window.GoHappyToday = {
     _city: null,
     _coords: '41.6520, -4.7286',
 
+    // ─── Skeleton helper para evitar pantalla en blanco ───
+    _skeletonCards: (count = 3) => {
+        let html = '<div class="today-skel-wrap">';
+        for (let i = 0; i < count; i++) {
+            html += `
+                <div class="today-skel-card">
+                    <div class="skel-img"></div>
+                    <div class="skel-line skel-line-title"></div>
+                    <div class="skel-line skel-line-meta"></div>
+                    <div class="skel-line skel-line-body"></div>
+                    <div class="skel-line skel-line-body short"></div>
+                    <div class="skel-row">
+                        <div class="skel-btn"></div>
+                        <div class="skel-btn small"></div>
+                    </div>
+                </div>
+            `;
+        }
+        return html + '</div>';
+    },
+
+    // Sprint 2: etiqueta humana del tag
+    _tagLabel: (tag) => {
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const ES = { tantrums:'rabietas', sleep:'sueño', food:'alimentación', homework:'deberes', screens:'pantallas', siblings:'hermanos', school:'cole', emotions:'emociones' };
+        const EN = { tantrums:'tantrums', sleep:'sleep', food:'eating', homework:'homework', screens:'screen time', siblings:'siblings', school:'school', emotions:'emotions' };
+        return (lang === 'en' ? EN : ES)[tag] || tag;
+    },
+
     render: async (container) => {
         // Coords iniciales
         window.GoHappyToday._coords = window.lastKnownCoords || '41.6520, -4.7286';
 
         const T = window.t || (k => k);
+
+        // Sprint 2: banner contextual basado en último insight (Care → Today)
+        let contextBanner = '';
+        try {
+            const insight = window.GoHappyContext?.latestInsight?.();
+            if (insight) {
+                const lang = window.GoHappyI18n?.lang || 'es';
+                const label = window.GoHappyToday._tagLabel(insight.tag);
+                const msg = lang === 'en'
+                    ? `Plans tailored to your recent concern about <strong>${label}</strong>`
+                    : `Planes adaptados a tu consulta sobre <strong>${label}</strong>`;
+                contextBanner = `
+                    <div class="today-context-banner">
+                        <span class="tcb-icon">💡</span>
+                        <span class="tcb-text">${msg}</span>
+                    </div>
+                `;
+            }
+        } catch (e) { /* ignore */ }
+
         container.innerHTML = `
             <div class="today-page">
                 <div class="today-hero-premium">
@@ -22,6 +71,7 @@ window.GoHappyToday = {
                         <p class="today-welcome-subtitle" id="today-city-sub">${T('today.detecting')}</p>
                     </div>
                 </div>
+                ${contextBanner}
 
                 <!-- TOGGLE 3 vistas — Planes IA primero (default) -->
                 <div class="today-view-toggle">
@@ -38,10 +88,7 @@ window.GoHappyToday = {
 
                 <!-- Contenedor dinámico de vistas -->
                 <div id="today-view-content" style="padding: 0 16px calc(var(--nav-total, 110px) + 24px);">
-                    <div class="center-text p-40">
-                        <div class="typing-dots"><span></span><span></span><span></span></div>
-                        <p style="margin-top:14px; color:var(--text-secondary); font-size:13px;">${T('common.loading')}</p>
-                    </div>
+                    ${window.GoHappyToday._skeletonCards(3)}
                 </div>
             </div>
         `;
@@ -53,6 +100,79 @@ window.GoHappyToday = {
             style.id = styleId;
             style.textContent = `
                 .today-page { width:100%; min-height:100vh; box-sizing:border-box; overflow-x:hidden; }
+
+                /* ─── Skeleton cards (evita pantalla en blanco) ─── */
+                .today-skel-wrap { display:flex; flex-direction:column; gap:14px; margin-top:4px; }
+                .today-skel-card {
+                    background: rgba(255,255,255,0.7);
+                    backdrop-filter: blur(14px);
+                    border: 0.5px solid rgba(255,255,255,0.6);
+                    border-radius: 22px;
+                    padding: 14px;
+                    overflow: hidden;
+                }
+                .skel-img, .skel-line, .skel-btn {
+                    background: linear-gradient(90deg, rgba(11,76,143,0.06) 0%, rgba(11,76,143,0.14) 50%, rgba(11,76,143,0.06) 100%);
+                    background-size: 200% 100%;
+                    animation: skelShimmer 1.3s ease-in-out infinite;
+                    border-radius: 10px;
+                }
+                .skel-img        { height: 130px; margin-bottom: 12px; border-radius: 14px; }
+                .skel-line       { height: 12px; margin: 6px 0; }
+                .skel-line-title { height: 16px; width: 70%; margin-bottom: 10px; }
+                .skel-line-meta  { width: 45%; height: 10px; }
+                .skel-line-body  { width: 100%; }
+                .skel-line-body.short { width: 80%; }
+                .skel-row        { display:flex; gap:8px; margin-top: 12px; }
+                .skel-btn        { flex: 2; height: 36px; border-radius: 999px; }
+                .skel-btn.small  { flex: 1; }
+                @keyframes skelShimmer {
+                    0%   { background-position: 200% 0; }
+                    100% { background-position: -200% 0; }
+                }
+
+                /* Sprint 2: Banner contextual (Care → Today) */
+                .today-context-banner {
+                    display: flex; align-items: center; gap: 10px;
+                    margin: 0 16px 14px;
+                    padding: 12px 14px;
+                    background: linear-gradient(135deg, rgba(11,113,252,0.10), rgba(23,200,212,0.12));
+                    border: 0.5px solid rgba(11,113,252,0.22);
+                    border-radius: 16px;
+                    backdrop-filter: blur(14px) saturate(180%);
+                    box-shadow: 0 4px 14px rgba(11,76,143,0.08);
+                    font-size: 13px;
+                    color: var(--text-primary);
+                    line-height: 1.35;
+                }
+                .today-context-banner .tcb-icon { font-size: 18px; flex-shrink: 0; }
+                .today-context-banner .tcb-text { flex: 1; }
+                .today-context-banner strong { color: var(--primary-cobalt); font-weight: 700; }
+
+                /* Sprint 3: Citas de Search Grounding */
+                .event-citations {
+                    margin: 14px 0 8px;
+                    padding: 12px 14px;
+                    background: rgba(255,255,255,0.66);
+                    border: 0.5px solid rgba(11,76,143,0.12);
+                    border-radius: 16px;
+                    backdrop-filter: blur(12px);
+                }
+                .event-citations .ec-title {
+                    font-size: 11px; font-weight: 800; letter-spacing: 0.5px;
+                    color: var(--text-secondary); text-transform: uppercase;
+                    margin-bottom: 8px;
+                }
+                .event-citations .ec-link {
+                    display: block;
+                    font-size: 12.5px;
+                    color: var(--primary-cobalt);
+                    text-decoration: none;
+                    padding: 5px 0;
+                    border-bottom: 0.5px solid rgba(11,76,143,0.08);
+                    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+                }
+                .event-citations .ec-link:last-child { border-bottom: none; }
 
                 /* TOGGLE 3 vistas */
                 .today-view-toggle {
@@ -124,8 +244,8 @@ window.GoHappyToday = {
                     backdrop-filter: blur(30px) saturate(180%);
                     border: 0.5px solid rgba(255,255,255,0.95);
                     border-radius: 24px;
-                    padding: 18px;
-                    margin-bottom: 14px;
+                    padding: 16px;
+                    margin: 0 0 14px;
                     box-shadow: inset 0 1px 0 rgba(255,255,255,0.95),
                                 0 8px 28px rgba(11,76,143,0.08);
                     transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
@@ -133,21 +253,46 @@ window.GoHappyToday = {
                     max-width: 100%;
                     box-sizing: border-box;
                     overflow: hidden;
+                    position: relative;
+                    /* Aislar contenido del border-radius */
+                    isolation: isolate;
+                }
+                .event-card *, .plan-card-premium * {
+                    max-width: 100%;
+                    box-sizing: border-box;
                 }
                 .event-card:active, .plan-card-premium:active { transform: scale(0.975); }
                 .event-card .event-title, .plan-card-premium .event-title {
                     word-wrap: break-word;
                     overflow-wrap: anywhere;
+                    hyphens: auto;
+                }
+                .event-card .event-desc, .plan-card-premium .event-desc {
+                    word-wrap: break-word;
+                    overflow-wrap: anywhere;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 4;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
                 }
                 .event-card .event-meta-row, .plan-card-premium .event-meta-row {
                     flex-wrap: wrap;
                     overflow: hidden;
+                    row-gap: 6px;
                 }
                 .event-card .event-cta, .plan-card-premium .event-cta {
                     min-width: 0;
                     overflow: hidden;
                     text-overflow: ellipsis;
                     white-space: nowrap;
+                }
+                .event-card .event-info-item, .plan-card-premium .event-info-item {
+                    /* Permitir 2 líneas en info-item si el nombre del lugar es largo */
+                    white-space: normal !important;
+                    line-height: 1.35;
+                    -webkit-line-clamp: 2;
+                    display: -webkit-box;
+                    -webkit-box-orient: vertical;
                 }
 
                 .event-meta-row {
@@ -405,11 +550,7 @@ window.GoHappyToday = {
                 <button class="ev-filter-chip ${filter==='finde'?'active':''}" data-filter="finde">${T('today.filter.weekend')}</button>
             </div>
             <div id="events-list">
-                <div class="center-text p-40">
-                    <div class="magic-loader" style="font-size:40px;">🎫</div>
-                    <div class="typing-dots" style="margin-top:12px;"><span></span><span></span><span></span></div>
-                    <p style="margin-top:12px; color:var(--text-secondary); font-size:13px;">${T('today.loading.events')}</p>
-                </div>
+                ${window.GoHappyToday._skeletonCards(3)}
             </div>
         `;
 
@@ -429,17 +570,34 @@ window.GoHappyToday = {
                 list.innerHTML = `
                     <div class="moments-empty" style="margin-top: 20px;">
                         <div class="moments-empty-icon">🏜️</div>
-                        <div class="moments-empty-title">Sin eventos esta vez</div>
-                        <div class="moments-empty-text">Prueba con otro día o vuelve más tarde.</div>
+                        <div class="moments-empty-title">${T('today.no.events')}</div>
+                        <div class="moments-empty-text">${T('today.no.events.sub')}</div>
                     </div>
                 `;
                 return;
             }
 
+            // Sprint 3: citas de Search Grounding (si hay)
+            let citationsHtml = '';
+            try {
+                const cites = window.GoHappyAI?._lastCitations || [];
+                if (cites.length) {
+                    const lang = window.GoHappyI18n?.lang || 'es';
+                    const title = lang === 'en' ? 'Sources' : 'Fuentes';
+                    citationsHtml = `
+                        <div class="event-citations">
+                            <div class="ec-title">🔗 ${title}</div>
+                            ${cites.map(c => `<a class="ec-link" href="${c.uri}" target="_blank" rel="noopener noreferrer">${(c.title || '').slice(0, 60)}</a>`).join('')}
+                        </div>
+                    `;
+                }
+            } catch (e) {}
+
             list.innerHTML = events.map(e => window.GoHappyToday._renderEventCard(e)).join('') + `
                 <div class="event-disclaimer">
                     ${window.GoHappyI18n ? window.GoHappyI18n.t('today.disclaimer') : 'ⓘ Verifica horarios y entradas en la web oficial antes de ir'}
                 </div>
+                ${citationsHtml}
             `;
 
             // Bind botones de ruta → navegador nativo
@@ -463,12 +621,12 @@ window.GoHappyToday = {
             // Indicador IA real
             const src = window.GoHappyAI._lastSource;
             if (src === 'real') {
-                window.GoHappyToast && window.GoHappyToast.success('✨ Eventos generados por IA real', 2500);
+                window.GoHappyToast && window.GoHappyToast.success(T('today.real.events'), 2500);
             }
         } catch (e) {
             console.error('Eventos error:', e);
             document.getElementById('events-list').innerHTML = `
-                <div class="moments-empty"><div class="moments-empty-icon">⚠️</div><div class="moments-empty-title">No se pudo cargar</div><div class="moments-empty-text">Inténtalo de nuevo.</div></div>
+                <div class="moments-empty"><div class="moments-empty-icon">⚠️</div><div class="moments-empty-title">${T('err.load.page')}</div><div class="moments-empty-text">${T('err.try.again')}</div></div>
             `;
         }
     },
@@ -498,7 +656,7 @@ window.GoHappyToday = {
                 </div>
                 ${e.tip ? `<div class="event-tip"><span class="event-tip-icon">💡</span><span>${safe(e.tip)}</span></div>` : ''}
                 <div style="display:flex; gap:8px;">
-                    <a class="event-cta" ${linkAttr} style="flex:2;">${safe(e.linkText || 'Más info')} →</a>
+                    <a class="event-cta" ${linkAttr} style="flex:2;">${safe(e.linkText || (window.t ? window.t('today.event.cta') : 'Más info'))} →</a>
                     <button class="event-cta event-route-btn" data-loc="${safe(e.location)}" style="flex:1; background:rgba(11,76,143,0.08); color:var(--cobalt); box-shadow:none;">${routeLabel}</button>
                 </div>
             </div>
@@ -515,10 +673,7 @@ window.GoHappyToday = {
                 ${T('today.surprise')}
             </button>
             <div id="planes-list">
-                <div class="center-text p-40">
-                    <div class="magic-loader">✨</div>
-                    <p style="margin-top:12px; color:var(--text-secondary); font-size:13px;">${T('today.loading.plans')}</p>
-                </div>
+                ${window.GoHappyToday._skeletonCards(3)}
             </div>
         `;
 
@@ -538,13 +693,7 @@ window.GoHappyToday = {
         const list = document.getElementById('planes-list');
         if (!list) return;
 
-        list.innerHTML = `
-            <div class="center-text p-40">
-                <div class="magic-loader" style="font-size:42px;">✨</div>
-                <div class="typing-dots" style="margin-top:14px;"><span></span><span></span><span></span></div>
-                <p style="margin-top:12px; color:var(--cobalt); font-weight:600;">GoHappy IA está diseñando planes únicos...</p>
-            </div>
-        `;
+        list.innerHTML = window.GoHappyToday._skeletonCards(3);
 
         try {
             const activities = await window.GoHappyAI.getTodayActivities(window.GoHappyToday._coords, prefs);
@@ -618,9 +767,42 @@ window.GoHappyToday = {
                         });
                     } catch (e) {}
                 }
-                btn.textContent = '✅ Plan guardado';
+                btn.textContent = window.t ? window.t('today.plan.saved') : '✅ Plan guardado';
                 btn.style.background = '#27AE60';
-                window.GoHappyToast.points(`¡Plan "${act.title}" guardado! +50 pts 🎉`);
+                const lang = window.GoHappyI18n?.lang || 'es';
+                const msg = lang === 'en' ? `Plan "${act.title}" saved! +50 pts 🎉` : `¡Plan "${act.title}" guardado! +50 pts 🎉`;
+                window.GoHappyToast.points(msg);
+
+                // Flujo B: auto-crear Quest familiar a partir del plan guardado
+                try {
+                    if (user && !user.isGuest && user.familyId && window.GoHappyQuests?.createCustomQuest) {
+                        const questTitle = lang === 'en'
+                            ? `Family plan: ${act.title}`
+                            : `Plan familiar: ${act.title}`;
+                        const questDesc = lang === 'en'
+                            ? `Make the most of "${act.title}"${act.location ? ' at ' + act.location : ''}. Mark it done when you've enjoyed it together.`
+                            : `Disfrutad de "${act.title}"${act.location ? ' en ' + act.location : ''}. Marcad esta misión al volver a casa.`;
+                        const res = await window.GoHappyQuests.createCustomQuest({
+                            titulo: questTitle,
+                            descripcion: questDesc,
+                            icono: act.icon || '🎯',
+                            puntos: 80,
+                            categoria: 'familiar',
+                            frecuencia: 'semanal',
+                            origen: 'today_plan'
+                        });
+                        if (res?.ok) {
+                            setTimeout(() => {
+                                window.GoHappyToast.info(
+                                    lang === 'en'
+                                        ? '⚔️ A Quest was created from this plan'
+                                        : '⚔️ Hemos creado una Quest con este plan',
+                                    3500
+                                );
+                            }, 1500);
+                        }
+                    }
+                } catch (e) { /* ignore */ }
             };
         });
 
@@ -646,39 +828,40 @@ window.GoHappyToday = {
     },
 
     _renderQuestionnaire: (container) => {
+        const T = window.t || (k => k);
         container.innerHTML = `
             <div class="plan-card-premium" style="padding: 24px;">
                 <h3 style="font-family:'Poppins',sans-serif; font-weight:900; color:var(--cobalt); margin-bottom:18px; font-size:1.15rem;">
-                    ¿Cómo es vuestro plan ideal? 👨‍👩‍👧‍👦
+                    ${T('today.questionnaire.title')}
                 </h3>
 
                 <div style="margin-bottom:14px;">
-                    <label style="font-size:11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase;">Quiénes venís</label>
+                    <label style="font-size:11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase;">${T('today.questionnaire.who')}</label>
                     <div style="display:flex; gap:10px; margin-top:6px;">
-                        <input type="number" id="q-adults" value="2" min="1" max="6" placeholder="Adultos">
-                        <input type="number" id="q-kids" value="2" min="0" max="6" placeholder="Niños">
+                        <input type="number" id="q-adults" value="2" min="1" max="6" placeholder="${T('today.questionnaire.adults')}">
+                        <input type="number" id="q-kids" value="2" min="0" max="6" placeholder="${T('today.questionnaire.kids')}">
                     </div>
                 </div>
                 <div style="margin-bottom:14px;">
-                    <label style="font-size:11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase;">Edades niños</label>
-                    <input type="text" id="q-ages" placeholder="Ej: 3, 7" style="margin-top:6px;">
+                    <label style="font-size:11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase;">${T('today.questionnaire.ages')}</label>
+                    <input type="text" id="q-ages" placeholder="${T('today.questionnaire.ages.placeholder')}" style="margin-top:6px;">
                 </div>
                 <div style="margin-bottom:14px;">
-                    <label style="font-size:11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase;">Preferencia</label>
+                    <label style="font-size:11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase;">${T('today.questionnaire.pref')}</label>
                     <select id="q-environment" style="margin-top:6px; padding:13px 16px; border-radius:18px; width:100%; border:0.5px solid rgba(11,76,143,0.15); background:white; font-size:15px;">
-                        <option value="Both">Indiferente</option>
-                        <option value="Outdoor">Al aire libre 🌳</option>
-                        <option value="Indoor">A cubierto 🏠</option>
+                        <option value="Both">${T('today.questionnaire.any')}</option>
+                        <option value="Outdoor">${T('today.questionnaire.outdoor')}</option>
+                        <option value="Indoor">${T('today.questionnaire.indoor')}</option>
                     </select>
                 </div>
                 <div style="margin-bottom:18px;">
-                    <label style="font-size:11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase;">Presupuesto</label>
+                    <label style="font-size:11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase;">${T('today.questionnaire.budget')}</label>
                     <select id="q-budget" style="margin-top:6px; padding:13px 16px; border-radius:18px; width:100%; border:0.5px solid rgba(11,76,143,0.15); background:white; font-size:15px;">
-                        <option value="Any">Cualquiera</option>
-                        <option value="Free">Solo gratis 💸</option>
+                        <option value="Any">${T('today.questionnaire.any')}</option>
+                        <option value="Free">${T('today.questionnaire.free')}</option>
                     </select>
                 </div>
-                <button id="save-prefs" class="btn-primary" style="width:100%; height:54px;">Encontrar planes ✨</button>
+                <button id="save-prefs" class="btn-primary" style="width:100%; height:54px;">${T('today.questionnaire.find')}</button>
             </div>
         `;
 
@@ -686,13 +869,28 @@ window.GoHappyToday = {
             const prefs = {
                 adults: document.getElementById('q-adults').value,
                 kids: document.getElementById('q-kids').value,
-                ages: document.getElementById('q-ages').value || 'Varias edades',
+                ages: document.getElementById('q-ages').value || ((window.GoHappyI18n?.lang || 'es') === 'en' ? 'Various ages' : 'Varias edades'),
                 environment: document.getElementById('q-environment').value,
                 budget: document.getElementById('q-budget').value,
                 distance: 'Any',
                 timestamp: Date.now()
             };
             localStorage.setItem('GoHappy_family_prefs', JSON.stringify(prefs));
+
+            // Sprint 2: sincronizar al family_context
+            try {
+                if (window.GoHappyContext) {
+                    window.GoHappyContext.setChildrenAges(prefs.ages);
+                    window.GoHappyContext.update({
+                        preferences: {
+                            environment: String(prefs.environment || '').toLowerCase() || null,
+                            budget:      String(prefs.budget || '').toLowerCase() || null,
+                            distance:    String(prefs.distance || '').toLowerCase() || null
+                        }
+                    });
+                }
+            } catch (e) { /* ignore */ }
+
             window.GoHappyToday._loadPlanes(prefs);
         };
     },
@@ -702,11 +900,7 @@ window.GoHappyToday = {
         const T = window.t || (k => k);
         content.innerHTML = `
             <div id="week-list">
-                <div class="center-text p-40">
-                    <div class="magic-loader" style="font-size:42px;">📅</div>
-                    <div class="typing-dots" style="margin-top:14px;"><span></span><span></span><span></span></div>
-                    <p style="margin-top:12px; color:var(--text-secondary); font-size:13px;">${T('today.loading.week')}</p>
-                </div>
+                ${window.GoHappyToday._skeletonCards(4)}
             </div>
         `;
 
@@ -722,7 +916,9 @@ window.GoHappyToday = {
                 days.push({
                     key: `d${i}`,
                     isToday: i === 0,
-                    dayName: ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'][d.getDay()],
+                    dayName: ((window.GoHappyI18n?.lang || 'es') === 'en'
+                        ? ['SUN','MON','TUE','WED','THU','FRI','SAT']
+                        : ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'])[d.getDay()],
                     num: d.getDate(),
                     plan: weekData?.[`d${i}`] || null
                 });
@@ -740,8 +936,8 @@ window.GoHappyToday = {
                                 <div class="week-day-card ${d.isToday?'today':''}">
                                     <div class="week-day-pill"><span class="day-name">${d.dayName}</span><span class="day-num">${d.num}</span></div>
                                     <div class="week-day-content">
-                                        <h4 class="week-plan-title">Sin planificar</h4>
-                                        <p class="week-plan-empty">Día libre — disfrutad juntos</p>
+                                        <h4 class="week-plan-title">${window.t ? window.t('today.no.plan') : 'Sin planificar'}</h4>
+                                        <p class="week-plan-empty">${window.t ? window.t('today.free.day') : 'Día libre — disfrutad juntos'}</p>
                                     </div>
                                 </div>
                             `;

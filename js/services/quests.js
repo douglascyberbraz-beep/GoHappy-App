@@ -160,6 +160,36 @@ window.GoHappyQuests = {
      * Crea las 10 quests del catálogo en Firestore para una familia nueva.
      * Llamado automáticamente al crear la familia.
      */
+    /**
+     * Crea una quest personalizada (ej. desde un plan guardado en Today)
+     * @param {Object} q - { titulo, descripcion, icono, puntos, categoria, frecuencia }
+     * @returns {Promise<{ok:boolean, id?:string, error?:string}>}
+     */
+    createCustomQuest: async (q) => {
+        const user = window.GoHappyAuth?.checkAuth?.();
+        if (!user || user.isGuest) return { ok: false, error: 'guest' };
+        const familyId = user.familyId || null;
+        try {
+            const doc = {
+                titulo:      String(q.titulo || '').slice(0, 120),
+                descripcion: String(q.descripcion || '').slice(0, 400),
+                icono:       q.icono || '✨',
+                puntos:      Math.max(0, Math.min(parseInt(q.puntos || 50), 1000)),
+                categoria:   q.categoria || 'familiar',
+                frecuencia:  q.frecuencia || 'semanal',
+                activa:      true,
+                familyId,
+                origen:      q.origen || 'today_plan',
+                creadoEn:    firebase.firestore.FieldValue.serverTimestamp()
+            };
+            const ref = await window.GoHappyDB.collection('quests').add(doc);
+            return { ok: true, id: ref.id };
+        } catch (e) {
+            console.warn('createCustomQuest error:', e?.message);
+            return { ok: false, error: e?.message };
+        }
+    },
+
     bootstrapFamilyQuests: async (familyId) => {
         if (!familyId) return;
         try {

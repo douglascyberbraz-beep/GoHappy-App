@@ -185,6 +185,21 @@ window.GoHappyContext = {
                 .slice(0, 3)
                 .map(a => a.place);
             if (lastVisited.length) summary.recentlyVisited = lastVisited;
+
+            // Sprint Flujo C: lugares favoritos (rating >= 4) — para priorizarlos en Today
+            const favorites = c.recentActivities
+                .filter(a => a.type === 'place_reviewed' && (a.rating || 0) >= 4)
+                .slice(0, 5)
+                .map(a => a.place);
+            if (favorites.length) summary.favoritePlaces = favorites;
+
+            // Quests completadas recientes (últimos 7 días) — para no repetir tipos
+            const weekAgo = Date.now() - 7 * 24 * 3600 * 1000;
+            const recentQuests = c.recentActivities
+                .filter(a => a.type === 'quest_completed' && a.ts > weekAgo)
+                .slice(0, 5)
+                .map(a => a.title);
+            if (recentQuests.length) summary.recentQuests = recentQuests;
         }
         return Object.keys(summary).length ? summary : null;
     },

@@ -329,6 +329,35 @@ REGLAS:
 
         // Auto-scroll al final si hay historial
         setTimeout(() => window.GoHappyCare._scrollToBottom(), 100);
+
+        // Flujo F: prefill desde banner proactivo (mini-plan recurrente)
+        try {
+            const prefill = localStorage.getItem('GoHappy_care_prefill');
+            if (prefill) {
+                localStorage.removeItem('GoHappy_care_prefill');
+                input.value = prefill;
+                input.focus();
+            }
+        } catch (e) {}
+    },
+
+    // Sprint 2: detecta tag automáticamente del mensaje del padre
+    _detectTag: (text) => {
+        const t = String(text).toLowerCase();
+        const tags = [
+            { tag: 'tantrums', re: /rabieta|tantrum|berrinche|pataleta|grita|llora mucho/i },
+            { tag: 'sleep',    re: /sue[ñn]o|dormir|insomnio|despierta|sleep|nap|siesta/i },
+            { tag: 'food',     re: /comer|comida|alimentaci[oó]n|hambre|food|eat|picky/i },
+            { tag: 'homework', re: /deberes|tarea|homework|estudi/i },
+            { tag: 'screens',  re: /pantalla|m[oó]vil|tablet|screen|youtube|tiktok/i },
+            { tag: 'siblings', re: /hermano|hermana|sibling|pelea|celos/i },
+            { tag: 'school',   re: /cole|colegio|escuela|school|profesor|bullying|acoso/i },
+            { tag: 'emotions', re: /triste|ansie|miedo|fear|sad|emocion|llora|frustrad/i }
+        ];
+        for (const { tag, re } of tags) {
+            if (re.test(t)) return tag;
+        }
+        return null;
     },
 
     _handleUserMessage: async (text, user) => {
@@ -338,6 +367,14 @@ REGLAS:
         window.GoHappyCare._appendBubble(userMsg);
         window.GoHappyCare._save();
         window.GoHappyCare._scrollToBottom();
+
+        // Sprint 2: extraer insight y guardar en family_context
+        try {
+            const tag = window.GoHappyCare._detectTag(text);
+            if (tag && window.GoHappyContext) {
+                window.GoHappyContext.addChallenge(tag, text.slice(0, 140));
+            }
+        } catch (e) { /* ignore */ }
 
         // Mostrar typing indicator
         window.GoHappyCare._isWaiting = true;

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 
 <head>
@@ -8,7 +8,7 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>GoHappy Family</title>
 
-    <!-- iOS PWA — chrome native -->
+    <!-- iOS PWA â€” chrome native -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="GoHappy Family">
@@ -26,9 +26,9 @@
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="assets/logo.png">
-    <link rel="manifest" href="manifest.json?v=4.9.0">
+    <link rel="manifest" href="manifest.json?v=5.0.0">
 
-    <!-- Poppins (brand headings only — body usa system font) -->
+    <!-- Poppins (brand headings only â€” body usa system font) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800;900&display=swap"
@@ -41,8 +41,8 @@
     <link href='https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css' rel='stylesheet' />
 
     <!-- App CSS -->
-    <link rel="stylesheet" href="css/main.css?v=4.9.0">
-    <link rel="stylesheet" href="css/premium.css?v=4.9.0">
+    <link rel="stylesheet" href="css/main.css?v=5.0.0">
+    <link rel="stylesheet" href="css/premium.css?v=5.0.0">
 </head>
 
 <body>
@@ -70,15 +70,15 @@
     <!-- Bottom Navigation -->
     <nav id="bottom-nav" class="bottom-nav hidden">
         <button class="nav-item" data-page="quests">
-            <span class="icon">⚔️</span>
+            <span class="icon">âš”ï¸</span>
             <span class="label">Quests</span>
         </button>
         <button class="nav-item" data-page="care">
-            <span class="icon">🧡</span>
+            <span class="icon">ðŸ§¡</span>
             <span class="label">Care</span>
         </button>
         <button class="nav-item" data-page="today">
-            <span class="icon">✨</span>
+            <span class="icon">âœ¨</span>
             <span class="label">Today</span>
         </button>
 
@@ -93,15 +93,15 @@
         </button>
 
         <button class="nav-item" data-page="ranking">
-            <span class="icon">🏆</span>
+            <span class="icon">ðŸ†</span>
             <span class="label">Top</span>
         </button>
         <button class="nav-item" data-page="moments">
-            <span class="icon">💝</span>
+            <span class="icon">ðŸ’</span>
             <span class="label">Moments</span>
         </button>
         <button class="nav-item" data-page="profile">
-            <span class="icon">👤</span>
+            <span class="icon">ðŸ‘¤</span>
             <span class="label">Perfil</span>
         </button>
     </nav>
@@ -122,13 +122,13 @@
             if (container) {
                 container.innerHTML = `
                     <div style="color:red; background: white; position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px; text-align: center; font-family: Inter, sans-serif;">
-                        <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                        <div style="font-size: 48px; margin-bottom: 20px;">âš ï¸</div>
                         <h3 style="color: #E74C3C; font-size: 20px; margin-bottom: 10px;">Error de Inicio</h3>
                         <p style="font-size: 14px; color: #333; margin: 10px 0; max-width: 300px;">${msg}</p>
                         <p style="font-size: 11px; color: #888;">${url} : L${line}</p>
                         <button onclick="localStorage.clear(); caches.keys().then(n=>{for(let x of n)caches.delete(x)}); location.reload(true);"
                                 style="margin-top: 25px; background: linear-gradient(135deg,#0B4C8F,#0B71FC); color: white; border: none; padding: 15px 30px; border-radius: 50px; font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 10px 30px rgba(11,76,143,0.3);">
-                            ♻️ Reiniciar App
+                            â™»ï¸ Reiniciar App
                         </button>
                     </div>
                 `;
@@ -139,43 +139,46 @@
 
     <script src="js/lib/qrcode.min.js"></script>
 
-    <!-- Datos pre-cargados (POIs Castilla y León + Inglaterra) -->
-    <script src="js/data/poi_seed.js?v=4.9.0"></script>
+    <!-- Datos pre-cargados (POIs Castilla y LeÃ³n + Inglaterra) -->
+    <script src="js/data/poi_seed.js?v=5.0.0"></script>
 
     <!-- Services (load order matters) -->
-    <script src="js/config.js?v=4.9.0"></script>
-    <script src="js/services/i18n.js?v=4.9.0"></script>
-    <script src="js/services/navigation.js?v=4.9.0"></script>
-    <script src="js/services/cookies_banner.js?v=4.9.0"></script>
-    <script src="js/services/security.js?v=4.9.0"></script>
-    <script src="js/services/toast.js?v=4.9.0"></script>
-    <script src="js/services/sound.js?v=4.9.0"></script>
-    <script src="js/services/data.js?v=4.9.0"></script>
-    <script src="js/services/points.js?v=4.9.0"></script>
-    <script src="js/services/ai_content.js?v=4.9.0"></script>
-    <script src="js/services/auth.js?v=4.9.0"></script>
-    <script src="js/services/quests.js?v=4.9.0"></script>
-    <script src="js/services/safety.js?v=4.9.0"></script>
-    <script src="js/services/families.js?v=4.9.0"></script>
-    <script src="js/services/notifications.js?v=4.9.0"></script>
+    <script src="js/config.js?v=5.0.0"></script>
+    <script src="js/services/i18n.js?v=5.0.0"></script>
+    <script src="js/services/navigation.js?v=5.0.0"></script>
+    <script src="js/services/cookies_banner.js?v=5.0.0"></script>
+    <script src="js/services/security.js?v=5.0.0"></script>
+    <script src="js/services/toast.js?v=5.0.0"></script>
+    <script src="js/services/sound.js?v=5.0.0"></script>
+    <script src="js/services/data.js?v=5.0.0"></script>
+    <script src="js/services/points.js?v=5.0.0"></script>
+    <script src="js/services/events_api.js?v=5.0.0"></script>
+    <script src="js/services/family_context.js?v=5.0.0"></script>
+    <script src="js/services/proactive.js?v=5.0.0"></script>
+    <script src="js/services/ai_content.js?v=5.0.0"></script>
+    <script src="js/services/auth.js?v=5.0.0"></script>
+    <script src="js/services/quests.js?v=5.0.0"></script>
+    <script src="js/services/safety.js?v=5.0.0"></script>
+    <script src="js/services/families.js?v=5.0.0"></script>
+    <script src="js/services/notifications.js?v=5.0.0"></script>
 
     <!-- Pages -->
-    <script src="js/pages/map_v11.js?v=4.9.0"></script>
-    <script src="js/pages/today.js?v=4.9.0"></script>
-    <script src="js/pages/quests.js?v=4.9.0"></script>
-    <script src="js/pages/ranking.js?v=4.9.0"></script>
-    <script src="js/pages/news_events.js?v=4.9.0"></script>
-    <script src="js/pages/moments.js?v=4.9.0"></script>
-    <script src="js/pages/coach.js?v=4.9.0"></script>
-    <script src="js/pages/safe.js?v=4.9.0"></script>
-    <script src="js/pages/profile.js?v=4.9.0"></script>
-    <script src="js/pages/tribu.js?v=4.9.0"></script>
-    <script src="js/pages/memories.js?v=4.9.0"></script>
-    <script src="js/pages/legal.js?v=4.9.0"></script>
-    <script src="js/pages/family_onboarding.js?v=4.9.0"></script>
+    <script src="js/pages/map_v11.js?v=5.0.0"></script>
+    <script src="js/pages/today.js?v=5.0.0"></script>
+    <script src="js/pages/quests.js?v=5.0.0"></script>
+    <script src="js/pages/ranking.js?v=5.0.0"></script>
+    <script src="js/pages/news_events.js?v=5.0.0"></script>
+    <script src="js/pages/moments.js?v=5.0.0"></script>
+    <script src="js/pages/coach.js?v=5.0.0"></script>
+    <script src="js/pages/safe.js?v=5.0.0"></script>
+    <script src="js/pages/profile.js?v=5.0.0"></script>
+    <script src="js/pages/tribu.js?v=5.0.0"></script>
+    <script src="js/pages/memories.js?v=5.0.0"></script>
+    <script src="js/pages/legal.js?v=5.0.0"></script>
+    <script src="js/pages/family_onboarding.js?v=5.0.0"></script>
 
     <!-- App Core (last) -->
-    <script src="js/app.js?v=4.9.0"></script>
+    <script src="js/app.js?v=5.0.0"></script>
 
     <!-- Service Worker Registration -->
     <script>
@@ -188,13 +191,13 @@
                     setTimeout(() => window.location.reload(true), 500);
                 };
 
-                navigator.serviceWorker.register('sw.js?v=4.8.0').then(reg => {
-                    console.log('[SW] GoHappy v2.8.0 registrado');
+                navigator.serviceWorker.register('sw.js?v=5.2.0').then(reg => {
+                    console.log('[SW] GoHappy v5.2.0 registrado');
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                window.GoHappyToast && window.GoHappyToast.info('Nueva versión disponible. Recargando...', 2500);
+                                window.GoHappyToast && window.GoHappyToast.info('Nueva versiÃ³n disponible. Recargando...', 2500);
                                 setTimeout(() => window.location.reload(), 2600);
                             }
                         });
@@ -206,3 +209,4 @@
 </body>
 
 </html>
+

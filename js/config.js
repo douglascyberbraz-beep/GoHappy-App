@@ -42,6 +42,15 @@ window.GEMINI_PROXY_ACTIVE = true;
 window.GEMINI_KEY = null; // <-- explícitamente null: sin acceso directo
 
 // ─────────────────────────────────────────────────────────────────────────────
+// EVENTOS REALES — Ticketmaster Discovery API (UK + España)
+// Registro gratis en https://developer.ticketmaster.com/ (5000 calls/día)
+// La key es público-segura (rate-limited por dominio).
+// Mientras esté null, la app usa Gemini Search Grounding como fallback.
+// ─────────────────────────────────────────────────────────────────────────────
+window.TICKETMASTER_KEY = null;
+
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Inicializar Firebase
 // ─────────────────────────────────────────────────────────────────────────────
 if (window.firebase) {

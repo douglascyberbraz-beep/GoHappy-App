@@ -38,18 +38,19 @@ PERFIL FAMILIAR ESPECÍFICO (ALTAMENTE PERSONALIZAR):
 ADAPTA cada plan a estas edades específicas: si tienen 3-5 años evita museos largos, si tienen 10-14 sugiere retos más estimulantes.`;
         }
 
-        const prompt = `Eres el Concierge Premium de ocio familiar de GoHappy.
+        const prompt = `Eres el Concierge Premium de actividades familiares REALES de GoHappy. Usa Google Search para encontrar lugares y horarios verificables.
 Ubicación: ${cityInfo.full} (coords ${coordinates}).
 Hoy es ${todayName} ${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()}, ${timeOfDay}.
 ${prefsContext}
 
-TAREA:
-1. Identifica el CLIMA típico de hoy en ${cityInfo.city} y la TEMPORADA (primavera/verano/otoño/invierno).
-2. Diseña EXACTAMENTE 3 planes ESPECÍFICOS para ESTA familia HOY (no genéricos):
-   - Cada plan debe mencionar el LUGAR REAL concreto en ${cityInfo.city} (no "un parque", sino "Parque del Retiro" o "Hyde Park")
+TAREA OBLIGATORIA:
+1. Busca el CLIMA real previsto hoy en ${cityInfo.city} (no inventes).
+2. Diseña EXACTAMENTE 3 planes REALES con sitios EXISTENTES en ${cityInfo.city}:
+   - Lugar real verificable (busca en Google Maps, web del ayuntamiento, etc.)
    - Adapta a la HORA del día (mañana = desayuno/talleres, tarde = visitas, noche = espectáculos)
-   - Si la familia quiere 'Outdoor' pero llueve hoy, busca refugios creativos similares
+   - Si quieren 'Outdoor' pero llueve, propón refugios creativos similares
    - Diversifica los 3 planes (no 3 parques, mezcla tipos)
+   - NO inventes nombres de sitios. Si dudas, usa lugares emblemáticos conocidos.
 3. Para cada plan, JSON estricto con:
    - title: nombre creativo magnético (max 50 chars)
    - summary: 1 frase breve sobre por qué encaja con sus edades (max 90 chars)
@@ -105,6 +106,21 @@ Formato JSON estricto: [ { "title":"", "summary":"", "typeLabel":"", "location":
     // EVENTOS REALES — actividades familiares en la ciudad
     // ───────────────────────────────────────────────────────────
     getRealEvents: async (coords = "41.6520, -4.7286", filter = 'hoy') => {
+        // Sprint 3+: intentar primero Ticketmaster Discovery (eventos VERIFICADOS)
+        try {
+            if (window.GoHappyEvents && window.TICKETMASTER_KEY) {
+                const [lat, lng] = String(coords).split(',').map(s => parseFloat(s.trim()));
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    const tmEvents = await window.GoHappyEvents.getEvents(lat, lng, filter);
+                    if (tmEvents && tmEvents.length >= 3) {
+                        window.GoHappyAI._lastSource = 'ticketmaster';
+                        return tmEvents;
+                    }
+                }
+            }
+        } catch (e) { console.warn('[Events] TM fallback:', e?.message); }
+
+        // Fallback: Gemini con Search Grounding (configurado en functions/index.js)
         const cityInfo = await window.GoHappyAI.getCityFromCoords(coords);
         const today = new Date();
         const dayNames = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
@@ -116,35 +132,39 @@ Formato JSON estricto: [ { "title":"", "summary":"", "typeLabel":"", "location":
         if (filter === 'manana') rango = `MAÑANA`;
         if (filter === 'finde')  rango = `ESTE FIN DE SEMANA (sábado y domingo)`;
 
-        const prompt = `Eres el agenda cultural familiar de GoHappy. La familia está en ${cityInfo.full} (coords: ${coords}).
+        const prompt = `Eres la agenda cultural familiar de GoHappy. La familia está en ${cityInfo.full} (coords: ${coords}).
 
-MISIÓN: Lista 6 EVENTOS REALES típicos para familias con niños para ${rango}.
+MISIÓN OBLIGATORIA: Usa Google Search para encontrar 6 EVENTOS REALES y VERIFICABLES para familias con niños en ${cityInfo.city} para ${rango}. Busca explícitamente en webs oficiales (ayuntamiento, museos, teatros, ticketmaster, atrapalo, festivales locales).
 
-INCLUYE estos tipos:
+Incluye una mezcla de:
 - Talleres infantiles (museos, bibliotecas, centros culturales)
-- Espectáculos infantiles (teatros, marionetas, cuentacuentos)
+- Espectáculos (teatros, marionetas, cuentacuentos)
 - Actividades al aire libre (rutas, parques temáticos, mercados artesanos)
 - Cines (estrenos infantiles del momento)
-- Eventos municipales (fiestas, ferias estacionales según fecha)
-- Visitas guiadas familiares (museos, monumentos)
+- Eventos municipales (fiestas, ferias estacionales)
+- Visitas guiadas familiares
 
-Para cada evento devuelve datos REALES o muy probables de ${cityInfo.city}:
-- title: nombre concreto
-- description: 1-2 frases atractivas (qué van a hacer/aprender)
-- category: una de: taller, teatro, museo, aire-libre, cine, feria, mercado, ruta
-- dayLabel: "HOY", "MAÑANA", "SÁBADO", "DOMINGO" según corresponda
+REGLAS CRÍTICAS:
+1. Cada evento DEBE existir realmente (no inventes nombres).
+2. Si no encuentras 6 reales, devuelve los que sí encuentres (mínimo 3).
+3. La linkUrl DEBE ser una URL real verificable (la fuente de donde sacaste el evento).
+4. El nombre del lugar debe ser un sitio reconocible de ${cityInfo.city}.
+
+Campos por evento:
+- title: nombre EXACTO del evento
+- description: 1-2 frases (qué van a hacer/aprender)
+- category: taller | teatro | museo | aire-libre | cine | feria | mercado | ruta
+- dayLabel: "HOY" | "MAÑANA" | "SÁBADO" | "DOMINGO"
 - time: hora concreta (ej "17:00 - 19:00")
 - location: lugar específico de ${cityInfo.city}
-- distanceDesc: "A 5 min andando" o "A 10 min en coche"
-- price: "Gratis" o "5€" o "Desde 8€"
-- ages: rango edad ej "3-8 años" o "Todas las edades"
-- linkText: "Web oficial" o "Comprar entradas"
-- linkUrl: URL real de la web del centro/museo/teatro/ayuntamiento (ej: https://www.museocienciavalladolid.es)
+- distanceDesc: "A 5 min andando" | "A 10 min en coche"
+- price: "Gratis" | "5€" | "Desde 8€"
+- ages: ej "3-8 años" | "Todas las edades"
+- linkText: "Web oficial" | "Comprar entradas"
+- linkUrl: URL REAL de la web donde se compra/consulta el evento
 - tip: 1 consejo práctico breve
 
-IMPORTANTE: que sean eventos típicos REALMENTE recurrentes en ${cityInfo.city}, no inventes nombres de talleres específicos si no estás seguro. Usa nombres de centros/teatros/museos verificables.
-
-Formato JSON estricto:
+Formato JSON estricto, sin markdown ni texto extra:
 [ { "title":"", "description":"", "category":"", "dayLabel":"", "time":"", "location":"", "distanceDesc":"", "price":"", "ages":"", "linkText":"", "linkUrl":"", "tip":"" } ]`;
 
         return await window.GoHappyAI._callGemini(prompt, true);
@@ -346,7 +366,17 @@ Formato JSON estricto:
         const langName = window.GoHappyI18n ? window.GoHappyI18n.aiLanguageName() : 'Español (España)';
         const country = window.GoHappyI18n ? window.GoHappyI18n.country : 'ES';
         const langPrefix = `IDIOMA OBLIGATORIO: Responde SIEMPRE en ${langName}. País del usuario: ${country}. Usa nombres de lugares, monedas (€/£) y unidades coherentes con ese país.\n\n`;
-        prompt = langPrefix + prompt;
+
+        // Inyectar contexto familiar (Sprint 1: memoria compartida)
+        let ctxPrefix = '';
+        try {
+            const ctx = window.GoHappyContext && window.GoHappyContext.summary && window.GoHappyContext.summary();
+            if (ctx) {
+                ctxPrefix = `CONTEXTO FAMILIAR DEL USUARIO (úsalo para personalizar la respuesta, NO lo repitas literalmente):\n${JSON.stringify(ctx)}\n\n`;
+            }
+        } catch (e) { /* ignore */ }
+
+        prompt = langPrefix + ctxPrefix + prompt;
 
         // Cache client-side primero (key incluye idioma)
         const cacheKey = window.GoHappyAI._cacheKey(prompt, expectJson);
@@ -420,17 +450,39 @@ Formato JSON estricto:
             }
 
             const text = data.candidates[0].content.parts[0].text;
+
+            // Sprint 3: extraer citas de Search Grounding (si las hay)
+            try {
+                const gm = data.candidates[0].groundingMetadata;
+                if (gm && Array.isArray(gm.groundingChunks)) {
+                    window.GoHappyAI._lastCitations = gm.groundingChunks
+                        .map(c => c.web)
+                        .filter(w => w && w.uri)
+                        .map(w => ({ title: w.title || w.uri, uri: w.uri }))
+                        .slice(0, 8);
+                } else {
+                    window.GoHappyAI._lastCitations = [];
+                }
+            } catch (e) { window.GoHappyAI._lastCitations = []; }
+
             let result;
 
             if (expectJson) {
                 try {
-                    let clean = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+                    // Limpieza robusta: markdown, citas [1], [2,3], y trailing commas
+                    let clean = text
+                        .replace(/```json/gi, '')
+                        .replace(/```/g, '')
+                        .replace(/\[\d+(?:,\s*\d+)*\]/g, '') // citas Search Grounding [1] [2,3]
+                        .trim();
                     const s = Math.min(
                         clean.indexOf('{') !== -1 ? clean.indexOf('{') : Infinity,
                         clean.indexOf('[') !== -1 ? clean.indexOf('[') : Infinity
                     );
                     const e = Math.max(clean.lastIndexOf('}'), clean.lastIndexOf(']'));
                     if (s !== Infinity && e !== -1) clean = clean.substring(s, e + 1);
+                    // Eliminar trailing commas comunes en JSON LLM
+                    clean = clean.replace(/,(\s*[}\]])/g, '$1');
                     result = JSON.parse(clean);
                 } catch (parseErr) {
                     console.error('[GoHappyAI] JSON parse error:', parseErr?.message);

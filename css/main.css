@@ -1755,6 +1755,25 @@ body { background: #f8fafc; font-family: 'Inter', sans-serif; -webkit-font-smoot
     box-shadow: 0 5px 15px rgba(76, 201, 240, 0.4);
 }
 
+.filter-chip.loading {
+    position: relative;
+    padding-right: 32px;
+    pointer-events: none;
+    opacity: 0.85;
+}
+.filter-chip.loading::after {
+    content: '';
+    position: absolute;
+    right: 10px; top: 50%;
+    transform: translateY(-50%);
+    width: 12px; height: 12px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: chip-spin 0.7s linear infinite;
+}
+@keyframes chip-spin { to { transform: translateY(-50%) rotate(360deg); } }
+
 /* Custom Markers: Blue Star Glow */
 .custom-div-icon {
     background: none;

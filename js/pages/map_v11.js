@@ -13,10 +13,29 @@ window.GoHappyMap = {
 
         if (!window.GoHappyMap.isInitialized) {
             // Mostrar loader inicial
+            const T = window.t || (k => k);
+            const lang = window.GoHappyI18n?.lang || 'es';
+            const loaderMsg = lang === 'en' ? 'Loading 3D map...' : 'Invocando mapa 3D...';
             container.innerHTML = `
-                <div id="map-loader" class="center-text" style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #eef2f7; z-index: 10;">
-                    <div class="magic-loader">✨</div>
-                    <p style="margin-top: 15px; color: var(--primary-cobalt); font-weight: 700;">Invocando mapa 3D...</p>
+                <div id="map-loader" style="position: absolute; inset: 0; background: linear-gradient(180deg, #eaf2fd 0%, #d6e6f9 100%); z-index: 10; overflow: hidden;">
+                    <!-- Skeleton de tiles del mapa -->
+                    <div style="position:absolute; inset:0; background-image:
+                        linear-gradient(rgba(11,76,143,0.06) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(11,76,143,0.06) 1px, transparent 1px);
+                        background-size: 60px 60px;
+                        animation: mapSkel 3s ease-in-out infinite alternate;"></div>
+                    <!-- Pin skeleton centrado -->
+                    <div style="position:absolute; top:50%; left:50%; transform: translate(-50%, -60%); display:flex; flex-direction:column; align-items:center; gap:14px;">
+                        <div style="width:54px; height:54px; border-radius:50% 50% 50% 0; background:var(--primary-cobalt, #0B4C8F); transform: rotate(-45deg); box-shadow:0 8px 22px rgba(11,76,143,0.35); animation:mapPinBounce 1.2s ease-in-out infinite;"></div>
+                        <p style="font-weight:700; color:var(--primary-cobalt, #0B4C8F); font-size:13px; margin:0;">${loaderMsg}</p>
+                    </div>
+                    <style>
+                        @keyframes mapSkel    { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+                        @keyframes mapPinBounce {
+                            0%, 100% { transform: rotate(-45deg) translateY(0); }
+                            50%      { transform: rotate(-45deg) translateY(-8px); }
+                        }
+                    </style>
                 </div>
             `;
             await window.GoHappyMap.init(container);
@@ -394,42 +413,79 @@ window.GoHappyMap = {
         });
 
         const chips = document.querySelectorAll('.filter-chip');
+        // Token para cancelar búsquedas anteriores cuando el usuario cambia de chip
+        window.GoHappyMap._chipSearchToken = 0;
+
         chips.forEach(chip => {
             chip.addEventListener('click', async () => {
-                chips.forEach(c => c.classList.remove('active'));
+                chips.forEach(c => c.classList.remove('active', 'loading'));
                 chip.classList.add('active');
                 window.GoHappyMap.currentFilter = chip.dataset.type;
 
                 const type = chip.dataset.type;
-                const label = chip.innerText;
+                const label = chip.innerText.trim();
+                const T = window.t || (k => k);
 
                 if (type === 'all') {
                     window.GoHappyMap.filterMarkers('all');
                     return;
                 }
 
-                // PASO 1: SIEMPRE filtrar inmediatamente lo que ya hay del tipo
+                // PASO 1: filtrar inmediato lo local
                 window.GoHappyMap.filterMarkers(type);
                 const localOfType = window.GoHappyMap.markers.filter(m => m.type === type);
-                const T = window.t || (k => k);
 
-                // PASO 2: si hay pocos, EXPANDIR con IA en background sin borrar lo que está visible
-                if (localOfType.length < 6) {
-                    window.GoHappyToast && window.GoHappyToast.info(T('map.searching', { label: label.toLowerCase() }), 2000);
-                    const before = window.GoHappyMap.markers.length;
-                    // handleSearch SUMA marcadores nuevos sin borrar existentes
-                    await window.GoHappyMap.handleSearch(`mejores ${label} para ir con niños`);
-                    const after = window.GoHappyMap.markers.length;
+                // Si ya hay suficientes locales, ni siquiera llamamos IA
+                if (localOfType.length >= 6) {
+                    window.GoHappyToast && window.GoHappyToast.info(
+                        T('map.community.found', { n: localOfType.length, label: label.toLowerCase() }), 2500
+                    );
+                    return;
+                }
 
-                    if (after > before) {
-                        // Reaplicar filtro para mostrar también los nuevos del tipo
-                        window.GoHappyMap.filterMarkers(type);
-                        const newCount = window.GoHappyMap.markers.filter(m => m.type === type).length;
-                        window.GoHappyToast && window.GoHappyToast.success(T('map.community.found', { n: newCount, label: label.toLowerCase() }), 2500);
-                    }
+                // PASO 2: expandir con IA — con cancelación + timeout
+                const myToken = ++window.GoHappyMap._chipSearchToken;
+                chip.classList.add('loading');
+                window.GoHappyToast && window.GoHappyToast.info(
+                    T('map.searching', { label: label.toLowerCase() }), 1800
+                );
+
+                const before = window.GoHappyMap.markers.length;
+                try {
+                    // Timeout duro de 12s para no dejar al usuario esperando
+                    await Promise.race([
+                        window.GoHappyMap.handleSearch(`mejores ${label} para ir con niños`),
+                        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 12000))
+                    ]);
+                } catch (e) {
+                    // timeout o error de IA — silencioso, ya hay locales filtrados
+                    console.warn('[Map] chip IA expand timeout/error:', e?.message);
+                }
+
+                // Si el usuario cambió de chip durante la espera, ignorar este resultado
+                if (myToken !== window.GoHappyMap._chipSearchToken) return;
+
+                chip.classList.remove('loading');
+                const after = window.GoHappyMap.markers.length;
+
+                if (after > before) {
+                    window.GoHappyMap.filterMarkers(type);
+                    const newCount = window.GoHappyMap.markers.filter(m => m.type === type).length;
+                    window.GoHappyToast && window.GoHappyToast.success(
+                        T('map.community.found', { n: newCount, label: label.toLowerCase() }), 2500
+                    );
+                } else if (localOfType.length === 0) {
+                    // No había locales y la IA no devolvió → feedback honesto
+                    window.GoHappyToast && window.GoHappyToast.info(
+                        (window.GoHappyI18n?.lang === 'en'
+                            ? `No ${label.toLowerCase()} nearby. Try moving the map.`
+                            : `Sin ${label.toLowerCase()} cerca. Mueve el mapa para explorar.`), 2800
+                    );
                 } else {
-                    // Hay suficientes locales
-                    window.GoHappyToast && window.GoHappyToast.info(T('map.community.found', { n: localOfType.length, label: label.toLowerCase() }), 2500);
+                    // Había algunos locales pero IA no añadió más
+                    window.GoHappyToast && window.GoHappyToast.info(
+                        T('map.community.found', { n: localOfType.length, label: label.toLowerCase() }), 2200
+                    );
                 }
             });
         });
@@ -615,7 +671,7 @@ window.GoHappyMap = {
             }
         } catch (e) {
             console.warn("Search error:", e);
-            window.GoHappyToast && window.GoHappyToast.error('Error en la búsqueda. Intenta de nuevo.');
+            window.GoHappyToast && window.GoHappyToast.error(window.t ? window.t('map.error') : 'Error en la búsqueda. Intenta de nuevo.');
         }
 
         if (input) {
@@ -734,7 +790,7 @@ window.GoHappyMap = {
     showAddSiteModal: (lat, lng, name = "") => {
         const user = window.GoHappyAuth.checkAuth();
         if (!user) {
-            window.GoHappyToast.warning('Inicia sesión para contribuir con la Tribu.');
+            window.GoHappyToast.warning(window.t ? window.t('err.session') : 'Inicia sesión para contribuir con la Tribu.');
             window.GoHappyAuth.renderAuthModal();
             return;
         }
@@ -787,7 +843,7 @@ window.GoHappyMap = {
         document.getElementById('post-review-btn').onclick = async () => {
             const finalName = name || document.getElementById('new-site-name').value;
             const reviewText = document.getElementById('review-text').value;
-            if (!finalName || rating === 0) return window.GoHappyToast.warning('Completa el nombre y la nota. ⭐');
+            if (!finalName || rating === 0) return window.GoHappyToast.warning(window.t ? window.t('map.review.err') : 'Completa el nombre y la nota. ⭐');
 
             try {
                 // Save to Firestore
@@ -806,15 +862,38 @@ window.GoHappyMap = {
                 const pts = window.GoHappyPoints.REWARDS.REVIEW || 30;
                 await window.GoHappyPoints.addPoints('REVIEW');
 
+                // Sprint 2: registrar en family_context (memoria compartida)
+                try {
+                    if (window.GoHappyContext) {
+                        window.GoHappyContext.addActivity('place_reviewed', {
+                            place: String(finalName).slice(0, 80),
+                            rating: parseInt(rating)
+                        });
+                    }
+                } catch (e) { /* ignore */ }
+
+                // Flujo C: feedback explícito si rating alto → influirá en Today
+                if (parseInt(rating) >= 4) {
+                    const lang = window.GoHappyI18n?.lang || 'es';
+                    setTimeout(() => {
+                        window.GoHappyToast.info(
+                            lang === 'en'
+                                ? '✨ Saved as favorite — Today will prioritise it'
+                                : '✨ Guardado como favorito — Today lo priorizará',
+                            3500
+                        );
+                    }, 1800);
+                }
+
                 // Visual feedback on map — marca el sitio como reseñado
                 window.GoHappyMap.createMarker({ name: finalName, lat, lng, rating: parseInt(rating), type: 'new', isCommunity: true });
 
                 window.GoHappySound && window.GoHappySound.play('success');
-                window.GoHappyToast.points(`¡Reseña publicada! +${pts} pts. ¡Gracias por ayudar a la comunidad! ✨`);
+                window.GoHappyToast.points(window.t ? window.t('map.review.success', { n: pts }) : `¡Reseña publicada! +${pts} pts. ¡Gracias por ayudar a la comunidad! ✨`);
                 modal.remove();
             } catch (e) {
                 console.error("Error saving review:", e);
-                window.GoHappyToast.error('Error al guardar la reseña. Inténtalo de nuevo.');
+                window.GoHappyToast.error(window.t ? window.t('map.review.fail') : 'Error al guardar la reseña. Inténtalo de nuevo.');
             }
         };
     },

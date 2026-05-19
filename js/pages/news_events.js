@@ -1,19 +1,29 @@
 window.GoHappyNewsEvents = {
     render: async (container) => {
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const T = lang === 'en' ? {
+            title: '🗞️ News', sub: 'News, events and grants in your area',
+            detecting: '📍 Detecting…',
+            news: 'News', events: 'Events', grants: 'Grants'
+        } : {
+            title: '🗞️ News', sub: 'Noticias, eventos y becas de tu zona',
+            detecting: '📍 Detectando…',
+            news: 'Noticias', events: 'Eventos', grants: 'Becas'
+        };
         container.innerHTML = `
             <div class="unified-hero">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
                     <div style="flex:1;">
-                        <h2>🗞️ News</h2>
-                        <p>Noticias, eventos y becas de tu zona</p>
+                        <h2>${T.title}</h2>
+                        <p>${T.sub}</p>
                     </div>
-                    <span id="loc-status" style="font-size:10px; color:var(--cobalt); background:rgba(11,76,143,0.08); backdrop-filter:blur(10px); padding:6px 12px; border-radius:999px; font-weight:700; white-space:nowrap; align-self:center; border:0.5px solid rgba(11,76,143,0.12);">📍 Detectando…</span>
+                    <span id="loc-status" style="font-size:10px; color:var(--cobalt); background:rgba(11,76,143,0.08); backdrop-filter:blur(10px); padding:6px 12px; border-radius:999px; font-weight:700; white-space:nowrap; align-self:center; border:0.5px solid rgba(11,76,143,0.12);">${T.detecting}</span>
                 </div>
 
                 <div class="tab-scroller" style="display:flex; gap:8px; margin-top:18px; overflow-x:auto; padding:4px;">
-                    <button class="tab-btn active" data-tab="news" style="background:linear-gradient(135deg,#0B71FC,#17C8D4); color:white; border:none; padding:9px 18px; border-radius:999px; font-weight:700; font-size:12px; white-space:nowrap; cursor:pointer; box-shadow:0 6px 16px rgba(11,113,252,0.28);">Noticias</button>
-                    <button class="tab-btn" data-tab="events" style="background:rgba(11,76,143,0.08); color:var(--cobalt); border:0.5px solid rgba(11,76,143,0.12); padding:9px 18px; border-radius:999px; font-weight:700; font-size:12px; white-space:nowrap; cursor:pointer;">Eventos</button>
-                    <button class="tab-btn" data-tab="becas" style="background:rgba(11,76,143,0.08); color:var(--cobalt); border:0.5px solid rgba(11,76,143,0.12); padding:9px 18px; border-radius:999px; font-weight:700; font-size:12px; white-space:nowrap; cursor:pointer;">Becas</button>
+                    <button class="tab-btn active" data-tab="news" style="background:var(--brand-bright); color:white; border:none; padding:9px 18px; border-radius:999px; font-weight:700; font-size:12px; white-space:nowrap; cursor:pointer; box-shadow:0 6px 16px rgba(11,113,252,0.28);">${T.news}</button>
+                    <button class="tab-btn" data-tab="events" style="background:rgba(11,76,143,0.08); color:var(--cobalt); border:0.5px solid rgba(11,76,143,0.12); padding:9px 18px; border-radius:999px; font-weight:700; font-size:12px; white-space:nowrap; cursor:pointer;">${T.events}</button>
+                    <button class="tab-btn" data-tab="becas" style="background:rgba(11,76,143,0.08); color:var(--cobalt); border:0.5px solid rgba(11,76,143,0.12); padding:9px 18px; border-radius:999px; font-weight:700; font-size:12px; white-space:nowrap; cursor:pointer;">${T.grants}</button>
                 </div>
             </div>
             

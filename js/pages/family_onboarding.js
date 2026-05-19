@@ -28,6 +28,12 @@ window.GoHappyFamilyOnboarding = {
         modal.className = 'modal';
         modal.style.cssText = 'z-index: 9000;';
 
+        const T = window.t || (k => k);
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const backLabel = lang === 'en' ? '← Back' : '← Volver';
+        const createTitle = lang === 'en' ? 'Create my family' : 'Crear mi familia';
+        const createQuestion = lang === 'en' ? 'What is your family called?' : '¿Cómo se llama vuestra familia?';
+
         modal.innerHTML = `
             <div class="auth-container entry-anim" style="padding: 20px;">
                 <div class="auth-card premium-glass" style="max-height:92vh; overflow-y:auto; border-radius:36px; padding: 32px 24px;">
@@ -36,11 +42,11 @@ window.GoHappyFamilyOnboarding = {
                     <div style="text-align:center; margin-bottom:28px;">
                         <div style="font-size:60px; line-height:1; margin-bottom:16px;">👨‍👩‍👧‍👦</div>
                         <h2 style="color:var(--primary-cobalt); font-size:1.7rem; font-weight:900; margin:0; letter-spacing:-0.5px;">
-                            ¡Bienvenido, ${user?.nickname || 'Explorador'}!
+                            ${T('fam.welcome').replace('{name}', user?.nickname || (lang === 'en' ? 'Explorer' : 'Explorador'))}
                         </h2>
                         <p style="color:#64748b; font-size:0.95rem; margin-top:8px; line-height:1.5;">
-                            GoHappy es más divertido en familia.<br>
-                            <strong style="color:var(--primary-cobalt);">Crea o únete a tu grupo familiar.</strong>
+                            ${T('fam.intro')}<br>
+                            <strong style="color:var(--primary-cobalt);">${T('fam.create.join')}</strong>
                         </p>
                     </div>
 
@@ -55,8 +61,8 @@ window.GoHappyFamilyOnboarding = {
                         ">
                             <span style="font-size:2rem;">🏠</span>
                             <div>
-                                <div style="font-size:1.05rem;">Crear mi familia</div>
-                                <div style="font-size:12px; opacity:0.85; font-weight:500; margin-top:2px;">Sé el administrador y comparte el código</div>
+                                <div style="font-size:1.05rem;">${T('fam.create.btn')}</div>
+                                <div style="font-size:12px; opacity:0.85; font-weight:500; margin-top:2px;">${T('fam.create.sub')}</div>
                             </div>
                         </button>
 
@@ -69,8 +75,8 @@ window.GoHappyFamilyOnboarding = {
                         ">
                             <span style="font-size:2rem;">🔗</span>
                             <div>
-                                <div style="font-size:1.05rem;">Unirme a una familia</div>
-                                <div style="font-size:12px; color:#64748b; font-weight:500; margin-top:2px;">Tengo un código de invitación de 6 letras</div>
+                                <div style="font-size:1.05rem;">${T('fam.join.btn')}</div>
+                                <div style="font-size:12px; color:#64748b; font-weight:500; margin-top:2px;">${T('fam.join.sub')}</div>
                             </div>
                         </button>
 
@@ -79,59 +85,59 @@ window.GoHappyFamilyOnboarding = {
                             color:#94a3b8; font-size:13px; font-weight:600; cursor:pointer;
                             text-decoration:underline; margin-top:4px;
                         ">
-                            Ahora no, continuar solo
+                            ${T('fam.skip')}
                         </button>
                     </div>
 
                     <!-- Vista 2: Crear familia -->
                     <div id="ob-step-create" style="display:none;">
                         <button id="ob-back-create" style="background:none;border:none;color:#94a3b8;font-size:13px;cursor:pointer;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
-                            ← Volver
+                            ${backLabel}
                         </button>
                         <div style="text-align:center; margin-bottom:24px;">
                             <div style="font-size:48px;">🏠</div>
-                            <h3 style="color:var(--primary-cobalt); font-weight:900; margin:8px 0 4px;">Crear mi familia</h3>
-                            <p style="color:#64748b; font-size:13px;">¿Cómo se llama vuestra familia?</p>
+                            <h3 style="color:var(--primary-cobalt); font-weight:900; margin:8px 0 4px;">${createTitle}</h3>
+                            <p style="color:#64748b; font-size:13px;">${createQuestion}</p>
                         </div>
 
                         <div id="ob-create-error" style="display:none; background:rgba(231,76,60,0.1); color:#E74C3C; padding:12px 16px; border-radius:14px; font-size:13px; font-weight:600; margin-bottom:14px;"></div>
 
                         <input
                             type="text" id="ob-family-name"
-                            placeholder="Ej: Los García Aventureros"
+                            placeholder="${T('fam.name.placeholder')}"
                             maxlength="40"
                             style="width:100%; padding:16px; border-radius:16px; border:2px solid #e2e8f0; background:#f8fafc; font-size:1rem; font-weight:600; outline:none; color:#1e293b; box-sizing:border-box;"
                         >
-                        <p style="font-size:11px; color:#94a3b8; margin:6px 0 20px 4px;">Máximo 40 caracteres. Puedes cambiarlo después.</p>
+                        <p style="font-size:11px; color:#94a3b8; margin:6px 0 20px 4px;">${T('fam.name.help')}</p>
 
                         <div style="background:rgba(11,113,252,0.05); border-radius:16px; padding:16px; margin-bottom:20px; border:1px solid rgba(11,113,252,0.1);">
-                            <div style="font-size:12px; font-weight:800; color:var(--primary-cobalt); text-transform:uppercase; margin-bottom:6px;">✨ Al crear tu familia:</div>
+                            <div style="font-size:12px; font-weight:800; color:var(--primary-cobalt); text-transform:uppercase; margin-bottom:6px;">${T('fam.create.benefits')}</div>
                             <ul style="font-size:13px; color:#475569; padding-left:18px; margin:0; line-height:1.8;">
-                                <li>Recibirás un <strong>código único de 6 letras</strong></li>
-                                <li>Puedes invitar hasta <strong>5 personas más</strong></li>
-                                <li>Compartiréis misiones y ranking</li>
+                                <li>${T('fam.benefit.code')}</li>
+                                <li>${T('fam.benefit.invite')}</li>
+                                <li>${T('fam.benefit.share')}</li>
                             </ul>
                         </div>
 
                         <button id="ob-confirm-create" style="
                             width:100%; height:56px; border-radius:18px; border:none;
-                            background:linear-gradient(135deg,#0B71FC,#0B4C8F); color:white;
+                            background:var(--brand-bright, linear-gradient(135deg,#0B71FC,#0B4C8F)); color:white;
                             font-size:1.05rem; font-weight:800; cursor:pointer;
                             box-shadow:0 8px 25px rgba(11,113,252,0.3);
                         ">
-                            Crear familia ✨
+                            ${T('fam.create.confirm')}
                         </button>
                     </div>
 
                     <!-- Vista 3: Unirse a familia -->
                     <div id="ob-step-join" style="display:none;">
                         <button id="ob-back-join" style="background:none;border:none;color:#94a3b8;font-size:13px;cursor:pointer;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
-                            ← Volver
+                            ${backLabel}
                         </button>
                         <div style="text-align:center; margin-bottom:24px;">
                             <div style="font-size:48px;">🔗</div>
-                            <h3 style="color:var(--primary-cobalt); font-weight:900; margin:8px 0 4px;">Unirme a una familia</h3>
-                            <p style="color:#64748b; font-size:13px;">Introduce el código de 6 letras que te compartieron</p>
+                            <h3 style="color:var(--primary-cobalt); font-weight:900; margin:8px 0 4px;">${T('fam.join.btn')}</h3>
+                            <p style="color:#64748b; font-size:13px;">${T('fam.code.title')}</p>
                         </div>
 
                         <div id="ob-join-error" style="display:none; background:rgba(231,76,60,0.1); color:#E74C3C; padding:12px 16px; border-radius:14px; font-size:13px; font-weight:600; margin-bottom:14px;"></div>
@@ -156,7 +162,7 @@ window.GoHappyFamilyOnboarding = {
 
                         <div style="background:rgba(39,174,96,0.05); border-radius:16px; padding:14px; margin-bottom:20px; border:1px solid rgba(39,174,96,0.15);">
                             <p style="font-size:12px; color:#27AE60; font-weight:700; margin:0;">
-                                💡 Pídele el código al creador de tu familia. Lo encontrará en su Perfil → sección "Mi Familia".
+                                ${T('fam.code.help')}
                             </p>
                         </div>
 
@@ -166,15 +172,15 @@ window.GoHappyFamilyOnboarding = {
                             font-size:1.05rem; font-weight:800; cursor:pointer;
                             box-shadow:0 8px 25px rgba(39,174,96,0.3);
                         ">
-                            Unirme a la familia 🔗
+                            ${T('fam.join.confirm')}
                         </button>
                     </div>
 
                     <!-- Vista 4: Éxito -->
                     <div id="ob-step-success" style="display:none; text-align:center; padding:20px 0;">
                         <div style="font-size:80px; margin-bottom:20px; animation: float 3s ease-in-out infinite;">🎉</div>
-                        <h2 style="color:var(--primary-cobalt); font-size:1.6rem; font-weight:900;" id="ob-success-title">¡Familia creada!</h2>
-                        <p style="color:#64748b; font-size:0.95rem; margin:10px 0 25px;" id="ob-success-msg">Ya podéis explorar GoHappy juntos.</p>
+                        <h2 style="color:var(--primary-cobalt); font-size:1.6rem; font-weight:900;" id="ob-success-title">${lang === 'en' ? 'Family created!' : '¡Familia creada!'}</h2>
+                        <p style="color:#64748b; font-size:0.95rem; margin:10px 0 25px;" id="ob-success-msg">${T('fam.success.welcome')}</p>
 
                         <div id="ob-code-display" style="
                             background:linear-gradient(135deg,rgba(11,113,252,0.05),rgba(6,254,254,0.1));
@@ -182,27 +188,27 @@ window.GoHappyFamilyOnboarding = {
                             padding:24px; margin-bottom:24px; display:none;
                         ">
                             <div style="font-size:11px; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:10px;">
-                                🔑 Código de invitación de tu familia
+                                ${T('fam.success.code.label')}
                             </div>
                             <div id="ob-code-value" style="
                                 font-size:2.2rem; font-weight:900; color:var(--primary-cobalt);
                                 letter-spacing:8px; font-family:monospace;
                             "></div>
-                            <p style="font-size:12px; color:#64748b; margin:10px 0 16px;">Compártelo con tu familia para que se unan</p>
+                            <p style="font-size:12px; color:#64748b; margin:10px 0 16px;">${T('fam.success.code.help')}</p>
                             <button id="ob-copy-code" style="
                                 background:var(--primary-cobalt); color:white; border:none;
                                 padding:10px 22px; border-radius:12px; font-size:13px;
                                 font-weight:700; cursor:pointer;
-                            ">📋 Copiar código</button>
+                            ">${T('fam.success.copy')}</button>
                         </div>
 
                         <button id="ob-finish" style="
                             width:100%; height:56px; border-radius:18px; border:none;
-                            background:linear-gradient(135deg,#0B71FC,#0B4C8F); color:white;
+                            background:var(--brand-bright, linear-gradient(135deg,#0B71FC,#0B4C8F)); color:white;
                             font-size:1.05rem; font-weight:800; cursor:pointer;
                             box-shadow:0 8px 25px rgba(11,113,252,0.3);
                         ">
-                            ¡Vamos a explorar! 🚀
+                            ${T('fam.success.go')}
                         </button>
                     </div>
 
@@ -344,7 +350,7 @@ window.GoHappyFamilyOnboarding = {
         // ── FINALIZAR ──
         document.getElementById('ob-finish').onclick = () => {
             modal.remove();
-            window.GoHappyToast.points('¡Bienvenido a la familia! Empecéis a ganar puntos juntos 🚀');
+            window.GoHappyToast.points(window.t ? window.t('fam.welcome.toast') : '¡Bienvenido a la familia! Empecéis a ganar puntos juntos 🚀');
             // Si estamos en el perfil, refrescarlo
             const user = window.GoHappyAuth.checkAuth();
             if (window.GoHappyApp && window.GoHappyApp.currentPage === 'profile') {

@@ -161,9 +161,19 @@ exports.geminiProxy = onRequest(
             }
         } catch (e) { /* cache miss, continuar */ }
 
+        // Sprint 3+: detectar prompts que requieren información REAL en tiempo real
+        // → Google Search Grounding (eventos, planes con sitios reales, agendas)
+        const needsSearch = /eventos?|events?|noticias?|news|talleres?|workshops?|qué hacer hoy|what to do today|festival|concierto|concert|exposici[oó]n|exhibition|este fin de semana|this weekend|agenda cultural|planes?\s+(en|reales|para)|actividades?\s+(en|reales|para)|museo|teatro|cuentacuentos|marionetas|ruta\s+(familiar|infantil)|feria|mercado\s+artesan|hoy en|tomorrow|mañana en|sábado|domingo|saturday|sunday|cine\s+infantil/i.test(clean);
+
         try {
+            let finalPrompt = clean;
+            // Si pedimos JSON Y necesitamos search, recordar al modelo formato estricto
+            if (needsSearch && expectJson) {
+                finalPrompt = clean + '\n\nIMPORTANTE: Responde EXCLUSIVAMENTE con JSON válido (array u objeto). NO uses markdown, NO añadas comentarios ni texto antes o después. Empieza directamente con [ o {.';
+            }
+
             const body = {
-                contents: [{ parts: [{ text: clean }] }],
+                contents: [{ parts: [{ text: finalPrompt }] }],
                 safetySettings: [
                     { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
                     { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
@@ -171,7 +181,13 @@ exports.geminiProxy = onRequest(
                     { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' }
                 ]
             };
-            if (expectJson) body.generationConfig = { response_mime_type: 'application/json' };
+
+            if (needsSearch) {
+                // Activar Search Grounding (no compatible con response_mime_type=json)
+                body.tools = [{ googleSearch: {} }];
+            } else if (expectJson) {
+                body.generationConfig = { response_mime_type: 'application/json' };
+            }
 
             // Intentar cada modelo en orden hasta encontrar uno disponible
             let r = null;

@@ -95,13 +95,12 @@ window.GoHappyRanking = {
                 const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉';
                 const size = pos === 1 ? 'large' : 'medium';
 
+                // Renderizar IGUAL que Miembros: avatar circular limpio
+                const iconEmoji = site.isCommunity ? '⭐' : '📍';
                 html += `
                     <div class="podium-card ${size} entry-anim" onclick="window.GoHappyRanking.goToMap('${site.id || ''}', ${site.lat || 0}, ${site.lng || 0})">
                         <div class="podium-rank">${medal}</div>
-                        <div class="podium-image" style="background: ${site.image ? `url(${site.image})` : getPlaceholder(site.type)}; background-size: cover; background-position: center;">
-                            ${!site.image ? '<span class="podium-icon">📍</span>' : ''}
-                            ${site.isCommunity ? '<div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.5);color:white;font-size:9px;padding:2px 6px;border-radius:8px;font-weight:800;">COMUNIDAD</div>' : ''}
-                        </div>
+                        <div class="podium-avatar gradient-bg">${iconEmoji}</div>
                         <div class="podium-info">
                             <h4 class="truncate">${site.name}</h4>
                             <span class="stars">⭐ ${site.rating}${site.reviews ? ` <small style="opacity:.7">(${site.reviews})</small>` : ''}</span>

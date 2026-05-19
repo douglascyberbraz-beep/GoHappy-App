@@ -84,6 +84,14 @@ service cloud.firestore {
              && request.resource.data.weeklyPoints <= 999999));
 
       allow delete: if false;
+
+      // ─────────────────────────────────────────────────────────────
+      // SUBCOLLECTION PRIVADA — Family Context (Sprint 1)
+      // Solo el propio usuario puede leer/escribir su memoria personal
+      // ─────────────────────────────────────────────────────────────
+      match /private/{docId} {
+        allow read, write: if isOwner(uid);
+      }
     }
 
 
@@ -106,9 +114,22 @@ service cloud.firestore {
         && validString(request.resource.data.nombre, 2, 40)
         && validString(request.resource.data.codigoInvitacion, 4, 10);
 
-      // UPDATE: cualquier miembro puede modificar; máximo 6 miembros
+      // UPDATE: dos casos válidos
+      //   A) Ya miembro → modifica nombre u otros campos no bloqueados
+      //   B) NO miembro → SOLO puede añadirse a sí mismo a `miembros` (join via código)
       allow update: if isAuthenticated()
-        && request.auth.uid in resource.data.miembros
+        && (
+          // CASO A — ya miembro
+          (request.auth.uid in resource.data.miembros)
+          ||
+          // CASO B — uniéndose: solo toca `miembros`, se añade a sí mismo, no más
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['miembros'])
+            && !(request.auth.uid in resource.data.miembros)
+            && (request.auth.uid in request.resource.data.miembros)
+            && request.resource.data.miembros.size() == resource.data.miembros.size() + 1
+          )
+        )
         && request.resource.data.miembros.size() <= 6
         && request.resource.data.miembros.size() >= 0
         && request.resource.data.creadoPor == resource.data.creadoPor
@@ -254,12 +275,35 @@ service cloud.firestore {
         && (!request.resource.data.keys().hasAny(['imageData']) ||
             (request.resource.data.imageData is string && request.resource.data.imageData.size() <= 800000));
 
-      // Actualizar: solo reacciones (cualquier autenticado puede reaccionar)
+      // Actualizar: reacciones libres + commentsCount al añadir/quitar comentario
       allow update: if isAuthenticated()
-        && onlyFields(['reactions']);
+        && (
+          onlyFields(['reactions'])
+          || onlyFields(['commentsCount'])
+          || onlyFields(['reactions', 'commentsCount'])
+        );
 
       // Borrar: solo el autor
       allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
+
+      // ─── Subcolección de COMENTARIOS familiares ───
+      match /comments/{commentId} {
+        // Leer: cualquier autenticado (el filtrado real está en familyId del moment padre)
+        allow read: if isAuthenticated();
+
+        // Crear: usuario real, su uid, texto válido
+        allow create: if isRealUser()
+          && request.auth.uid == request.resource.data.userId
+          && request.resource.data.text is string
+          && request.resource.data.text.size() >= 1
+          && request.resource.data.text.size() <= 280;
+
+        // Editar/borrar: solo el autor
+        allow update: if isAuthenticated() && request.auth.uid == resource.data.userId
+          && onlyFields(['text', 'updatedAt'])
+          && request.resource.data.text.size() <= 280;
+        allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      }
     }
 
 
