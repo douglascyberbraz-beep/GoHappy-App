@@ -95,15 +95,16 @@ window.GoHappyRanking = {
                 const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉';
                 const size = pos === 1 ? 'large' : 'medium';
 
-                // Renderizar IGUAL que Miembros: avatar circular limpio
+                // Renderizar IDÉNTICO a Miembros (misma estructura HTML + .points)
                 const iconEmoji = site.isCommunity ? '⭐' : '📍';
+                const ratingText = `⭐ ${site.rating}`;
                 html += `
                     <div class="podium-card ${size} entry-anim" onclick="window.GoHappyRanking.goToMap('${site.id || ''}', ${site.lat || 0}, ${site.lng || 0})">
                         <div class="podium-rank">${medal}</div>
                         <div class="podium-avatar gradient-bg">${iconEmoji}</div>
                         <div class="podium-info">
                             <h4 class="truncate">${site.name}</h4>
-                            <span class="stars">⭐ ${site.rating}${site.reviews ? ` <small style="opacity:.7">(${site.reviews})</small>` : ''}</span>
+                            <span class="points">${ratingText}</span>
                         </div>
                     </div>
                 `;
