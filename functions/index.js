@@ -146,7 +146,7 @@ exports.geminiProxy = onRequest(
         const rate = await checkRateLimit(uid, userLevel);
         if (!rate.allowed) return res.status(429).json({ error: rate.reason });
 
-        const { prompt, expectJson = true } = req.body || {};
+        const { prompt, expectJson = true, useSearch } = req.body || {};
         const clean = sanitizePrompt(prompt);
         if (!clean) return res.status(400).json({ error: 'Prompt inválido.' });
 
@@ -165,9 +165,15 @@ exports.geminiProxy = onRequest(
             }
         } catch (e) { /* cache miss, continuar */ }
 
-        // Sprint 3+: detectar prompts que requieren información REAL en tiempo real
-        // → Google Search Grounding (eventos, planes con sitios reales, agendas)
-        const needsSearch = /eventos?|events?|noticias?|news|talleres?|workshops?|qué hacer hoy|what to do today|festival|concierto|concert|exposici[oó]n|exhibition|este fin de semana|this weekend|agenda cultural|planes?\s+(en|reales|para)|actividades?\s+(en|reales|para)|museo|teatro|cuentacuentos|marionetas|ruta\s+(familiar|infantil)|feria|mercado\s+artesan|hoy en|tomorrow|mañana en|sábado|domingo|saturday|sunday|cine\s+infantil/i.test(clean);
+        // Search Grounding consume cuota baja en tier free → solo activar cuando es ESENCIAL.
+        // Prioridad 1: el cliente lo pide explícitamente con `useSearch: true`.
+        // Prioridad 2 (legacy): inferir por keywords MUY estrictos (solo eventos/agendas reales).
+        let needsSearch;
+        if (typeof useSearch === 'boolean') {
+            needsSearch = useSearch;
+        } else {
+            needsSearch = /\beventos? real(es)?\b|\bagenda cultural\b|\bevents? near\b|\bconciertos?\b|\bfestival\b|\bcuentacuentos\b|\bmarionetas\b|\bferia\b|\bexposici[oó]n\b|\btalleres? infantiles?\b/i.test(clean);
+        }
 
         try {
             let finalPrompt = clean;

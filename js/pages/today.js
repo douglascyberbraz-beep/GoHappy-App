@@ -872,7 +872,46 @@ window.GoHappyToday = {
 
     _renderPlanCards: (list, activities) => {
         if (!activities || activities.length === 0) {
-            list.innerHTML = `<div class="moments-empty"><div class="moments-empty-icon">🏜️</div><div class="moments-empty-title">No hay planes ahora</div></div>`;
+            const lang = window.GoHappyI18n?.lang || 'es';
+            const src = window.GoHappyAI?._lastSource;
+
+            // Distinguir el motivo real
+            let icon = '🏜️';
+            let title, sub;
+            if (src === 'rate-limited') {
+                icon = '⏳';
+                title = lang === 'en' ? 'AI is busy right now' : 'IA saturada ahora mismo';
+                sub   = lang === 'en' ? 'Try again in 30 seconds' : 'Reintenta en 30 segundos';
+            } else if (src === 'timeout' || src === 'error') {
+                icon = '⚠️';
+                title = lang === 'en' ? 'Could not generate plans' : 'No se pudieron generar planes';
+                sub   = lang === 'en' ? 'Check connection and tap retry' : 'Comprueba conexión e intenta de nuevo';
+            } else if (src === 'no-auth') {
+                icon = '🔐';
+                title = lang === 'en' ? 'Sign in to see plans' : 'Inicia sesión para ver planes';
+                sub   = '';
+            } else {
+                title = lang === 'en' ? 'No plans available' : 'No hay planes ahora';
+                sub   = lang === 'en' ? 'Try changing your preferences' : 'Prueba a cambiar tus preferencias';
+            }
+
+            list.innerHTML = `
+                <div class="moments-empty" style="padding:30px 20px;">
+                    <div class="moments-empty-icon" style="font-size:42px;">${icon}</div>
+                    <div class="moments-empty-title" style="margin-top:10px;">${title}</div>
+                    ${sub ? `<div class="moments-empty-text" style="margin-top:4px;">${sub}</div>` : ''}
+                    <button id="plans-retry-btn" class="btn-primary" style="margin-top:16px; padding:10px 22px; border-radius:999px; border:none; cursor:pointer;">
+                        ${lang === 'en' ? '🔄 Retry' : '🔄 Reintentar'}
+                    </button>
+                </div>
+            `;
+            const retryBtn = document.getElementById('plans-retry-btn');
+            if (retryBtn) {
+                retryBtn.onclick = () => {
+                    const prefs = JSON.parse(localStorage.getItem('GoHappy_family_prefs') || 'null');
+                    if (prefs) window.GoHappyToday._loadPlanes(prefs);
+                };
+            }
             return;
         }
 

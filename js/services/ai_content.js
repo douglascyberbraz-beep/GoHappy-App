@@ -68,7 +68,9 @@ TAREA OBLIGATORIA:
 
 Formato JSON estricto: [ { "title":"", "summary":"", "typeLabel":"", "location":"", "lat":NUM, "lng":NUM, "time":"", "duration":"", "price":"", "age":"", "highlights":["",""], "packingList":["",""], "tip":"", "link":"" } ]`;
 
-        return await window.GoHappyAI._callGemini(prompt);
+        // Planes IA: SIN Search Grounding (Gemini conoce lugares emblemáticos por entrenamiento)
+        // Esto ahorra cuota Grounding (limitada) y resuelve el 429
+        return await window.GoHappyAI._callGemini(prompt, true, false);
     },
 
     // BETA TEST MODE: SIN límites — todos los usuarios disfrutan PREMIUM
@@ -167,7 +169,8 @@ Campos por evento:
 Formato JSON estricto, sin markdown ni texto extra:
 [ { "title":"", "description":"", "category":"", "dayLabel":"", "time":"", "location":"", "distanceDesc":"", "price":"", "ages":"", "linkText":"", "linkUrl":"", "tip":"" } ]`;
 
-        return await window.GoHappyAI._callGemini(prompt, true);
+        // Eventos REALES: SÍ activamos Search Grounding (necesario para fechas/horas reales)
+        return await window.GoHappyAI._callGemini(prompt, true, true);
     },
 
     // ───────────────────────────────────────────────────────────
@@ -421,7 +424,8 @@ Formato JSON estricto:
     },
 
     // Helper para llamadas a Gemini — proxy autenticado + caché client-side
-    _callGemini: async (prompt, expectJson = true) => {
+    // useSearch: pasar true SOLO para eventos reales (consume cuota Grounding limitada)
+    _callGemini: async (prompt, expectJson = true, useSearch = null) => {
         // Inyectar instrucción de idioma al inicio (auto-detectado por i18n)
         const langName = window.GoHappyI18n ? window.GoHappyI18n.aiLanguageName() : 'Español (España)';
         const country = window.GoHappyI18n ? window.GoHappyI18n.country : 'ES';
@@ -489,7 +493,7 @@ Formato JSON estricto:
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${idToken}`
                 },
-                body: JSON.stringify({ prompt, expectJson }),
+                body: JSON.stringify({ prompt, expectJson, useSearch }),
                 signal: AbortSignal.timeout(20000) // 20s — proxy ya hace fallback interno
             });
 

@@ -588,7 +588,6 @@ body {
 .memory-summary-card,
 .memory-reflection,
 .timeline-content,
-.podium-card,
 .quest-card-smart,
 .ranking-row {
     background: var(--card-bg) !important;
@@ -601,6 +600,21 @@ body {
     margin: var(--card-margin) !important;
     width: 100% !important;
     max-width: 100% !important;
+    box-sizing: border-box !important;
+    transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
+                box-shadow 0.22s ease !important;
+    position: relative !important;
+    color: var(--text-primary) !important;
+}
+
+/* PODIUM-CARD — estilos propios SIN width:100% (rompe el flex podio) */
+.podium-card {
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(30px) saturate(180%) brightness(1.05) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.05) !important;
+    border: var(--card-border) !important;
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--card-shadow) !important;
     box-sizing: border-box !important;
     transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
                 box-shadow 0.22s ease !important;
