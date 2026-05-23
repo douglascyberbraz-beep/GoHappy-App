@@ -172,6 +172,34 @@ service cloud.firestore {
 
       // DELETE: solo el creador
       allow delete: if isAuthenticated() && request.auth.uid == resource.data.creadoPor;
+
+      // ─── Subcolección AVENTURAS familiares (nueva v6.2.0) ───
+      match /adventures/{advId} {
+        // Lectura: solo miembros de la familia
+        allow read: if isFamilyMember(familyId);
+
+        // Crear: usuario real, miembro de la familia, max 8 misiones, sin HTML
+        allow create: if isRealUser()
+          && isFamilyMember(familyId)
+          && request.resource.data.adventureId is string
+          && request.resource.data.adventureId.size() <= 60
+          && request.resource.data.titulo is string
+          && request.resource.data.titulo.size() <= 80
+          && request.resource.data.estado in ['activa', 'completada', 'abandonada']
+          && request.resource.data.misiones is list
+          && request.resource.data.misiones.size() <= 8
+          && request.resource.data.creadoPor == request.auth.uid;
+
+        // Update: solo miembros, sin cambiar adventureId / creadoPor / fechaInicio
+        allow update: if isFamilyMember(familyId)
+          && noFields(['adventureId', 'creadoPor', 'fechaInicio'])
+          && request.resource.data.estado in ['activa', 'completada', 'abandonada']
+          && request.resource.data.misiones is list
+          && request.resource.data.misiones.size() <= 8;
+
+        // Delete: solo el creador
+        allow delete: if isAuthenticated() && request.auth.uid == resource.data.creadoPor;
+      }
     }
 
 

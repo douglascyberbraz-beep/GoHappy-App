@@ -194,8 +194,19 @@ exports.geminiProxy = onRequest(
         const clean = sanitizePrompt(prompt);
         if (!clean) return res.status(400).json({ error: 'Prompt inválido.' });
 
-        // ── CACHE: buscar respuesta cacheada para este prompt ──
-        const cacheKey = promptHash(clean, expectJson);
+        // ── CACHE: para EVENTOS (useSearch), normalizar el key quitando el bloque
+        //    CONTEXTO FAMILIAR. Así dos users de la misma ciudad comparten respuesta
+        //    → 1 sola llamada Grounding sirve a todos los usuarios de Valladolid hoy
+        let cacheKey;
+        if (useSearch === true) {
+            // Strip el bloque CONTEXTO FAMILIAR del prompt (líneas entre etiqueta y \n\n)
+            const normalized = clean.replace(/CONTEXTO FAMILIAR DEL USUARIO[\s\S]*?(?=\n\n[A-Z]|$)/, '').trim();
+            // Añadir día actual para que se renueve diariamente
+            const dayBucket = new Date().toISOString().slice(0, 10);
+            cacheKey = promptHash(normalized + '|D:' + dayBucket, expectJson);
+        } else {
+            cacheKey = promptHash(clean, expectJson);
+        }
         try {
             const cacheDoc = await db.collection('_aicache').doc(cacheKey).get();
             if (cacheDoc.exists) {

@@ -205,7 +205,8 @@ const PAGE_RENDERERS = {
     'safe':        () => window.GoHappySafePage,
     'memories':    () => window.GoHappyMemories,
     'tribu':       () => window.GoHappyTribu,
-    'my_family':   () => window.GoHappyMyFamily
+    'my_family':   () => window.GoHappyMyFamily,
+    'adventures':  () => window.GoHappyAdventures
 };
 
 async function loadPage(pageName) {
