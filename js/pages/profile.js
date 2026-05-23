@@ -29,7 +29,7 @@ window.GoHappyProfile = {
             <div class="profile-page-premium stagger-group">
                 <div class="profile-hero-premium">
                     <div class="profile-avatar-wrapper" id="open-avatar-editor">
-                        <div class="profile-avatar-large profile-glow">${user.photo || '👤'}</div>
+                        <div class="profile-avatar-large profile-glow" style="${(user.photo && (user.photo.startsWith('data:') || user.photo.startsWith('http'))) ? `background-image:url('${user.photo}'); background-size:cover; background-position:center; font-size:0;` : ''}">${(user.photo && (user.photo.startsWith('data:') || user.photo.startsWith('http'))) ? '' : (user.photo || '👤')}</div>
                         <div class="level-badge-premium">${levelInfo.icon} ${levelInfo.name}</div>
                     </div>
                     <div class="profile-meta-header">
@@ -228,23 +228,82 @@ window.GoHappyProfile = {
         };
 
         document.getElementById('open-avatar-editor').onclick = () => {
+            const lang = window.GoHappyI18n?.lang || 'es';
+            const L = (es, en) => lang === 'en' ? en : es;
             const modal = document.createElement('div');
             modal.className = 'modal entry-anim';
+            modal.style.zIndex = '9000';
+            const isPhotoUrl = (typeof user.photo === 'string') && (user.photo.startsWith('data:') || user.photo.startsWith('http'));
             modal.innerHTML = `
                 <div class="auth-container" style="padding: 20px;">
-                    <div class="auth-card premium-glass" style="padding: 30px; border-radius: 35px;">
-                        <h3 style="color:var(--primary-cobalt); text-align:center; font-weight:900; margin-bottom:20px;">Cambiar Avatar</h3>
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px;">
-                            ${['👤', '🦁', '🐼', '🦄', '🦊', '🤖', '👩‍🚀', '🦒'].map(emoji => `
-                                <div class="avatar-option" data-emoji="${emoji}" style="font-size: 35px; background: white; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer; border: 2px solid transparent; ${user.photo === emoji ? 'border-color: var(--primary-cobalt); background: rgba(11, 113, 252, 0.1);' : ''}">${emoji}</div>
+                    <div class="auth-card premium-glass" style="padding: 28px 22px; border-radius: 32px; max-width: 420px;">
+                        <h3 style="color:var(--primary-cobalt); text-align:center; font-weight:900; margin-bottom:16px;">${L('Cambiar Avatar', 'Change Avatar')}</h3>
+
+                        <!-- Preview actual -->
+                        <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                            <div id="av-preview" style="width:88px; height:88px; border-radius:50%; background:linear-gradient(135deg,#0B4C8F,#17C8D4); display:flex; align-items:center; justify-content:center; font-size:42px; color:white; background-size:cover; background-position:center; box-shadow:0 8px 22px rgba(11,76,143,0.20); overflow:hidden;">
+                                ${isPhotoUrl ? '' : (user.photo || '👤')}
+                            </div>
+                        </div>
+
+                        <!-- Botón subir foto real -->
+                        <input type="file" id="av-file" accept="image/*" style="display:none;">
+                        <button id="av-pick-photo" style="width:100%; padding:14px; border:none; border-radius:14px; background:linear-gradient(135deg,#0B71FC,#17C8D4); color:white; font-weight:800; font-size:14px; cursor:pointer; margin-bottom:14px; box-shadow:0 6px 16px rgba(11,113,252,0.28);">
+                            📷 ${L('Subir foto desde galería', 'Upload photo from gallery')}
+                        </button>
+
+                        <div style="text-align:center; color:var(--text-tertiary); font-size:11px; margin:6px 0 14px;">${L('o elige un emoji', 'or pick an emoji')}</div>
+
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px;">
+                            ${['👤', '🦁', '🐼', '🦄', '🦊', '🤖', '👩‍🚀', '🦒', '🐱', '🐶', '🦋', '⭐'].map(emoji => `
+                                <div class="avatar-option" data-emoji="${emoji}" style="font-size: 30px; background: white; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer; border: 2px solid transparent; ${user.photo === emoji ? 'border-color: var(--primary-cobalt); background: rgba(11, 113, 252, 0.1);' : ''}">${emoji}</div>
                             `).join('')}
                         </div>
-                        <button id="save-avatar-btn" class="btn-primary-gradient full-width" style="height: 55px; font-weight: 800;">Guardar Cambios</button>
-                        <button class="btn-text full-width" style="margin-top:15px;" onclick="this.closest('.modal').remove()">Cancelar</button>
+                        <button id="save-avatar-btn" class="btn-primary-gradient full-width" style="height: 52px; font-weight: 800;">${L('Guardar', 'Save')}</button>
+                        <button class="btn-text full-width" style="margin-top:12px;" onclick="this.closest('.modal').remove()">${L('Cancelar', 'Cancel')}</button>
                     </div>
                 </div>
             `;
             document.body.appendChild(modal);
+
+            // Set preview con la foto actual si es URL
+            const preview = document.getElementById('av-preview');
+            if (isPhotoUrl) {
+                preview.style.backgroundImage = `url('${user.photo}')`;
+            }
+
+            // Bind subir foto
+            const fileInput = document.getElementById('av-file');
+            document.getElementById('av-pick-photo').onclick = () => fileInput.click();
+            fileInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        // Crop cuadrado central + redimensionar a 240×240 (suficiente para avatar)
+                        const size = Math.min(img.width, img.height);
+                        const sx = (img.width - size) / 2;
+                        const sy = (img.height - size) / 2;
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 240; canvas.height = 240;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, sx, sy, size, size, 0, 0, 240, 240);
+                        selected = canvas.toDataURL('image/jpeg', 0.78);
+                        // Preview
+                        preview.style.backgroundImage = `url('${selected}')`;
+                        preview.textContent = '';
+                        // Desmarcar emojis
+                        modal.querySelectorAll('.avatar-option').forEach(o => {
+                            o.style.borderColor = 'transparent';
+                            o.style.background = 'white';
+                        });
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            };
 
             let selected = user.photo;
             modal.querySelectorAll('.avatar-option').forEach(opt => {

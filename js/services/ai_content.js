@@ -156,7 +156,7 @@ Campos por evento:
 - title: nombre EXACTO del evento
 - description: 1-2 frases (qué van a hacer/aprender)
 - category: taller | teatro | museo | aire-libre | cine | feria | mercado | ruta
-- dayLabel: "HOY" | "MAÑANA" | "SÁBADO" | "DOMINGO"
+- date: FECHA EXACTA del evento en formato ISO YYYY-MM-DD (ej "2026-05-24"). OBLIGATORIO.
 - time: hora concreta (ej "17:00 - 19:00")
 - location: lugar específico de ${cityInfo.city}
 - distanceDesc: "A 5 min andando" | "A 10 min en coche"
@@ -167,7 +167,7 @@ Campos por evento:
 - tip: 1 consejo práctico breve
 
 Formato JSON estricto, sin markdown ni texto extra:
-[ { "title":"", "description":"", "category":"", "dayLabel":"", "time":"", "location":"", "distanceDesc":"", "price":"", "ages":"", "linkText":"", "linkUrl":"", "tip":"" } ]`;
+[ { "title":"", "description":"", "category":"", "date":"YYYY-MM-DD", "time":"", "location":"", "distanceDesc":"", "price":"", "ages":"", "linkText":"", "linkUrl":"", "tip":"" } ]`;
 
         // Eventos REALES: SÍ activamos Search Grounding (necesario para fechas/horas reales)
         return await window.GoHappyAI._callGemini(prompt, true, true);

@@ -42,14 +42,16 @@ window.GoHappyFamilies = {
         let userDoc;
         try {
             userDoc = await withTimeout(
-                window.GoHappyDB.collection('users').doc(user.uid).get({ source: 'server' }).catch(() =>
-                    window.GoHappyDB.collection('users').doc(user.uid).get()
-                ),
+                window.GoHappyDB.collection('users').doc(user.uid).get(),
                 12000, 'leer perfil'
             );
         } catch (e) {
-            if (String(e?.message || e).match(/offline|Sin conexión/i)) {
-                throw new Error('Sin conexión a internet. Reconecta y vuelve a intentar.');
+            console.error('[Families] read user err:', e?.code, e?.message);
+            if (String(e?.message || e).match(/offline|Sin conexión|client is offline/i)) {
+                throw new Error('Sin conexión a internet. Comprueba tu wifi/datos y vuelve a intentar.');
+            }
+            if (e?.code === 'permission-denied') {
+                throw new Error('Sin permiso. Cierra sesión y vuelve a entrar.');
             }
             throw e;
         }

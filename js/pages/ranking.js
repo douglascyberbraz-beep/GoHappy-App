@@ -1,16 +1,115 @@
 window.GoHappyRanking = {
 
     /**
-     * Función ÚNICA para renderizar el podio.
-     * Usada tanto por renderSites() como por renderContributors()
-     * → garantiza paridad visual 100% (NO puede divergir)
-     *
-     * items: array de 0-3 elementos con { name, score, avatar, onclick, special }
+     * Render del podio con CLASES ÚNICAS (.gh-pod-v2-*)
+     * que NO comparte nombres con ningún CSS legacy → imposible interferencia
      */
     _renderPodium: (items) => {
-        const podStyle = 'display:flex; gap:8px; align-items:flex-end; justify-content:center; padding:24px 12px 16px; margin:0 12px 12px; width:calc(100% - 24px); box-sizing:border-box; overflow:visible;';
-        let out = `<div class="podium-section" style="${podStyle}">`;
-        const pOrder = [1, 0, 2];  // 2º, 1º, 3º (visualmente)
+        // Inyectar CSS único una sola vez
+        if (!document.getElementById('gh-pod-v2-styles')) {
+            const s = document.createElement('style');
+            s.id = 'gh-pod-v2-styles';
+            s.textContent = `
+                .gh-pod-v2-section {
+                    display: flex !important;
+                    gap: 8px !important;
+                    align-items: flex-end !important;
+                    justify-content: center !important;
+                    padding: 28px 12px 16px !important;
+                    margin: 0 12px 12px !important;
+                    width: calc(100% - 24px) !important;
+                    box-sizing: border-box !important;
+                    overflow: visible !important;
+                    background: transparent !important;
+                    border: none !important;
+                    border-radius: 0 !important;
+                    box-shadow: none !important;
+                }
+                .gh-pod-v2-card {
+                    flex: 1 1 0 !important;
+                    min-width: 0 !important;
+                    max-width: 32% !important;
+                    width: auto !important;
+                    padding: 14px 6px !important;
+                    text-align: center !important;
+                    box-sizing: border-box !important;
+                    background: rgba(255,255,255,0.96) !important;
+                    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+                    backdrop-filter: blur(20px) saturate(180%) !important;
+                    border: 0.5px solid rgba(255,255,255,0.95) !important;
+                    border-radius: 18px !important;
+                    box-shadow: 0 8px 20px rgba(11,76,143,0.10) !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    align-items: center !important;
+                    gap: 6px !important;
+                    min-height: 150px !important;
+                    height: auto !important;
+                    color: var(--text-primary, #0F172A) !important;
+                    position: relative !important;
+                    transform: none;
+                }
+                .gh-pod-v2-card.large {
+                    min-height: 168px !important;
+                    border: 0.5px solid rgba(23,200,212,0.4) !important;
+                    box-shadow: 0 12px 28px rgba(11,76,143,0.14) !important;
+                    transform: translateY(-6px) !important;
+                }
+                .gh-pod-v2-card.is-me {
+                    background: linear-gradient(135deg,rgba(23,200,212,0.14),rgba(11,113,252,0.08)) !important;
+                    border-color: rgba(23,200,212,0.5) !important;
+                }
+                .gh-pod-v2-medal {
+                    font-size: 24px !important;
+                    line-height: 1 !important;
+                    margin: 0 !important;
+                }
+                .gh-pod-v2-avatar {
+                    width: 44px !important;
+                    height: 44px !important;
+                    border-radius: 50% !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    font-size: 20px !important;
+                    color: white !important;
+                    flex-shrink: 0 !important;
+                    background: linear-gradient(135deg,#0B4C8F,#17C8D4) !important;
+                    box-shadow: 0 4px 12px rgba(11,76,143,0.18) !important;
+                    background-size: cover !important;
+                    background-position: center !important;
+                    overflow: hidden !important;
+                }
+                .gh-pod-v2-info {
+                    width: 100% !important;
+                    min-width: 0 !important;
+                    padding: 0 2px !important;
+                }
+                .gh-pod-v2-name {
+                    font-size: 11.5px !important;
+                    font-weight: 800 !important;
+                    color: #0B4C8F !important;
+                    margin: 0 !important;
+                    line-height: 1.2 !important;
+                    white-space: nowrap !important;
+                    overflow: hidden !important;
+                    text-overflow: ellipsis !important;
+                }
+                .gh-pod-v2-score {
+                    font-size: 10.5px !important;
+                    font-weight: 700 !important;
+                    color: #64748b !important;
+                    margin-top: 3px !important;
+                    white-space: nowrap !important;
+                    overflow: hidden !important;
+                    text-overflow: ellipsis !important;
+                }
+            `;
+            document.head.appendChild(s);
+        }
+
+        let out = `<div class="gh-pod-v2-section">`;
+        const pOrder = [1, 0, 2];
         pOrder.forEach(idx => {
             const item = items[idx];
             if (!item) return;
@@ -18,32 +117,22 @@ window.GoHappyRanking = {
             const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉';
             const isLarge = pos === 1;
             const safeName = String(item.name || '').replace(/[<>&'"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&#39;','"':'&quot;'}[c])).slice(0, 18);
-            const safeAvatar = String(item.avatar || '👤').slice(0, 4);
+            const safeAvatar = String(item.avatar || '👤').slice(0, 6);
             const safeScore = String(item.score || '').replace(/[<>]/g, '');
-
-            const cardStyle = [
-                'flex:1 1 0', 'min-width:0', 'max-width:32%',
-                'padding:14px 6px', 'text-align:center', 'box-sizing:border-box',
-                `background:${item.special?'linear-gradient(135deg,rgba(23,200,212,0.12),rgba(11,113,252,0.08))':'rgba(255,255,255,0.92)'}`,
-                'backdrop-filter:blur(20px) saturate(180%)',
-                `border:0.5px solid ${item.special?'rgba(23,200,212,0.45)':(isLarge?'rgba(23,200,212,0.4)':'rgba(255,255,255,0.95)')}`,
-                'border-radius:20px',
-                `box-shadow:0 ${isLarge?'12px 28px':'8px 20px'} rgba(11,76,143,${isLarge?'0.14':'0.09'})`,
-                'display:flex', 'flex-direction:column', 'align-items:center', 'gap:6px',
-                `min-height:${isLarge?'170px':'150px'}`,
-                item.onclick ? 'cursor:pointer' : '',
-                isLarge ? 'transform:translateY(-6px)' : ''
-            ].filter(Boolean).join(';');
-
-            const clickAttr = item.onclick ? `onclick="${item.onclick}"` : '';
+            const clickAttr = item.onclick ? `onclick="${item.onclick}" style="cursor:pointer;"` : '';
+            // Si avatar es URL de imagen, usar como background
+            const isUrl = /^https?:\/\//.test(safeAvatar) || safeAvatar.startsWith('data:');
+            const avatarHtml = isUrl
+                ? `<div class="gh-pod-v2-avatar" style="background-image:url('${safeAvatar}'); background-color:transparent;"></div>`
+                : `<div class="gh-pod-v2-avatar">${safeAvatar}</div>`;
 
             out += `
-                <div class="podium-card ${isLarge?'large':'medium'} ${item.special?'is-me':''}" ${clickAttr} style="${cardStyle}">
-                    <div style="font-size:24px; line-height:1;">${medal}</div>
-                    <div style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; color:white; flex-shrink:0; background:linear-gradient(135deg,#0B4C8F,#17C8D4); box-shadow:0 4px 12px rgba(11,76,143,0.18);">${safeAvatar}</div>
-                    <div style="width:100%; min-width:0; padding:0 2px;">
-                        <h4 style="font-size:11px; font-weight:800; color:#0B4C8F; margin:0; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${safeName}</h4>
-                        <div style="font-size:10.5px; font-weight:700; color:#64748b; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${safeScore}</div>
+                <div class="gh-pod-v2-card ${isLarge?'large':''} ${item.special?'is-me':''}" ${clickAttr}>
+                    <div class="gh-pod-v2-medal">${medal}</div>
+                    ${avatarHtml}
+                    <div class="gh-pod-v2-info">
+                        <h4 class="gh-pod-v2-name">${safeName}</h4>
+                        <div class="gh-pod-v2-score">${safeScore}</div>
                     </div>
                 </div>
             `;

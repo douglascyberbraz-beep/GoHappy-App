@@ -12,25 +12,22 @@ window.GoHappyMap = {
         container.style.display = 'block';
 
         if (!window.GoHappyMap.isInitialized) {
-            // Mostrar loader inicial
-            const T = window.t || (k => k);
             const lang = window.GoHappyI18n?.lang || 'es';
             const loaderMsg = lang === 'en' ? 'Loading 3D map...' : 'Invocando mapa 3D...';
+
+            // ✅ Container tiene 2 hijos: canvas del mapa Y overlay loader
             container.innerHTML = `
+                <div id="map-canvas" style="position:absolute; inset:0; z-index:1;"></div>
                 <div id="map-loader" style="position: absolute; inset: 0; background: linear-gradient(180deg, #eaf2fd 0%, #d6e6f9 100%); z-index: 10; overflow: hidden;">
-                    <!-- Skeleton de tiles del mapa -->
                     <div style="position:absolute; inset:0; background-image:
                         linear-gradient(rgba(11,76,143,0.06) 1px, transparent 1px),
                         linear-gradient(90deg, rgba(11,76,143,0.06) 1px, transparent 1px);
-                        background-size: 60px 60px;
-                        animation: mapSkel 3s ease-in-out infinite alternate;"></div>
-                    <!-- Pin skeleton centrado -->
+                        background-size: 60px 60px;"></div>
                     <div style="position:absolute; top:50%; left:50%; transform: translate(-50%, -60%); display:flex; flex-direction:column; align-items:center; gap:14px;">
                         <div style="width:54px; height:54px; border-radius:50% 50% 50% 0; background:var(--primary-cobalt, #0B4C8F); transform: rotate(-45deg); box-shadow:0 8px 22px rgba(11,76,143,0.35); animation:mapPinBounce 1.2s ease-in-out infinite;"></div>
                         <p style="font-weight:700; color:var(--primary-cobalt, #0B4C8F); font-size:13px; margin:0;">${loaderMsg}</p>
                     </div>
                     <style>
-                        @keyframes mapSkel    { 0% { opacity: 0.5; } 100% { opacity: 1; } }
                         @keyframes mapPinBounce {
                             0%, 100% { transform: rotate(-45deg) translateY(0); }
                             50%      { transform: rotate(-45deg) translateY(-8px); }
@@ -38,7 +35,22 @@ window.GoHappyMap = {
                     </style>
                 </div>
             `;
-            await window.GoHappyMap.init(container);
+            // Esperar a que el DOM aplique antes de iniciar mapa
+            await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+            try {
+                await window.GoHappyMap.init(container);
+            } catch (e) {
+                console.error('[Map] init failed:', e);
+                const loader = document.getElementById('map-loader');
+                if (loader) {
+                    loader.innerHTML = `
+                        <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center;">
+                            <div style="font-size:48px; margin-bottom:14px;">⚠️</div>
+                            <p style="color:var(--primary-cobalt, #0B4C8F); font-weight:700; margin:0 0 18px;">${lang === 'en' ? 'Could not load map' : 'No se pudo cargar el mapa'}</p>
+                            <button onclick="window.location.reload()" style="background:var(--primary-cobalt, #0B4C8F); color:white; border:none; padding:12px 24px; border-radius:999px; font-weight:800; cursor:pointer;">${lang === 'en' ? '🔄 Retry' : '🔄 Reintentar'}</button>
+                        </div>`;
+                }
+            }
         } else {
             const loader = document.getElementById('map-loader');
             if (loader) loader.style.display = 'none';
@@ -89,9 +101,12 @@ window.GoHappyMap = {
     init: async (container) => {
         if (window.GoHappyMap.isInitialized && window.GoHappyMap.instance) return;
 
+        // Usar #map-canvas si existe (división dedicada), si no el container
+        const mapDiv = document.getElementById('map-canvas') || container;
+
         try {
             window.GoHappyMap.instance = new maplibregl.Map({
-                container: container,
+                container: mapDiv,
                 style: 'https://tiles.openfreemap.org/styles/liberty',
                 center: [-4.7286, 41.6520],
                 zoom: 16,

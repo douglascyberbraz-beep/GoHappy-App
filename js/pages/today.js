@@ -678,45 +678,24 @@ window.GoHappyToday = {
 
     // ───────────────────── VISTA 1: EVENTOS REALES ─────────────────────
     _renderEventos: async (content) => {
-        const filter = window.GoHappyToday._currentFilter;
         const T = window.t || (k => k);
 
+        // VISTA UNIFICADA: sin chips de filtro. Pedimos eventos de los próximos 7 días.
         content.innerHTML = `
-            <div class="events-filters">
-                <button class="ev-filter-chip ${filter==='hoy'?'active':''}" data-filter="hoy">${T('today.filter.today')}</button>
-                <button class="ev-filter-chip ${filter==='manana'?'active':''}" data-filter="manana">${T('today.filter.tomorrow')}</button>
-                <button class="ev-filter-chip ${filter==='finde'?'active':''}" data-filter="finde">${T('today.filter.weekend')}</button>
-            </div>
             <div id="events-list">
                 ${window.GoHappyToday._skeletonCards(3)}
             </div>
         `;
 
-        // Bind filtros
-        content.querySelectorAll('.ev-filter-chip').forEach(chip => {
-            chip.onclick = () => {
-                window.GoHappyToday._currentFilter = chip.dataset.filter;
-                window.GoHappyToday._renderEventos(content);
-            };
-        });
-
         try {
-            let events = await window.GoHappyAI.getRealEvents(window.GoHappyToday._coords, filter);
-            let usedFilter = filter;
+            // Siempre pedimos "próximos 7 días" — más eventos, sin chips
+            let events = await window.GoHappyAI.getRealEvents(window.GoHappyToday._coords, 'finde');
+            let usedFilter = 'finde';
             let fallbackUsed = false;
 
-            // FALLBACK: si hoy no hay, probar mañana, luego finde
-            const fallbackChain = filter === 'hoy' ? ['manana', 'finde']
-                                : filter === 'manana' ? ['finde']
-                                : [];
-
-            for (const nextFilter of fallbackChain) {
-                if (events && events.length > 0) break;
-                events = await window.GoHappyAI.getRealEvents(window.GoHappyToday._coords, nextFilter);
-                usedFilter = nextFilter;
-                fallbackUsed = true;
-            }
-
+            // FALLBACK (legacy var unused now)
+            const fallbackChain = []; // not used anymore
+            const filter = usedFilter;
             const list = document.getElementById('events-list');
 
             if (!events || events.length === 0) {
@@ -730,20 +709,7 @@ window.GoHappyToday = {
                 return;
             }
 
-            // Banner si tuvimos que mover a otro día
-            let fallbackBanner = '';
-            if (fallbackUsed) {
-                const lang = window.GoHappyI18n?.lang || 'es';
-                const dayLabelMap = {
-                    'manana': lang === 'en' ? 'tomorrow' : 'mañana',
-                    'finde':  lang === 'en' ? 'this weekend' : 'el finde'
-                };
-                fallbackBanner = `
-                    <div style="margin:0 0 12px; padding:11px 14px; background:linear-gradient(135deg,rgba(11,113,252,0.10),rgba(23,200,212,0.12)); border:0.5px solid rgba(11,113,252,0.22); border-radius:14px; font-size:12.5px; color:var(--cobalt);">
-                        💡 ${lang === 'en' ? 'No events found today. Showing' : 'No hay eventos hoy. Te muestro los de'} <strong>${dayLabelMap[usedFilter] || usedFilter}</strong>
-                    </div>
-                `;
-            }
+            let fallbackBanner = ''; // sin chips — la fecha se muestra en cada card
 
             // Sprint 3: citas de Search Grounding (si hay)
             let citationsHtml = '';
@@ -817,13 +783,37 @@ window.GoHappyToday = {
         const catKey = String(e.category || '').toLowerCase();
         const icon = catIcons[catKey] || '✨';
 
+        // Construir fecha legible: prioridad e.date (real) → e.dayLabel (HOY/MAÑANA)
+        let dateLabel = '';
+        if (e.date) {
+            // Si es ISO yyyy-mm-dd o ya viene formateado
+            try {
+                const d = new Date(e.date);
+                if (!isNaN(d.getTime())) {
+                    const days = lang === 'en'
+                        ? ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+                        : ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+                    const months = lang === 'en'
+                        ? ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+                        : ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+                    dateLabel = `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+                } else {
+                    dateLabel = String(e.date);
+                }
+            } catch { dateLabel = String(e.date); }
+        } else if (e.dayLabel) {
+            dateLabel = e.dayLabel;
+        } else {
+            dateLabel = lang === 'en' ? 'Soon' : 'Próximamente';
+        }
+
         return `
             <div class="event-card-v2 card-anim">
                 <div class="evc-top">
                     <span class="evc-icon">${icon}</span>
                     <div class="evc-top-text">
                         <div class="evc-meta">
-                            <span class="evc-day">${safe(e.dayLabel || 'HOY')}</span>
+                            <span class="evc-day">📅 ${safe(dateLabel)}</span>
                             <span class="evc-time">${safe(e.time || '')}</span>
                         </div>
                         <h3 class="evc-title">${safe(e.title || 'Evento')}</h3>

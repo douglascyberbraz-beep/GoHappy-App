@@ -82,23 +82,18 @@ if (window.firebase) {
         window.GoHappyAuthReal    = firebase.auth();
         window.GoHappyDB          = firebase.firestore();
 
-        // Persistencia offline (permite usar la app sin conexión)
-        // SIN synchronizeTabs porque causa "client is offline" en navegadores con
-        // restricciones de IndexedDB (Safari iOS, Chrome modo privado, etc).
-        window.GoHappyDB.enablePersistence().catch((err) => {
-            if (err.code === 'failed-precondition') {
-                console.warn('[GoHappy] Persistencia: múltiples pestañas abiertas (no crítico).');
-            } else if (err.code === 'unimplemented') {
-                console.warn('[GoHappy] Persistencia offline no soportada en este navegador.');
-            }
-            // Forzar online si la persistence falló
-            try { window.GoHappyDB.enableNetwork(); } catch (e) {}
-        });
+        // PERSISTENCIA DESACTIVADA — causaba "client is offline" en muchos
+        // navegadores (Safari iOS, Chrome incógnito, Firefox restringido).
+        // El cache cliente local (localStorage + memoria) ya cubre la mayor
+        // parte de UX offline. Sin persistence, Firestore es 100% network
+        // y nunca queda en estado "offline" pillado.
 
         // Auto-reconectar online cuando se recupera la conexión
         window.addEventListener('online', () => {
             try { window.GoHappyDB.enableNetwork(); console.info('[GoHappy] Reconectado online'); } catch (e) {}
         });
+        // Forzar online al cargar (defense in depth)
+        try { window.GoHappyDB.enableNetwork(); } catch (e) {}
 
         // Dominios autorizados de Firebase Auth (añadir en Firebase Console si cambian)
         // - douglascyberbraz-beep.github.io
