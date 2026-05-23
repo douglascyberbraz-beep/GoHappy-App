@@ -9,6 +9,9 @@ window.GoHappyMyFamily = {
         const user = window.GoHappyAuth?.checkAuth?.();
         const lang = window.GoHappyI18n?.lang || 'es';
         const T = (es, en) => lang === 'en' ? en : es;
+        // Anti-XSS: escape estricto para todo string de usuario que vaya a innerHTML
+        const sec = window.GoHappySecurity;
+        const safe = (s) => sec ? sec.safe(s) : String(s || '').replace(/[<>&"'`]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c]));
 
         if (!user || user.isGuest) {
             container.innerHTML = `
@@ -69,6 +72,7 @@ window.GoHappyMyFamily = {
             }
             const family = { id: familyDoc.id, ...familyDoc.data() };
             const isAdmin = family.creadoPor === user.uid;
+            // textContent es seguro contra XSS por defecto (escapa HTML automáticamente)
             document.getElementById('mf-title').textContent = `👨‍👩‍👧 ${family.nombre}`;
             document.getElementById('mf-sub').textContent = isAdmin
                 ? T('Eres el anfitrión 👑', 'You are the host 👑')
@@ -95,7 +99,7 @@ window.GoHappyMyFamily = {
                 <div class="mf-card" style="background:linear-gradient(135deg,rgba(11,113,252,0.08),rgba(23,200,212,0.10)); border:0.5px solid rgba(11,113,252,0.20); border-radius:18px; padding:16px; margin-bottom:14px;">
                     <div style="font-size:11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase; margin-bottom:6px;">🔑 ${T('Código de invitación', 'Invitation code')}</div>
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <span style="font-family:'Courier New',monospace; font-size:24px; font-weight:900; color:var(--cobalt); letter-spacing:3px;">${family.codigoInvitacion}</span>
+                        <span style="font-family:'Courier New',monospace; font-size:24px; font-weight:900; color:var(--cobalt); letter-spacing:3px;">${safe(family.codigoInvitacion)}</span>
                         <button id="mf-copy-code" style="margin-left:auto; padding:8px 14px; background:var(--brand-bright); color:white; border:none; border-radius:999px; font-weight:700; font-size:12px; cursor:pointer;">📋 ${T('Copiar', 'Copy')}</button>
                     </div>
                 </div>
@@ -110,8 +114,8 @@ window.GoHappyMyFamily = {
                             <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:rgba(11,76,143,0.05); border-radius:999px;">
                                 <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--cobalt),var(--cyan));color:white;display:flex;align-items:center;justify-content:center;font-size:14px;">${m.photo || '👤'}</div>
                                 <div>
-                                    <div style="font-size:12px; font-weight:800; color:var(--cobalt);">${m.nickname || 'Tribu'}</div>
-                                    <div style="font-size:10px; color:var(--text-secondary);">${m.points || 0} pts ${m.uid === family.creadoPor ? '· 👑' : ''}</div>
+                                    <div style="font-size:12px; font-weight:800; color:var(--cobalt);">${safe(m.nickname || 'Tribu')}</div>
+                                    <div style="font-size:10px; color:var(--text-secondary);">${parseInt(m.points) || 0} pts ${m.uid === family.creadoPor ? '· 👑' : ''}</div>
                                 </div>
                             </div>
                         `).join('')}
@@ -131,8 +135,8 @@ window.GoHappyMyFamily = {
                                 <div style="display:flex; gap:10px; align-items:center; padding:10px; background:rgba(11,76,143,0.04); border-radius:12px; margin-bottom:8px;">
                                     <div style="font-size:24px; flex-shrink:0;">${q.icono || '🎯'}</div>
                                     <div style="flex:1; min-width:0;">
-                                        <div style="font-weight:800; font-size:13px; color:var(--cobalt); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${q.titulo}</div>
-                                        <div style="font-size:11px; color:var(--text-secondary);">+${q.puntos} pts · ${q.frecuencia || 'semanal'}</div>
+                                        <div style="font-weight:800; font-size:13px; color:var(--cobalt); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${safe(q.titulo)}</div>
+                                        <div style="font-size:11px; color:var(--text-secondary);">+${parseInt(q.puntos) || 0} pts · ${safe(q.frecuencia || 'semanal')}</div>
                                     </div>
                                 </div>
                             `).join('')

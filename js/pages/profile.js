@@ -1,6 +1,8 @@
 window.GoHappyProfile = {
     render: async (container) => {
         const T = window.t || (k => k);
+        // Helper para escape XSS — usa GoHappySecurity si está disponible
+        const safe = (s) => window.GoHappySecurity ? window.GoHappySecurity.safe(s) : String(s || '').replace(/[<>&"'`]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c]));
         container.innerHTML = `<div class="p-20 center-text"><div class="typing-dots"><span></span><span></span><span></span></div><p>${T('profile.loading')}</p></div>`;
 
         const user = window.GoHappyAuth.checkAuth();
@@ -31,8 +33,8 @@ window.GoHappyProfile = {
                         <div class="level-badge-premium">${levelInfo.icon} ${levelInfo.name}</div>
                     </div>
                     <div class="profile-meta-header">
-                        <h2 class="profile-name-main">${user.nickname || 'Explorador'}</h2>
-                        <p class="profile-email-sub">${user.email || 'Miembro GoHappy'}</p>
+                        <h2 class="profile-name-main">${safe(user.nickname || 'Explorador')}</h2>
+                        <p class="profile-email-sub">${safe(user.email || 'Miembro GoHappy')}</p>
                     </div>
                 </div>
 
@@ -407,6 +409,9 @@ window.GoHappyProfile = {
 
             const esAdmin = user.rol === 'admin';
             const miembros = family.miembrosData || [];
+            // Anti-XSS: escape de todos los strings de usuario antes de inyectar
+            const sec = window.GoHappySecurity;
+            const safeStr = (s) => sec ? sec.safe(s) : String(s || '').replace(/[<>&"'`]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c]));
 
             contentEl.innerHTML = `
                 <!-- Nombre y código -->
@@ -414,7 +419,7 @@ window.GoHappyProfile = {
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <div>
                             <div style="font-size:11px; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:4px;">Familia</div>
-                            <div style="font-size:1.2rem; font-weight:900; color:var(--primary-cobalt);">${family.nombre}</div>
+                            <div style="font-size:1.2rem; font-weight:900; color:var(--primary-cobalt);">${safeStr(family.nombre)}</div>
                             <div style="font-size:11px; color:#64748b; margin-top:2px;">${esAdmin ? '👑 Administrador' : '👤 Miembro'}</div>
                         </div>
                         ${esAdmin ? `

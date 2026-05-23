@@ -154,7 +154,31 @@ window.GoHappyAuth = {
     },
 
     logout: async () => {
-        localStorage.removeItem('GoHappy_local_user');
+        // SEGURIDAD: limpiar TODOS los rastros de sesión y datos personales
+        try {
+            // 1. Limpiar todo localStorage que empiece con GoHappy_ (datos del usuario)
+            Object.keys(localStorage)
+                .filter(k => k.startsWith('GoHappy_') || k.startsWith('ai_') || k.startsWith('gh_'))
+                .forEach(k => localStorage.removeItem(k));
+            // 2. Limpiar sessionStorage también
+            try {
+                Object.keys(sessionStorage)
+                    .filter(k => k.startsWith('GoHappy_') || k.startsWith('ai_'))
+                    .forEach(k => sessionStorage.removeItem(k));
+            } catch (e) {}
+            // 3. Borrar el family_context cache también
+            if (window.GoHappyContext) {
+                window.GoHappyContext._cache = null;
+                window.GoHappyContext._loaded = false;
+            }
+            // 4. Limpiar caches del Service Worker (no las imágenes, solo data)
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.filter(n => n.includes('runtime') || n.includes('data')).forEach(n => caches.delete(n));
+                }).catch(() => {});
+            }
+        } catch (e) { console.warn('logout cleanup:', e); }
+
         await window.GoHappyAuthReal.signOut();
         window.location.reload();
     },

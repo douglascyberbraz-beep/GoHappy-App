@@ -28,6 +28,15 @@ service cloud.firestore {
       return field is string && field.size() >= min && field.size() <= max;
     }
 
+    // Validación de string SIN caracteres HTML peligrosos
+    // (defensa en profundidad contra XSS aunque el cliente sanitice)
+    function safeString(field, min, max) {
+      return field is string
+        && field.size() >= min
+        && field.size() <= max
+        && !field.matches('.*[<>].*');
+    }
+
     function onlyFields(allowed) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowed);
     }
@@ -45,9 +54,9 @@ service cloud.firestore {
       allow get:  if isAuthenticated();
       allow list: if isAuthenticated();
 
-      // CREAR perfil: solo el propio usuario, campos validados
+      // CREAR perfil: solo el propio usuario, campos validados (sin HTML)
       allow create: if isOwner(uid)
-        && validString(request.resource.data.nickname, 2, 24)
+        && safeString(request.resource.data.nickname, 2, 24)
         && (request.resource.data.email is string)
         && request.resource.data.points    is number && request.resource.data.points    >= 0
         && (!request.resource.data.keys().hasAny(['familyId']) || request.resource.data.familyId == null)
@@ -58,9 +67,9 @@ service cloud.firestore {
       // familyId/rol: SE PUEDE actualizar (para crear/unirse/salir de familia)
       allow update: if isOwner(uid)
         && noFields(['uid', 'email', 'createdAt', 'referralCode', 'referredBy'])
-        // Validación nickname si se modifica
+        // Validación nickname si se modifica (sin HTML peligroso)
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['nickname']) ||
-            validString(request.resource.data.nickname, 2, 24))
+            safeString(request.resource.data.nickname, 2, 24))
         // Validación photo si se modifica (emoji o URL corta)
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['photo']) ||
             request.resource.data.photo is string && request.resource.data.photo.size() <= 500)
@@ -111,29 +120,42 @@ service cloud.firestore {
         && request.auth.uid == request.resource.data.creadoPor
         && request.resource.data.miembros.size() == 1
         && request.resource.data.miembros[0] == request.auth.uid
-        && validString(request.resource.data.nombre, 2, 40)
-        && validString(request.resource.data.codigoInvitacion, 4, 10);
+        && safeString(request.resource.data.nombre, 2, 40)
+        && safeString(request.resource.data.codigoInvitacion, 4, 10);
 
-      // UPDATE: dos casos válidos
-      //   A) Ya miembro → modifica nombre u otros campos no bloqueados
-      //   B) NO miembro → SOLO puede añadirse a sí mismo a `miembros` (join via código)
+      // UPDATE: tres casos VÁLIDOS
+      //   A) Miembro existente modifica NOMBRE (campo no `miembros`) — solo creador
+      //   B) NO miembro JOIN via código — solo se añade a sí mismo
+      //   C) Miembro existente SE VA — solo se elimina a sí mismo del array
+      // Esto previene que un admin abusivo expulse a otros miembros.
       allow update: if isAuthenticated()
+        && noFields(['creadoPor', 'fechaCreacion', 'codigoInvitacion'])
+        && request.resource.data.creadoPor == resource.data.creadoPor
+        && request.resource.data.miembros.size() <= 6
+        && request.resource.data.miembros.size() >= 0
         && (
-          // CASO A — ya miembro
-          (request.auth.uid in resource.data.miembros)
+          // CASO A — solo el creador puede modificar campos que NO sean miembros
+          (
+            request.auth.uid == resource.data.creadoPor
+            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['miembros'])
+          )
           ||
-          // CASO B — uniéndose: solo toca `miembros`, se añade a sí mismo, no más
+          // CASO B — uniéndose: solo toca `miembros`, se añade a sí mismo (+1)
           (
             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['miembros'])
             && !(request.auth.uid in resource.data.miembros)
             && (request.auth.uid in request.resource.data.miembros)
             && request.resource.data.miembros.size() == resource.data.miembros.size() + 1
           )
-        )
-        && request.resource.data.miembros.size() <= 6
-        && request.resource.data.miembros.size() >= 0
-        && request.resource.data.creadoPor == resource.data.creadoPor
-        && noFields(['creadoPor', 'fechaCreacion', 'codigoInvitacion']);
+          ||
+          // CASO C — saliendo: solo toca `miembros`, se elimina a sí mismo (-1)
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['miembros'])
+            && (request.auth.uid in resource.data.miembros)
+            && !(request.auth.uid in request.resource.data.miembros)
+            && request.resource.data.miembros.size() == resource.data.miembros.size() - 1
+          )
+        );
 
       // DELETE: solo el creador
       allow delete: if isAuthenticated() && request.auth.uid == resource.data.creadoPor;
@@ -150,7 +172,7 @@ service cloud.firestore {
 
       // CREAR: usuario real, dentro de una familia (bootstrap)
       allow create: if isRealUser()
-        && validString(request.resource.data.titulo, 3, 120)
+        && safeString(request.resource.data.titulo, 3, 120)
         && request.resource.data.puntos is number
         && request.resource.data.puntos >= 0
         && request.resource.data.puntos <= 1000;
@@ -193,8 +215,9 @@ service cloud.firestore {
     // ═══════════════════════════════════════════════════════════════
     match /activity/{actId} {
 
+      // Solo el propio usuario puede leer su activity
       allow get:  if isAuthenticated() && request.auth.uid == resource.data.userId;
-      allow list: if isAuthenticated();
+      allow list: if isAuthenticated() && request.auth.uid == resource.data.userId;
 
       // CREATE: el propio usuario, type obligatorio, title opcional
       allow create: if isAuthenticated()
@@ -218,7 +241,7 @@ service cloud.firestore {
       allow create: if isRealUser()
         && request.auth.uid == request.resource.data.userId
         && validString(request.resource.data.title, 3, 100)
-        && validString(request.resource.data.description, 5, 500)
+        && safeString(request.resource.data.description, 5, 500)
         && request.resource.data.votes == 0
         && request.resource.data.active == true;
 
@@ -242,12 +265,12 @@ service cloud.firestore {
 
       allow create: if isRealUser()
         && request.auth.uid == request.resource.data.userId
-        && validString(request.resource.data.content, 1, 280)
+        && safeString(request.resource.data.content, 1, 280)
         && request.resource.data.likes == 0;
 
       allow update: if isAuthenticated() && (
         (request.auth.uid == resource.data.userId && onlyFields(['content', 'updatedAt']) &&
-         validString(request.resource.data.content, 1, 280)) ||
+         safeString(request.resource.data.content, 1, 280)) ||
         (onlyFields(['likes']) && request.resource.data.likes == resource.data.likes + 1)
       );
 
@@ -260,25 +283,40 @@ service cloud.firestore {
     // ═══════════════════════════════════════════════════════════════
     match /moments/{momentId} {
 
-      // Leer: cualquier autenticado (filtrado por familyId en query)
-      // El control real está en la creación + validación familyId
-      allow get:  if isAuthenticated();
-      allow list: if isAuthenticated();
+      // LECTURA RESTRINGIDA por privacidad (GDPR):
+      //   • Moments públicos: cualquier autenticado puede leerlos
+      //   • Moments privados ('family' o sin visibility): SOLO miembros de esa familia
+      // Esto bloquea que un usuario lea fotos privadas de otras familias
+      // aunque adivine/sepa el familyId.
+      function canReadMoment() {
+        return isAuthenticated() && (
+          resource.data.visibility == 'public' ||
+          (resource.data.familyId == request.auth.uid) ||
+          isFamilyMember(resource.data.familyId)
+        );
+      }
 
-      // Crear: usuario real, su uid, validaciones de tamaño + visibility opcional
+      allow get:  if canReadMoment();
+      // LIST: Firestore valida la rule por cada doc retornado.
+      // Si user hace where('familyId', '==', ajena), las rules filtran y devuelven 0.
+      // Si hace where('visibility', '==', 'public'), las rules permiten esos.
+      allow list: if canReadMoment();
+
+      // Crear: usuario real, su uid, validaciones de tamaño + visibility opcional + sin HTML
       allow create: if isRealUser()
         && request.auth.uid == request.resource.data.userId
         && request.resource.data.familyId is string
         && request.resource.data.familyId.size() >= 2
         && (request.resource.data.caption == '' ||
-            (request.resource.data.caption is string && request.resource.data.caption.size() <= 300))
+            safeString(request.resource.data.caption, 1, 300))
         && (!request.resource.data.keys().hasAny(['imageData']) ||
             (request.resource.data.imageData is string && request.resource.data.imageData.size() <= 800000))
         && (!request.resource.data.keys().hasAny(['visibility']) ||
             request.resource.data.visibility in ['family', 'public']);
 
-      // Actualizar: reacciones libres + commentsCount al añadir/quitar comentario
-      allow update: if isAuthenticated()
+      // Actualizar: reacciones / commentsCount, solo si puedo leer el moment
+      // (anti spam-reactions y anti enumeración)
+      allow update: if canReadMoment()
         && (
           onlyFields(['reactions'])
           || onlyFields(['commentsCount'])
@@ -288,22 +326,31 @@ service cloud.firestore {
       // Borrar: solo el autor
       allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
 
-      // ─── Subcolección de COMENTARIOS familiares ───
+      // ─── Subcolección de COMENTARIOS — misma privacidad que el moment padre ───
       match /comments/{commentId} {
-        // Leer: cualquier autenticado (el filtrado real está en familyId del moment padre)
-        allow read: if isAuthenticated();
+        // Helper: ¿puedo leer el moment padre?
+        function canReadParentMoment() {
+          let parent = get(/databases/$(database)/documents/moments/$(momentId)).data;
+          return isAuthenticated() && (
+            parent.visibility == 'public' ||
+            parent.familyId == request.auth.uid ||
+            (request.auth.uid in get(/databases/$(database)/documents/families/$(parent.familyId)).data.miembros)
+          );
+        }
 
-        // Crear: usuario real, su uid, texto válido
+        // Leer comentarios SOLO si puedo leer el moment padre (privacidad familia)
+        allow read: if canReadParentMoment();
+
+        // Crear: usuario real, su uid, texto válido sin HTML, Y debe poder leer el moment padre
         allow create: if isRealUser()
+          && canReadParentMoment()
           && request.auth.uid == request.resource.data.userId
-          && request.resource.data.text is string
-          && request.resource.data.text.size() >= 1
-          && request.resource.data.text.size() <= 280;
+          && safeString(request.resource.data.text, 1, 280);
 
-        // Editar/borrar: solo el autor
+        // Editar/borrar: solo el autor (texto sin HTML)
         allow update: if isAuthenticated() && request.auth.uid == resource.data.userId
           && onlyFields(['text', 'updatedAt'])
-          && request.resource.data.text.size() <= 280;
+          && safeString(request.resource.data.text, 1, 280);
         allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
       }
     }
@@ -319,14 +366,14 @@ service cloud.firestore {
       allow create: if isRealUser()
         && request.auth.uid == request.resource.data.userId
         && validString(request.resource.data.siteName, 1, 120)
-        && (request.resource.data.comment == '' || validString(request.resource.data.comment, 1, 500))
+        && (request.resource.data.comment == '' || safeString(request.resource.data.comment, 1, 500))
         && request.resource.data.rating is number
         && request.resource.data.rating >= 1
         && request.resource.data.rating <= 5;
 
       allow update: if isAuthenticated() && request.auth.uid == resource.data.userId
         && onlyFields(['comment', 'rating', 'updatedAt'])
-        && validString(request.resource.data.comment, 1, 500);
+        && safeString(request.resource.data.comment, 1, 500);
 
       allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
     }

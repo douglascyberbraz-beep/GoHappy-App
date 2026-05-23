@@ -301,10 +301,34 @@ exports.completeQuest = onCall(
     async ({ data, auth }) => {
         if (!auth) throw new HttpsError('unauthenticated', 'Login requerido');
 
-        const { questId, familyId, puntos, titulo } = data;
-        if (!questId || typeof questId !== 'string') throw new HttpsError('invalid-argument', 'questId inválido');
-        if (!familyId || typeof familyId !== 'string') throw new HttpsError('invalid-argument', 'familyId inválido');
-        if (typeof puntos !== 'number' || puntos < 0 || puntos > 500) throw new HttpsError('invalid-argument', 'puntos inválidos');
+        const { questId, familyId, titulo, bonus, verified } = data;
+        if (!questId || typeof questId !== 'string' || questId.length > 100) throw new HttpsError('invalid-argument', 'questId inválido');
+        if (!familyId || typeof familyId !== 'string' || familyId.length > 100) throw new HttpsError('invalid-argument', 'familyId inválido');
+
+        // Bonus solo aceptado entre 0.5 y 1.5 (verificación)
+        const bonusFactor = (typeof bonus === 'number' && bonus >= 0.5 && bonus <= 1.5) ? bonus : 1.0;
+        const isVerified = !!verified;
+
+        // SEGURIDAD: validar membresía
+        const familia = await db.collection('families').doc(familyId).get();
+        if (!familia.exists || !familia.data().miembros.includes(auth.uid)) {
+            throw new HttpsError('permission-denied', 'No eres miembro de esta familia.');
+        }
+
+        // SEGURIDAD CRÍTICA: leer puntos REALES de la quest desde DB (no confiar en cliente)
+        const questDoc = await db.collection('quests').doc(questId).get();
+        if (!questDoc.exists) {
+            throw new HttpsError('not-found', 'Quest no existe');
+        }
+        const questData = questDoc.data();
+        // La quest debe pertenecer a esta familia O ser una quest pública (familyId == null)
+        if (questData.familyId && questData.familyId !== familyId) {
+            throw new HttpsError('permission-denied', 'Quest no pertenece a esta familia');
+        }
+        const basePuntos = (typeof questData.puntos === 'number' && questData.puntos >= 0 && questData.puntos <= 1000)
+            ? questData.puntos
+            : 50;
+        const puntos = Math.round(basePuntos * bonusFactor);
 
         const hoy = new Date().toISOString().slice(0, 10);
         const registrosRef = db.collection('completadas').doc(familyId).collection('registros');
@@ -312,14 +336,12 @@ exports.completeQuest = onCall(
         const dup = await registrosRef.where('questId', '==', questId).where('fecha', '==', hoy).limit(1).get();
         if (!dup.empty) throw new HttpsError('already-exists', 'Ya completasteis esta misión hoy.');
 
-        const familia = await db.collection('families').doc(familyId).get();
-        if (!familia.exists || !familia.data().miembros.includes(auth.uid)) {
-            throw new HttpsError('permission-denied', 'No eres miembro de esta familia.');
-        }
+        const safeTitulo = (typeof titulo === 'string' ? titulo : (questData.titulo || 'Misión')).slice(0, 120);
 
         await registrosRef.add({
-            questId, titulo: titulo || 'Misión', completadoPor: auth.uid,
-            fecha: hoy, puntosGanados: puntos, timestamp: FieldValue.serverTimestamp()
+            questId, titulo: safeTitulo, completadoPor: auth.uid,
+            fecha: hoy, puntosGanados: puntos, verified: isVerified,
+            timestamp: FieldValue.serverTimestamp()
         });
 
         await db.collection('users').doc(auth.uid).update({
@@ -349,21 +371,67 @@ exports.validateReferral = onCall({ region: 'europe-west1' }, async ({ data, aut
 });
 
 // ── Premiar Referidor ─────────────────────────────────────────────────────────
+// SEGURIDAD: solo el usuario nuevo (auth.uid) puede reclamar su propia referral
+// Anti-fraude:
+//   1. newUserId DEBE ser auth.uid (no aceptar IDs ajenos)
+//   2. El usuario nuevo solo puede tener UNA referral en toda su historia
+//   3. Doc _referrals con ID determinístico evita doble pago
+//   4. La cuenta nueva debe tener < 24h (anti-cuenta-vieja-reclama-tarde)
 exports.rewardReferrer = onCall({ region: 'europe-west1' }, async ({ data, auth }) => {
     if (!auth) throw new HttpsError('unauthenticated', 'Login requerido');
-    const { referrerId, newUserId } = data;
-    if (!referrerId || referrerId === auth.uid) return { ok: false };
+
+    const { referrerId } = data;
+    const newUserId = auth.uid; // FORZADO desde auth — no del cliente
+
+    if (!referrerId || typeof referrerId !== 'string' || referrerId.length > 100) {
+        throw new HttpsError('invalid-argument', 'referrerId inválido');
+    }
+    if (referrerId === newUserId) {
+        throw new HttpsError('failed-precondition', 'Self-referral prohibido');
+    }
+
+    // 1) Comprobar que la cuenta nueva sea RECIENTE (< 24h)
+    const newUserDoc = await db.collection('users').doc(newUserId).get();
+    if (!newUserDoc.exists) throw new HttpsError('not-found', 'Usuario inexistente');
+    const createdAt = newUserDoc.data().createdAt;
+    if (createdAt && createdAt.toMillis) {
+        const ageMs = Date.now() - createdAt.toMillis();
+        if (ageMs > 24 * 60 * 60 * 1000) {
+            throw new HttpsError('failed-precondition', 'Referral expirado (>24h tras registro)');
+        }
+    }
+    // 2) Verificar que este usuario nuevo NO haya reclamado ya OTRA referral
+    if (newUserDoc.data().referredBy) {
+        throw new HttpsError('already-exists', 'Este usuario ya tiene un referrer asignado');
+    }
+
+    // 3) Verificar que el referrer existe
+    const referrerDoc = await db.collection('users').doc(referrerId).get();
+    if (!referrerDoc.exists) throw new HttpsError('not-found', 'Referrer inexistente');
+
+    // 4) Anti-doble-pago: _referrals doc con ID determinístico
+    const referralId = `${referrerId}_${newUserId}`;
+    const referralRef = db.collection('_referrals').doc(referralId);
+    const existing = await referralRef.get();
+    if (existing.exists) throw new HttpsError('already-exists', 'Ya reclamado');
 
     const REWARD = 1000;
-    const ref = db.collection('users').doc(referrerId);
+    // Transacción atómica: marcar referral + sumar puntos + marcar referredBy en user nuevo
     await db.runTransaction(async (t) => {
-        const doc = await t.get(ref);
-        if (!doc.exists) return;
-        t.update(ref, { points: FieldValue.increment(REWARD), weeklyPoints: FieldValue.increment(REWARD) });
-    });
+        const fresh = await t.get(referralRef);
+        if (fresh.exists) throw new HttpsError('already-exists', 'Race detectada');
 
-    await db.collection('_referrals').doc(`${referrerId}_${newUserId}`).set({
-        referrerId, newUserId, points: REWARD, timestamp: FieldValue.serverTimestamp()
+        t.set(referralRef, {
+            referrerId, newUserId, points: REWARD,
+            timestamp: FieldValue.serverTimestamp()
+        });
+        t.update(db.collection('users').doc(referrerId), {
+            points: FieldValue.increment(REWARD),
+            weeklyPoints: FieldValue.increment(REWARD)
+        });
+        t.update(db.collection('users').doc(newUserId), {
+            referredBy: referrerId
+        });
     });
 
     return { ok: true, points: REWARD };
