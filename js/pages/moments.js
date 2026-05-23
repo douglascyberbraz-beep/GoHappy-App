@@ -29,6 +29,7 @@ window.GoHappyMoments = {
 
     _currentPrompt: null,
     _photoData: null,
+    _currentFeed: 'family',  // 'family' | 'community'
 
     render: async (container) => {
         const user = window.GoHappyAuth.checkAuth();
@@ -49,12 +50,22 @@ window.GoHappyMoments = {
                     </div>
                 </div>
 
+                <!-- Toggle Familia / Comunidad -->
+                <div class="moments-feed-toggle" style="display:flex; gap:6px; margin:0 16px 14px; padding:5px; background:rgba(255,255,255,0.88); border-radius:999px; border:0.5px solid rgba(11,76,143,0.10); box-shadow:0 4px 14px rgba(11,76,143,0.06);">
+                    <button class="m-feed-pill active" data-feed="family" style="flex:1; padding:10px; border:none; border-radius:999px; background:var(--brand-bright); color:white; font-weight:800; font-size:12.5px; cursor:pointer; box-shadow:0 4px 12px rgba(11,113,252,0.28);">
+                        👨‍👩‍👧 ${(window.GoHappyI18n?.lang === 'en') ? 'My Family' : 'Mi Familia'}
+                    </button>
+                    <button class="m-feed-pill" data-feed="community" style="flex:1; padding:10px; border:none; border-radius:999px; background:transparent; color:var(--text-secondary); font-weight:700; font-size:12.5px; cursor:pointer;">
+                        🌍 ${(window.GoHappyI18n?.lang === 'en') ? 'Community' : 'Comunidad'}
+                    </button>
+                </div>
+
                 <!-- Prompt del día + botón captura -->
                 <div class="moments-prompt-card" style="margin: 0 16px 16px;">
                     <div class="moments-prompt-icon">📸</div>
                     <div style="flex:1;">
                         <div class="moments-prompt-text">${window.GoHappyMoments._currentPrompt}</div>
-                        <div class="moments-prompt-sub">${T('moments.privacy')}</div>
+                        <div class="moments-prompt-sub" id="moments-privacy-sub">${T('moments.privacy')}</div>
                     </div>
                 </div>
 
@@ -374,6 +385,43 @@ window.GoHappyMoments = {
             window.GoHappyMoments._handleImageSelected(file, user);
         };
 
+        // Bind toggle Familia / Comunidad
+        container.querySelectorAll('.m-feed-pill').forEach(pill => {
+            pill.onclick = () => {
+                const feed = pill.dataset.feed;
+                if (feed === window.GoHappyMoments._currentFeed) return;
+                window.GoHappyMoments._currentFeed = feed;
+
+                // Visual
+                container.querySelectorAll('.m-feed-pill').forEach(p => {
+                    if (p.dataset.feed === feed) {
+                        p.style.background = 'var(--brand-bright)';
+                        p.style.color = 'white';
+                        p.style.boxShadow = '0 4px 12px rgba(11,113,252,0.28)';
+                        p.style.fontWeight = '800';
+                    } else {
+                        p.style.background = 'transparent';
+                        p.style.color = 'var(--text-secondary)';
+                        p.style.boxShadow = 'none';
+                        p.style.fontWeight = '700';
+                    }
+                });
+
+                // Actualizar texto de privacidad
+                const sub = document.getElementById('moments-privacy-sub');
+                if (sub) {
+                    const lang = window.GoHappyI18n?.lang || 'es';
+                    sub.textContent = feed === 'community'
+                        ? (lang === 'en' ? '🌍 Public feed — choose audience when sharing' : '🌍 Feed público — eliges audiencia al compartir')
+                        : (lang === 'en' ? 'Only your family will see this (private Tribe)' : 'Solo lo verá tu familia (Tribu privada)');
+                }
+
+                // Recargar feed
+                window.GoHappyMoments._knownIds = new Set();
+                window.GoHappyMoments._loadFeed(user);
+            };
+        });
+
         // Cargar feed
         await window.GoHappyMoments._loadFeed(user);
     },
@@ -406,12 +454,26 @@ window.GoHappyMoments = {
             return;
         }
 
-        // Real-time listener — auto-refresca cuando otro miembro publica
-        try {
-            window.GoHappyMoments._unsubFeed = window.GoHappyDB.collection('moments')
+        // Construir query según feed activo
+        const feedMode = window.GoHappyMoments._currentFeed || 'family';
+        let query;
+        if (feedMode === 'community') {
+            // Feed comunidad: todos los moments públicos
+            query = window.GoHappyDB.collection('moments')
+                .where('visibility', '==', 'public')
+                .orderBy('createdAt', 'desc')
+                .limit(50);
+        } else {
+            // Feed familia: todos los moments de mi familia (privados + propios públicos)
+            query = window.GoHappyDB.collection('moments')
                 .where('familyId', '==', scope)
                 .orderBy('createdAt', 'desc')
-                .limit(50)
+                .limit(50);
+        }
+
+        // Real-time listener — auto-refresca cuando otro miembro publica
+        try {
+            window.GoHappyMoments._unsubFeed = query
                 .onSnapshot((snap) => {
                     if (snap.empty) {
                         const T = window.t || (k => k);
@@ -703,19 +765,71 @@ window.GoHappyMoments = {
 
     _showPreviewModal: (imageData, user) => {
         const T = window.t || (k => k);
+        const lang = window.GoHappyI18n?.lang || 'es';
         const modal = document.createElement('div');
         modal.className = 'modal entry-anim moment-preview-modal';
         modal.innerHTML = `
             <div class="auth-container">
                 <h3 style="font-family:'Poppins',sans-serif; font-weight:900; color:var(--cobalt); font-size:1.3rem; margin-bottom:6px; text-align:center;">${T('moments.preview.title')}</h3>
-                <p style="font-size:13px; color:var(--text-secondary); text-align:center; margin-bottom:18px;">${T('moments.preview.sub')}</p>
+                <p style="font-size:13px; color:var(--text-secondary); text-align:center; margin-bottom:14px;">${T('moments.preview.sub')}</p>
                 <img class="preview-img" src="${imageData}" alt="preview">
                 <textarea class="moment-caption-input" id="mc-caption" placeholder="${T('moments.preview.caption')}" maxlength="200"></textarea>
+
+                <!-- Selector de audiencia -->
+                <div style="margin: 14px 0; display:flex; gap:8px;">
+                    <button type="button" class="mc-aud-btn active" data-aud="family" style="flex:1; padding:12px 8px; border:1px solid var(--cobalt); border-radius:14px; background:rgba(11,113,252,0.10); color:var(--cobalt); font-weight:800; font-size:13px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                        <span style="font-size:22px;">👨‍👩‍👧</span>
+                        <span>${lang === 'en' ? 'Only my family' : 'Solo mi familia'}</span>
+                        <span style="font-weight:500; font-size:10px; color:var(--text-secondary);">${lang === 'en' ? 'Private' : 'Privado'}</span>
+                    </button>
+                    <button type="button" class="mc-aud-btn" data-aud="public" style="flex:1; padding:12px 8px; border:0.5px solid rgba(11,76,143,0.18); border-radius:14px; background:white; color:var(--text-primary); font-weight:700; font-size:13px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                        <span style="font-size:22px;">🌍</span>
+                        <span>${lang === 'en' ? 'Community' : 'Comunidad'}</span>
+                        <span style="font-weight:500; font-size:10px; color:var(--text-secondary);">${lang === 'en' ? 'Public' : 'Público'}</span>
+                    </button>
+                </div>
+
+                <!-- Aviso GDPR menores (solo se muestra si elige público) -->
+                <div id="mc-gdpr-warn" style="display:none; background:linear-gradient(135deg,rgba(245,158,11,0.12),rgba(239,68,68,0.08)); border:1px solid rgba(245,158,11,0.32); border-radius:14px; padding:12px; margin-bottom:14px; font-size:12px; color:#92400E; line-height:1.4;">
+                    <strong style="color:#B45309;">⚠️ ${lang === 'en' ? 'Protect minors' : 'Protección de menores'}</strong><br>
+                    ${lang === 'en'
+                        ? 'If kids appear in the photo, please cover/blur their faces before sharing publicly. By law in EU, minors faces need consent of both parents to be shared.'
+                        : 'Si aparecen menores en la foto, por favor tapa o difumina sus caras antes de compartir públicamente. Por ley en la UE, las caras de menores requieren consentimiento de ambos padres.'}
+                    <label style="display:flex; align-items:flex-start; gap:8px; margin-top:10px; cursor:pointer;">
+                        <input type="checkbox" id="mc-gdpr-check" style="margin-top:2px; transform:scale(1.2);">
+                        <span style="font-weight:700; color:#7C2D12;">${lang === 'en' ? 'I confirm minors faces are not visible or are blurred.' : 'Confirmo que las caras de menores NO son visibles o están difuminadas.'}</span>
+                    </label>
+                </div>
+
                 <button id="mc-publish" class="btn-primary" style="width:100%; height:54px; margin-bottom:10px;">${T('moments.publish')}</button>
                 <button id="mc-cancel" class="btn-plan-secondary" style="width:100%; height:48px;">${T('moments.cancel')}</button>
             </div>
         `;
         document.body.appendChild(modal);
+
+        // Estado de audiencia
+        let audience = 'family';
+        modal.querySelectorAll('.mc-aud-btn').forEach(btn => {
+            btn.onclick = () => {
+                audience = btn.dataset.aud;
+                modal.querySelectorAll('.mc-aud-btn').forEach(b => {
+                    if (b.dataset.aud === audience) {
+                        b.style.border = '1px solid var(--cobalt)';
+                        b.style.background = 'rgba(11,113,252,0.10)';
+                        b.style.color = 'var(--cobalt)';
+                        b.style.fontWeight = '800';
+                        b.classList.add('active');
+                    } else {
+                        b.style.border = '0.5px solid rgba(11,76,143,0.18)';
+                        b.style.background = 'white';
+                        b.style.color = 'var(--text-primary)';
+                        b.style.fontWeight = '700';
+                        b.classList.remove('active');
+                    }
+                });
+                document.getElementById('mc-gdpr-warn').style.display = audience === 'public' ? 'block' : 'none';
+            };
+        });
 
         document.getElementById('mc-cancel').onclick = () => {
             modal.remove();
@@ -725,11 +839,23 @@ window.GoHappyMoments = {
         document.getElementById('mc-publish').onclick = async () => {
             const caption = document.getElementById('mc-caption').value.trim().slice(0, 200);
             const publishBtn = document.getElementById('mc-publish');
+
+            // Validación GDPR menores si público
+            if (audience === 'public') {
+                const gdprCheck = document.getElementById('mc-gdpr-check');
+                if (!gdprCheck?.checked) {
+                    window.GoHappyToast?.warning(lang === 'en'
+                        ? 'Confirm minors faces are protected before publishing publicly'
+                        : 'Confirma que las caras de menores están protegidas antes de publicar en público', 4000);
+                    return;
+                }
+            }
+
             publishBtn.disabled = true;
             publishBtn.textContent = '⌛ ' + (window.t ? window.t('common.loading') : 'Publicando...');
 
             try {
-                await window.GoHappyMoments._publishMoment(imageData, caption, user);
+                await window.GoHappyMoments._publishMoment(imageData, caption, user, audience);
 
                 // Sprint 2: extraer intereses del caption → family_context
                 try {
@@ -765,7 +891,7 @@ window.GoHappyMoments = {
         };
     },
 
-    _publishMoment: async (imageData, caption, user) => {
+    _publishMoment: async (imageData, caption, user, audience = 'family') => {
         if (!user || user.isGuest) throw new Error('Inicia sesión para compartir momentos.');
 
         const familyId = user.familyId || user.uid;
@@ -778,6 +904,7 @@ window.GoHappyMoments = {
             caption: caption || '',
             imageData: imageData,  // base64 (max ~300KB tras compresión)
             reactions: { '❤️': [], '😂': [], '😮': [], '🥰': [] },
+            visibility: audience === 'public' ? 'public' : 'family',
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 

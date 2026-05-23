@@ -298,7 +298,7 @@ window.GoHappyQuests = {
      * suma puntos al usuario y a puntosTotales de la familia.
      * Impide doble completación el mismo día.
      */
-    completarQuest: async (questId, questData) => {
+    completarQuest: async (questId, questData, opts = {}) => {
         const user = window.GoHappyAuth.checkAuth();
         if (!user || user.isGuest) {
             return { ok: false, error: 'Inicia sesión para completar misiones.' };
@@ -312,7 +312,10 @@ window.GoHappyQuests = {
 
         try {
             const realQuestId = questId;
-            const puntos = (questData && typeof questData === 'object' ? questData.puntos : null) || 50;
+            const basePuntos = (questData && typeof questData === 'object' ? questData.puntos : null) || 50;
+            const bonus = typeof opts.bonus === 'number' ? opts.bonus : 1.0;
+            const puntos = Math.round(basePuntos * bonus);
+            const verified = !!opts.verified;
 
             // Verificar que no esté ya completada hoy
             const yaCompletada = await window.GoHappyQuests._yaCompletadaHoy(familyId, realQuestId, hoy);

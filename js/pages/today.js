@@ -704,7 +704,22 @@ window.GoHappyToday = {
         });
 
         try {
-            const events = await window.GoHappyAI.getRealEvents(window.GoHappyToday._coords, filter);
+            let events = await window.GoHappyAI.getRealEvents(window.GoHappyToday._coords, filter);
+            let usedFilter = filter;
+            let fallbackUsed = false;
+
+            // FALLBACK: si hoy no hay, probar mañana, luego finde
+            const fallbackChain = filter === 'hoy' ? ['manana', 'finde']
+                                : filter === 'manana' ? ['finde']
+                                : [];
+
+            for (const nextFilter of fallbackChain) {
+                if (events && events.length > 0) break;
+                events = await window.GoHappyAI.getRealEvents(window.GoHappyToday._coords, nextFilter);
+                usedFilter = nextFilter;
+                fallbackUsed = true;
+            }
+
             const list = document.getElementById('events-list');
 
             if (!events || events.length === 0) {
@@ -716,6 +731,21 @@ window.GoHappyToday = {
                     </div>
                 `;
                 return;
+            }
+
+            // Banner si tuvimos que mover a otro día
+            let fallbackBanner = '';
+            if (fallbackUsed) {
+                const lang = window.GoHappyI18n?.lang || 'es';
+                const dayLabelMap = {
+                    'manana': lang === 'en' ? 'tomorrow' : 'mañana',
+                    'finde':  lang === 'en' ? 'this weekend' : 'el finde'
+                };
+                fallbackBanner = `
+                    <div style="margin:0 0 12px; padding:11px 14px; background:linear-gradient(135deg,rgba(11,113,252,0.10),rgba(23,200,212,0.12)); border:0.5px solid rgba(11,113,252,0.22); border-radius:14px; font-size:12.5px; color:var(--cobalt);">
+                        💡 ${lang === 'en' ? 'No events found today. Showing' : 'No hay eventos hoy. Te muestro los de'} <strong>${dayLabelMap[usedFilter] || usedFilter}</strong>
+                    </div>
+                `;
             }
 
             // Sprint 3: citas de Search Grounding (si hay)
@@ -734,7 +764,7 @@ window.GoHappyToday = {
                 }
             } catch (e) {}
 
-            list.innerHTML = events.map(e => window.GoHappyToday._renderEventCard(e)).join('') + `
+            list.innerHTML = fallbackBanner + events.map(e => window.GoHappyToday._renderEventCard(e)).join('') + `
                 <div class="event-disclaimer">
                     ${window.GoHappyI18n ? window.GoHappyI18n.t('today.disclaimer') : 'ⓘ Verifica horarios y entradas en la web oficial antes de ir'}
                 </div>

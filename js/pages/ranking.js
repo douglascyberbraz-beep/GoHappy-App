@@ -84,27 +84,41 @@ window.GoHappyRanking = {
             const top3 = sorted.slice(0, 3);
             const others = sorted.slice(3);
 
-            let html = '<div class="podium-section">';
+            // PODIO con estilos inline (override total de cualquier CSS conflictivo)
+            const podStyle = 'display:flex; gap:8px; align-items:flex-end; justify-content:center; padding:24px 12px; margin:0 12px 16px; width:calc(100% - 24px); box-sizing:border-box; overflow:visible;';
+            let html = `<div class="podium-section" style="${podStyle}">`;
 
-            // Order for podium: 2, 1, 3
             const pOrder = [1, 0, 2];
             pOrder.forEach(idx => {
                 const site = top3[idx];
                 if (!site) return;
                 const pos = idx + 1;
                 const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉';
-                const size = pos === 1 ? 'large' : 'medium';
+                const isLarge = pos === 1;
+                const size = isLarge ? 'large' : 'medium';
 
-                // Renderizar IDÉNTICO a Miembros (misma estructura HTML + .points)
+                const cardStyle = `
+                    flex:1 1 0; min-width:0; max-width:33%;
+                    padding:14px 8px; text-align:center; box-sizing:border-box;
+                    background:rgba(255,255,255,0.92); backdrop-filter:blur(20px) saturate(180%);
+                    border:0.5px solid ${isLarge?'rgba(23,200,212,0.4)':'rgba(255,255,255,0.95)'};
+                    border-radius:20px;
+                    box-shadow:0 ${isLarge?'12px 28px':'8px 20px'} rgba(11,76,143,${isLarge?'0.14':'0.09'});
+                    display:flex; flex-direction:column; align-items:center; gap:6px;
+                    min-height:${isLarge?'170px':'150px'};
+                    cursor:pointer;
+                    ${isLarge ? 'transform:translateY(-6px);' : ''}
+                `.replace(/\s+/g, ' ');
+
                 const iconEmoji = site.isCommunity ? '⭐' : '📍';
-                const ratingText = `⭐ ${site.rating}`;
+                const safeName = String(site.name || 'Lugar').replace(/'/g, "&#39;").slice(0, 30);
                 html += `
-                    <div class="podium-card ${size} entry-anim" onclick="window.GoHappyRanking.goToMap('${site.id || ''}', ${site.lat || 0}, ${site.lng || 0})">
-                        <div class="podium-rank">${medal}</div>
-                        <div class="podium-avatar gradient-bg">${iconEmoji}</div>
-                        <div class="podium-info">
-                            <h4 class="truncate">${site.name}</h4>
-                            <span class="points">${ratingText}</span>
+                    <div class="podium-card ${size}" onclick="window.GoHappyRanking.goToMap('${site.id || ''}', ${site.lat || 0}, ${site.lng || 0})" style="${cardStyle}">
+                        <div style="font-size:24px; line-height:1;">${medal}</div>
+                        <div class="podium-avatar gradient-bg" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;color:white;flex-shrink:0;background:linear-gradient(135deg,var(--primary-cobalt,#0B4C8F),var(--cyan,#17C8D4));box-shadow:0 4px 12px rgba(11,76,143,0.18);">${iconEmoji}</div>
+                        <div style="width:100%; min-width:0; padding:0 2px;">
+                            <h4 style="font-size:11px; font-weight:800; color:var(--primary-cobalt,#0B4C8F); margin:0; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${safeName}</h4>
+                            <div style="font-size:10.5px; font-weight:700; color:var(--text-secondary,#64748b); margin-top:3px;">⭐ ${site.rating || '0'}</div>
                         </div>
                     </div>
                 `;
@@ -148,21 +162,37 @@ window.GoHappyRanking = {
             const top3 = users.slice(0, 3);
             const others = users.slice(3);
 
-            let html = '<div class="podium-section">';
+            // PODIO Miembros — mismo layout que Sitios para consistencia visual
+            const podStyleM = 'display:flex; gap:8px; align-items:flex-end; justify-content:center; padding:24px 12px; margin:0 12px 16px; width:calc(100% - 24px); box-sizing:border-box; overflow:visible;';
+            let html = `<div class="podium-section" style="${podStyleM}">`;
             const pOrder = [1, 0, 2];
             pOrder.forEach(idx => {
                 const user = top3[idx];
                 if (!user) return;
                 const pos = idx + 1;
                 const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉';
-                const size = pos === 1 ? 'large' : 'medium';
+                const isLarge = pos === 1;
+                const size = isLarge ? 'large' : 'medium';
+                const cardStyle = `
+                    flex:1 1 0; min-width:0; max-width:33%;
+                    padding:14px 8px; text-align:center; box-sizing:border-box;
+                    background:${user.special?'linear-gradient(135deg,rgba(23,200,212,0.12),rgba(11,113,252,0.08))':'rgba(255,255,255,0.92)'};
+                    backdrop-filter:blur(20px) saturate(180%);
+                    border:0.5px solid ${user.special?'rgba(23,200,212,0.45)':(isLarge?'rgba(23,200,212,0.4)':'rgba(255,255,255,0.95)')};
+                    border-radius:20px;
+                    box-shadow:0 ${isLarge?'12px 28px':'8px 20px'} rgba(11,76,143,${isLarge?'0.14':'0.09'});
+                    display:flex; flex-direction:column; align-items:center; gap:6px;
+                    min-height:${isLarge?'170px':'150px'};
+                    ${isLarge ? 'transform:translateY(-6px);' : ''}
+                `.replace(/\s+/g, ' ');
+                const safeName = String(user.name || 'Tribu').replace(/'/g, "&#39;").slice(0, 18);
                 html += `
-                    <div class="podium-card ${size} entry-anim ${user.special ? 'is-me' : ''}">
-                        <div class="podium-rank">${medal}</div>
-                        <div class="podium-avatar gradient-bg">${user.avatar || '👤'}</div>
-                        <div class="podium-info">
-                            <h4 class="truncate">${user.name}</h4>
-                            <span class="points">${user.points} pts</span>
+                    <div class="podium-card ${size} ${user.special ? 'is-me' : ''}" style="${cardStyle}">
+                        <div style="font-size:24px; line-height:1;">${medal}</div>
+                        <div class="podium-avatar gradient-bg" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;color:white;flex-shrink:0;background:linear-gradient(135deg,var(--primary-cobalt,#0B4C8F),var(--cyan,#17C8D4));box-shadow:0 4px 12px rgba(11,76,143,0.18);">${user.avatar || '👤'}</div>
+                        <div style="width:100%; min-width:0; padding:0 2px;">
+                            <h4 style="font-size:11px; font-weight:800; color:var(--primary-cobalt,#0B4C8F); margin:0; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${safeName}</h4>
+                            <div style="font-size:10.5px; font-weight:700; color:var(--text-secondary,#64748b); margin-top:3px;">${user.points || 0} pts</div>
                         </div>
                     </div>
                 `;

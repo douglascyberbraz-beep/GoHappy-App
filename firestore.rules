@@ -265,7 +265,7 @@ service cloud.firestore {
       allow get:  if isAuthenticated();
       allow list: if isAuthenticated();
 
-      // Crear: usuario real, su uid, validaciones de tamaño
+      // Crear: usuario real, su uid, validaciones de tamaño + visibility opcional
       allow create: if isRealUser()
         && request.auth.uid == request.resource.data.userId
         && request.resource.data.familyId is string
@@ -273,7 +273,9 @@ service cloud.firestore {
         && (request.resource.data.caption == '' ||
             (request.resource.data.caption is string && request.resource.data.caption.size() <= 300))
         && (!request.resource.data.keys().hasAny(['imageData']) ||
-            (request.resource.data.imageData is string && request.resource.data.imageData.size() <= 800000));
+            (request.resource.data.imageData is string && request.resource.data.imageData.size() <= 800000))
+        && (!request.resource.data.keys().hasAny(['visibility']) ||
+            request.resource.data.visibility in ['family', 'public']);
 
       // Actualizar: reacciones libres + commentsCount al añadir/quitar comentario
       allow update: if isAuthenticated()

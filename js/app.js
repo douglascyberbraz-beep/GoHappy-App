@@ -199,7 +199,8 @@ const PAGE_RENDERERS = {
     'quests':      () => window.GoHappyQuestsPage,
     'safe':        () => window.GoHappySafePage,
     'memories':    () => window.GoHappyMemories,
-    'tribu':       () => window.GoHappyTribu
+    'tribu':       () => window.GoHappyTribu,
+    'my_family':   () => window.GoHappyMyFamily
 };
 
 async function loadPage(pageName) {

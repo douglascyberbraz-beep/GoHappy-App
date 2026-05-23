@@ -201,13 +201,106 @@ window.GoHappyQuestsPage = {
         const user = window.GoHappyAuth.checkAuth();
         if (!user) return;
 
+        // Nuevo: pedir prueba antes de otorgar puntos (anti-cheat)
+        window.GoHappyQuestsPage._showProofModal(questId, questData, user);
+    },
+
+    // Modal para verificar el reto con foto (opcional, da bonus)
+    _showProofModal: (questId, questData, user) => {
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const T = (es, en) => lang === 'en' ? en : es;
+
+        const modal = document.createElement('div');
+        modal.className = 'modal entry-anim';
+        modal.style.cssText = 'z-index:9000;';
+        modal.innerHTML = `
+            <div class="auth-container" style="padding:20px;">
+                <div class="auth-card premium-glass" style="padding:28px 22px; border-radius:32px; max-width:420px;">
+                    <div style="text-align:center; margin-bottom:18px;">
+                        <div style="font-size:48px;">${questData?.icono || '⚔️'}</div>
+                        <h3 style="font-family:'Poppins',sans-serif; color:var(--primary-cobalt); font-weight:900; margin:8px 0 4px; font-size:1.2rem;">${T('¿Reto cumplido?', 'Quest done?')}</h3>
+                        <p style="font-size:13px; color:var(--text-secondary);">${(questData?.titulo || '').slice(0, 60)}</p>
+                    </div>
+
+                    <div style="background:linear-gradient(135deg,rgba(11,113,252,0.06),rgba(23,200,212,0.08)); border:0.5px solid rgba(11,113,252,0.18); border-radius:16px; padding:14px; margin-bottom:14px;">
+                        <div style="font-weight:800; font-size:12px; color:var(--cobalt); margin-bottom:6px;">📸 ${T('Sube una foto como prueba', 'Upload a photo as proof')}</div>
+                        <div style="font-size:12px; color:var(--text-secondary); line-height:1.4;">${T('Recibes los <strong>puntos completos</strong> +50% bonus. Sin foto: 50% de los puntos (penalización para evitar trampas).', 'Get <strong>full points</strong> +50% bonus. Without photo: 50% of points (anti-cheat).')}</div>
+                    </div>
+
+                    <input type="file" id="proof-file" accept="image/*" capture="environment" style="display:none;">
+                    <div id="proof-preview" style="display:none; margin-bottom:14px;">
+                        <img id="proof-img" src="" style="width:100%; max-height:200px; object-fit:cover; border-radius:14px;">
+                    </div>
+
+                    <button id="proof-pick" class="btn-primary" style="width:100%; padding:14px; border-radius:14px; border:none; font-weight:800; cursor:pointer; margin-bottom:10px;">
+                        📷 ${T('Tomar/elegir foto (bonus)', 'Take/pick photo (bonus)')}
+                    </button>
+                    <button id="proof-submit" class="btn-primary" style="width:100%; padding:14px; border-radius:14px; border:none; font-weight:800; cursor:pointer; margin-bottom:10px; display:none;">
+                        ✓ ${T('Confirmar con foto', 'Confirm with photo')}
+                    </button>
+                    <button id="proof-skip" style="width:100%; padding:12px; background:rgba(11,76,143,0.08); color:var(--text-secondary); border:0.5px solid rgba(11,76,143,0.12); border-radius:14px; font-weight:700; cursor:pointer; margin-bottom:8px; font-size:13px;">
+                        ${T('Sin foto (50% pts)', 'Without photo (50% pts)')}
+                    </button>
+                    <button class="btn-text full-width" onclick="this.closest('.modal').remove()" style="padding:8px;">${T('Cancelar', 'Cancel')}</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        let proofData = null;
+        const fileInput = document.getElementById('proof-file');
+        const previewDiv = document.getElementById('proof-preview');
+        const previewImg = document.getElementById('proof-img');
+        const submitBtn = document.getElementById('proof-submit');
+
+        document.getElementById('proof-pick').onclick = () => fileInput.click();
+
+        fileInput.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            // Comprimir como en Moments
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const max = 600;
+                    const ratio = Math.min(max / img.width, max / img.height, 1);
+                    canvas.width = img.width * ratio;
+                    canvas.height = img.height * ratio;
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    proofData = canvas.toDataURL('image/jpeg', 0.7);
+                    previewImg.src = proofData;
+                    previewDiv.style.display = 'block';
+                    submitBtn.style.display = 'block';
+                    document.getElementById('proof-pick').style.display = 'none';
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        const doComplete = async (verified, bonus) => {
+            modal.remove();
+            await window.GoHappyQuestsPage._finalizeCompletar(questId, questData, user, { verified, bonus, proofPhoto: proofData });
+        };
+
+        submitBtn.onclick = () => doComplete(true, 1.5);   // foto = 150% puntos
+        document.getElementById('proof-skip').onclick = () => doComplete(false, 0.5); // sin foto = 50%
+    },
+
+    _finalizeCompletar: async (questId, questData, user, opts) => {
         window.GoHappyToast.info(window.t ? window.t('quests.completing') : "¡Completando misión! 🚀");
         window.GoHappySound && window.GoHappySound.play('click');
 
-        const res = await window.GoHappyQuests.completarQuest(questId, questData);
+        const res = await window.GoHappyQuests.completarQuest(questId, questData, opts);
         if (res.ok) {
             window.GoHappySound && window.GoHappySound.play('quest');
-            window.GoHappyToast.points(window.t ? window.t('quests.complete', { pts: res.puntos }) : `¡Misión cumplida! +${res.puntos} pts 🎉`);
+            const lang = window.GoHappyI18n?.lang || 'es';
+            const suffix = opts.verified
+                ? (lang === 'en' ? ' (verified +50%)' : ' (verificado +50%)')
+                : (lang === 'en' ? ' (no proof, 50%)' : ' (sin prueba, 50%)');
+            window.GoHappyToast.points(`${lang === 'en' ? '¡Mission complete!' : '¡Misión cumplida!'} +${res.puntos} pts${suffix} 🎉`);
 
             // Sprint 2: registrar en family_context
             try {

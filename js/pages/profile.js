@@ -130,23 +130,27 @@ window.GoHappyProfile = {
                     </div>
                 </div>
 
-                <!-- Acceso rápido a páginas extra -->
-                <div class="account-actions-list" style="margin-bottom: 12px;">
-                    <button class="action-list-item" data-goto-page="memories">
-                        <span>📸 ${(window.GoHappyI18n?.lang === 'en') ? 'Memories album' : 'Álbum de recuerdos'}</span>
-                        <span class="arrow">→</span>
+                <!-- Acceso rápido a páginas — diseño premium con icono grande, sin Noticias -->
+                <div class="profile-quick-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:18px 16px;">
+                    <button class="profile-quick-card" data-goto-page="my_family" style="background:linear-gradient(135deg,rgba(11,113,252,0.10),rgba(23,200,212,0.14)); border:0.5px solid rgba(11,113,252,0.20); border-radius:20px; padding:18px 14px; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:6px; box-shadow:0 4px 14px rgba(11,76,143,0.08); transition:transform 0.2s;">
+                        <div style="font-size:28px;">👨‍👩‍👧</div>
+                        <div style="font-weight:800; color:var(--primary-cobalt); font-size:14px;">${(window.GoHappyI18n?.lang === 'en') ? 'My Family' : 'Mi Familia'}</div>
+                        <div style="font-size:11px; color:var(--text-secondary);">${(window.GoHappyI18n?.lang === 'en') ? 'Retos, photos & members' : 'Retos, fotos y miembros'}</div>
                     </button>
-                    <button class="action-list-item" data-goto-page="news_events">
-                        <span>🗞️ ${(window.GoHappyI18n?.lang === 'en') ? 'News & local events' : 'Noticias y eventos locales'}</span>
-                        <span class="arrow">→</span>
+                    <button class="profile-quick-card" data-goto-page="memories" style="background:rgba(255,255,255,0.85); border:0.5px solid rgba(255,255,255,0.95); border-radius:20px; padding:18px 14px; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:6px; box-shadow:0 4px 14px rgba(11,76,143,0.08); transition:transform 0.2s;">
+                        <div style="font-size:28px;">📸</div>
+                        <div style="font-weight:800; color:var(--primary-cobalt); font-size:14px;">${(window.GoHappyI18n?.lang === 'en') ? 'Memories' : 'Recuerdos'}</div>
+                        <div style="font-size:11px; color:var(--text-secondary);">${(window.GoHappyI18n?.lang === 'en') ? 'Your activity timeline' : 'Tu historial de aventuras'}</div>
                     </button>
-                    <button class="action-list-item" data-goto-page="safe">
-                        <span>🛡️ ${(window.GoHappyI18n?.lang === 'en') ? 'Community safety alerts' : 'Alertas de seguridad'}</span>
-                        <span class="arrow">→</span>
+                    <button class="profile-quick-card" data-goto-page="tribu" style="background:linear-gradient(135deg,rgba(168,85,247,0.08),rgba(236,72,153,0.10)); border:0.5px solid rgba(168,85,247,0.20); border-radius:20px; padding:18px 14px; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:6px; box-shadow:0 4px 14px rgba(168,85,247,0.10); transition:transform 0.2s;">
+                        <div style="font-size:28px;">🏘️</div>
+                        <div style="font-weight:800; color:#7C3AED; font-size:14px;">${(window.GoHappyI18n?.lang === 'en') ? 'Community' : 'Comunidad'}</div>
+                        <div style="font-size:11px; color:var(--text-secondary);">${(window.GoHappyI18n?.lang === 'en') ? 'Tribe of parents' : 'Tribu de padres'}</div>
                     </button>
-                    <button class="action-list-item" data-goto-page="tribu">
-                        <span>🏘️ ${(window.GoHappyI18n?.lang === 'en') ? 'Tribe community' : 'Comunidad Tribu'}</span>
-                        <span class="arrow">→</span>
+                    <button class="profile-quick-card" data-goto-page="safe" style="background:linear-gradient(135deg,rgba(239,68,68,0.06),rgba(245,158,11,0.10)); border:0.5px solid rgba(239,68,68,0.20); border-radius:20px; padding:18px 14px; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:6px; box-shadow:0 4px 14px rgba(239,68,68,0.08); transition:transform 0.2s;">
+                        <div style="font-size:28px;">🛡️</div>
+                        <div style="font-weight:800; color:#DC2626; font-size:14px;">${(window.GoHappyI18n?.lang === 'en') ? 'Safety alerts' : 'Alertas'}</div>
+                        <div style="font-size:11px; color:var(--text-secondary);">${(window.GoHappyI18n?.lang === 'en') ? 'Community warnings' : 'Avisos comunitarios'}</div>
                     </button>
                 </div>
 
@@ -266,15 +270,57 @@ window.GoHappyProfile = {
             });
 
             document.getElementById('save-avatar-btn').onclick = async () => {
+                const btn = document.getElementById('save-avatar-btn');
+                const lang = window.GoHappyI18n?.lang || 'es';
+
+                // Validar usuario real
+                if (!user || !user.uid || user.isGuest) {
+                    window.GoHappyToast.warning(lang === 'en' ? 'Sign in to save your avatar' : 'Inicia sesión para guardar tu avatar');
+                    return;
+                }
+                if (!selected) {
+                    window.GoHappyToast.warning(lang === 'en' ? 'Pick an avatar first' : 'Elige un avatar primero');
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.textContent = lang === 'en' ? '⌛ Saving...' : '⌛ Guardando...';
+
                 try {
-                    await window.GoHappyDB.collection('users').doc(user.uid).update({ photo: selected });
+                    // 1) Update Firestore (solo el campo permitido)
+                    await window.GoHappyDB.collection('users').doc(user.uid).update({
+                        photo: selected
+                    });
+
+                    // 2) Update local cache
                     user.photo = selected;
-                    localStorage.setItem('GoHappy_local_user', JSON.stringify(user));
+                    window.GoHappyAuth._currentUser = { ...window.GoHappyAuth._currentUser, photo: selected };
+                    localStorage.setItem('GoHappy_local_user', JSON.stringify(window.GoHappyAuth._currentUser));
+
+                    // 3) Feedback inmediato
+                    window.GoHappySound && window.GoHappySound.play('success');
+                    window.GoHappyToast.success(lang === 'en' ? '✓ Avatar saved' : '✓ Avatar guardado', 1800);
+
+                    // 4) Cerrar modal y refrescar UI
                     modal.remove();
-                    window.GoHappyProfile.render(container);
-                    window.GoHappySound.play('success');
+                    setTimeout(() => {
+                        try { window.GoHappyProfile.render(container); } catch (e) { /* container puede estar fuera de DOM */ }
+                    }, 100);
                 } catch (e) {
-                    window.GoHappyToast.error("Error al guardar el avatar.");
+                    console.error('[Profile] save avatar error:', e?.code, e?.message);
+                    btn.disabled = false;
+                    btn.textContent = lang === 'en' ? 'Save changes' : 'Guardar Cambios';
+
+                    // Mensaje específico según código de error
+                    let msg;
+                    if (e?.code === 'permission-denied') {
+                        msg = lang === 'en' ? 'No permission to save. Try signing out and in again.' : 'Sin permiso para guardar. Cierra sesión y vuelve a entrar.';
+                    } else if (e?.code === 'unavailable' || e?.code === 'failed-precondition') {
+                        msg = lang === 'en' ? 'No connection. Try again.' : 'Sin conexión. Inténtalo de nuevo.';
+                    } else {
+                        msg = (lang === 'en' ? 'Could not save: ' : 'No se pudo guardar: ') + (e?.message || 'error');
+                    }
+                    window.GoHappyToast.error(msg, 4000);
                 }
             };
         };
