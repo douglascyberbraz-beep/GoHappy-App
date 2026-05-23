@@ -1,4 +1,57 @@
 window.GoHappyRanking = {
+
+    /**
+     * Función ÚNICA para renderizar el podio.
+     * Usada tanto por renderSites() como por renderContributors()
+     * → garantiza paridad visual 100% (NO puede divergir)
+     *
+     * items: array de 0-3 elementos con { name, score, avatar, onclick, special }
+     */
+    _renderPodium: (items) => {
+        const podStyle = 'display:flex; gap:8px; align-items:flex-end; justify-content:center; padding:24px 12px 16px; margin:0 12px 12px; width:calc(100% - 24px); box-sizing:border-box; overflow:visible;';
+        let out = `<div class="podium-section" style="${podStyle}">`;
+        const pOrder = [1, 0, 2];  // 2º, 1º, 3º (visualmente)
+        pOrder.forEach(idx => {
+            const item = items[idx];
+            if (!item) return;
+            const pos = idx + 1;
+            const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉';
+            const isLarge = pos === 1;
+            const safeName = String(item.name || '').replace(/[<>&'"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&#39;','"':'&quot;'}[c])).slice(0, 18);
+            const safeAvatar = String(item.avatar || '👤').slice(0, 4);
+            const safeScore = String(item.score || '').replace(/[<>]/g, '');
+
+            const cardStyle = [
+                'flex:1 1 0', 'min-width:0', 'max-width:32%',
+                'padding:14px 6px', 'text-align:center', 'box-sizing:border-box',
+                `background:${item.special?'linear-gradient(135deg,rgba(23,200,212,0.12),rgba(11,113,252,0.08))':'rgba(255,255,255,0.92)'}`,
+                'backdrop-filter:blur(20px) saturate(180%)',
+                `border:0.5px solid ${item.special?'rgba(23,200,212,0.45)':(isLarge?'rgba(23,200,212,0.4)':'rgba(255,255,255,0.95)')}`,
+                'border-radius:20px',
+                `box-shadow:0 ${isLarge?'12px 28px':'8px 20px'} rgba(11,76,143,${isLarge?'0.14':'0.09'})`,
+                'display:flex', 'flex-direction:column', 'align-items:center', 'gap:6px',
+                `min-height:${isLarge?'170px':'150px'}`,
+                item.onclick ? 'cursor:pointer' : '',
+                isLarge ? 'transform:translateY(-6px)' : ''
+            ].filter(Boolean).join(';');
+
+            const clickAttr = item.onclick ? `onclick="${item.onclick}"` : '';
+
+            out += `
+                <div class="podium-card ${isLarge?'large':'medium'} ${item.special?'is-me':''}" ${clickAttr} style="${cardStyle}">
+                    <div style="font-size:24px; line-height:1;">${medal}</div>
+                    <div style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; color:white; flex-shrink:0; background:linear-gradient(135deg,#0B4C8F,#17C8D4); box-shadow:0 4px 12px rgba(11,76,143,0.18);">${safeAvatar}</div>
+                    <div style="width:100%; min-width:0; padding:0 2px;">
+                        <h4 style="font-size:11px; font-weight:800; color:#0B4C8F; margin:0; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${safeName}</h4>
+                        <div style="font-size:10.5px; font-weight:700; color:#64748b; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${safeScore}</div>
+                    </div>
+                </div>
+            `;
+        });
+        out += '</div>';
+        return out;
+    },
+
     render: async (container) => {
         const T = window.t || (k => k);
         container.innerHTML = `
@@ -84,46 +137,14 @@ window.GoHappyRanking = {
             const top3 = sorted.slice(0, 3);
             const others = sorted.slice(3);
 
-            // PODIO con estilos inline (override total de cualquier CSS conflictivo)
-            const podStyle = 'display:flex; gap:8px; align-items:flex-end; justify-content:center; padding:24px 12px; margin:0 12px 16px; width:calc(100% - 24px); box-sizing:border-box; overflow:visible;';
-            let html = `<div class="podium-section" style="${podStyle}">`;
-
-            const pOrder = [1, 0, 2];
-            pOrder.forEach(idx => {
-                const site = top3[idx];
-                if (!site) return;
-                const pos = idx + 1;
-                const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉';
-                const isLarge = pos === 1;
-                const size = isLarge ? 'large' : 'medium';
-
-                const cardStyle = `
-                    flex:1 1 0; min-width:0; max-width:33%;
-                    padding:14px 8px; text-align:center; box-sizing:border-box;
-                    background:rgba(255,255,255,0.92); backdrop-filter:blur(20px) saturate(180%);
-                    border:0.5px solid ${isLarge?'rgba(23,200,212,0.4)':'rgba(255,255,255,0.95)'};
-                    border-radius:20px;
-                    box-shadow:0 ${isLarge?'12px 28px':'8px 20px'} rgba(11,76,143,${isLarge?'0.14':'0.09'});
-                    display:flex; flex-direction:column; align-items:center; gap:6px;
-                    min-height:${isLarge?'170px':'150px'};
-                    cursor:pointer;
-                    ${isLarge ? 'transform:translateY(-6px);' : ''}
-                `.replace(/\s+/g, ' ');
-
-                const iconEmoji = site.isCommunity ? '⭐' : '📍';
-                const safeName = String(site.name || 'Lugar').replace(/'/g, "&#39;").slice(0, 30);
-                html += `
-                    <div class="podium-card ${size}" onclick="window.GoHappyRanking.goToMap('${site.id || ''}', ${site.lat || 0}, ${site.lng || 0})" style="${cardStyle}">
-                        <div style="font-size:24px; line-height:1;">${medal}</div>
-                        <div class="podium-avatar gradient-bg" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;color:white;flex-shrink:0;background:linear-gradient(135deg,var(--primary-cobalt,#0B4C8F),var(--cyan,#17C8D4));box-shadow:0 4px 12px rgba(11,76,143,0.18);">${iconEmoji}</div>
-                        <div style="width:100%; min-width:0; padding:0 2px;">
-                            <h4 style="font-size:11px; font-weight:800; color:var(--primary-cobalt,#0B4C8F); margin:0; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${safeName}</h4>
-                            <div style="font-size:10.5px; font-weight:700; color:var(--text-secondary,#64748b); margin-top:3px;">⭐ ${site.rating || '0'}</div>
-                        </div>
-                    </div>
-                `;
-            });
-            html += '</div>';
+            // Usar UNA función compartida → garantiza paridad visual con Miembros
+            let html = window.GoHappyRanking._renderPodium(top3.map(site => ({
+                name: site.name || 'Lugar',
+                score: `⭐ ${site.rating || '0'}`,
+                avatar: site.isCommunity ? '⭐' : '📍',
+                onclick: `window.GoHappyRanking.goToMap('${(site.id || '').replace(/'/g, '')}', ${site.lat || 0}, ${site.lng || 0})`,
+                special: false
+            })));
 
             // Others list
             html += '<div class="ranking-rows">';
@@ -162,42 +183,14 @@ window.GoHappyRanking = {
             const top3 = users.slice(0, 3);
             const others = users.slice(3);
 
-            // PODIO Miembros — mismo layout que Sitios para consistencia visual
-            const podStyleM = 'display:flex; gap:8px; align-items:flex-end; justify-content:center; padding:24px 12px; margin:0 12px 16px; width:calc(100% - 24px); box-sizing:border-box; overflow:visible;';
-            let html = `<div class="podium-section" style="${podStyleM}">`;
-            const pOrder = [1, 0, 2];
-            pOrder.forEach(idx => {
-                const user = top3[idx];
-                if (!user) return;
-                const pos = idx + 1;
-                const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉';
-                const isLarge = pos === 1;
-                const size = isLarge ? 'large' : 'medium';
-                const cardStyle = `
-                    flex:1 1 0; min-width:0; max-width:33%;
-                    padding:14px 8px; text-align:center; box-sizing:border-box;
-                    background:${user.special?'linear-gradient(135deg,rgba(23,200,212,0.12),rgba(11,113,252,0.08))':'rgba(255,255,255,0.92)'};
-                    backdrop-filter:blur(20px) saturate(180%);
-                    border:0.5px solid ${user.special?'rgba(23,200,212,0.45)':(isLarge?'rgba(23,200,212,0.4)':'rgba(255,255,255,0.95)')};
-                    border-radius:20px;
-                    box-shadow:0 ${isLarge?'12px 28px':'8px 20px'} rgba(11,76,143,${isLarge?'0.14':'0.09'});
-                    display:flex; flex-direction:column; align-items:center; gap:6px;
-                    min-height:${isLarge?'170px':'150px'};
-                    ${isLarge ? 'transform:translateY(-6px);' : ''}
-                `.replace(/\s+/g, ' ');
-                const safeName = String(user.name || 'Tribu').replace(/'/g, "&#39;").slice(0, 18);
-                html += `
-                    <div class="podium-card ${size} ${user.special ? 'is-me' : ''}" style="${cardStyle}">
-                        <div style="font-size:24px; line-height:1;">${medal}</div>
-                        <div class="podium-avatar gradient-bg" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;color:white;flex-shrink:0;background:linear-gradient(135deg,var(--primary-cobalt,#0B4C8F),var(--cyan,#17C8D4));box-shadow:0 4px 12px rgba(11,76,143,0.18);">${user.avatar || '👤'}</div>
-                        <div style="width:100%; min-width:0; padding:0 2px;">
-                            <h4 style="font-size:11px; font-weight:800; color:var(--primary-cobalt,#0B4C8F); margin:0; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${safeName}</h4>
-                            <div style="font-size:10.5px; font-weight:700; color:var(--text-secondary,#64748b); margin-top:3px;">${user.points || 0} pts</div>
-                        </div>
-                    </div>
-                `;
-            });
-            html += '</div>';
+            // Misma función compartida → garantiza paridad visual con Sitios
+            let html = window.GoHappyRanking._renderPodium(top3.map(user => ({
+                name: user.name || 'Tribu',
+                score: `${user.points || 0} pts`,
+                avatar: user.avatar || '👤',
+                onclick: null,
+                special: !!user.special
+            })));
 
             html += '<div class="ranking-rows">';
             others.forEach((user, i) => {

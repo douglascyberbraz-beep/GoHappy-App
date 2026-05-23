@@ -116,10 +116,42 @@ window.GoHappyMap = {
                 }
             });
 
+            // FAIL-SAFE: si el evento 'load' no se dispara en 10s, esconder
+            // el loader igualmente. El mapa puede estar utilizable aunque
+            // algunos sprites/tiles tarden más.
+            const hideLoaderFailsafe = setTimeout(() => {
+                const loader = document.getElementById('map-loader');
+                if (loader && loader.style.display !== 'none') {
+                    console.warn('[Map] Loader hidden by failsafe (10s) — tiles aún cargando');
+                    loader.style.opacity = '0';
+                    loader.style.transition = 'opacity 0.5s';
+                    setTimeout(() => loader.style.display = 'none', 500);
+                    window.GoHappyMap.isInitialized = true;
+                }
+            }, 10000);
+
+            // Fallback adicional: cuando el mapa renderice por primera vez (idle),
+            // si el 'load' no llegó, también esconde el loader
+            window.GoHappyMap.instance.on('idle', () => {
+                const loader = document.getElementById('map-loader');
+                if (loader && loader.style.display !== 'none') {
+                    loader.style.opacity = '0';
+                    loader.style.transition = 'opacity 0.4s';
+                    setTimeout(() => loader.style.display = 'none', 400);
+                    window.GoHappyMap.isInitialized = true;
+                    clearTimeout(hideLoaderFailsafe);
+                }
+            });
+
             window.GoHappyMap.instance.on('load', async () => {
+                clearTimeout(hideLoaderFailsafe);
                 window.GoHappyMap.isInitialized = true;
                 const loader = document.getElementById('map-loader');
-                if (loader) loader.style.display = 'none';
+                if (loader) {
+                    loader.style.opacity = '0';
+                    loader.style.transition = 'opacity 0.4s';
+                    setTimeout(() => loader.style.display = 'none', 400);
+                }
                 
                 // --- SMART NAV CHECK (Initial Load) ---
                 if (window._navContext) {

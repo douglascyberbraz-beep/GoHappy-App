@@ -258,39 +258,48 @@ exports.geminiProxy = onRequest(
             let r = null;
             let usedModel = null;
             let lastError = null;
+            let groundingFailedAll = false;
 
-            for (const model of GEMINI_MODELS) {
-                try {
-                    r = await fetch(`${GEMINI_BASE}/${model}:generateContent?key=${GEMINI_KEY.value()}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(body),
-                        signal: AbortSignal.timeout(MODEL_TIMEOUT_MS)
-                    });
-
-                    if (r.ok) {
-                        usedModel = model;
-                        break;
-                    }
-
-                    // 429 (rate limit) o 503 (no disponible) → intentar siguiente modelo
-                    if (r.status === 429 || r.status === 503) {
-                        const errBody = await r.text();
-                        lastError = { status: r.status, body: errBody.slice(0, 200) };
-                        console.warn(`[Gemini] ${model} → ${r.status}, intentando siguiente`);
+            const tryModels = async () => {
+                for (const model of GEMINI_MODELS) {
+                    try {
+                        r = await fetch(`${GEMINI_BASE}/${model}:generateContent?key=${GEMINI_KEY.value()}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(body),
+                            signal: AbortSignal.timeout(MODEL_TIMEOUT_MS)
+                        });
+                        if (r.ok) { usedModel = model; return; }
+                        if (r.status === 429 || r.status === 503) {
+                            lastError = { status: r.status, body: (await r.text()).slice(0, 200) };
+                            console.warn(`[Gemini] ${model} → ${r.status}`);
+                            continue;
+                        }
+                        lastError = { status: r.status, body: (await r.text()).slice(0, 200) };
+                        console.error(`[Gemini] ${model} → ${r.status}`);
+                        return;
+                    } catch (fetchErr) {
+                        lastError = { status: 0, body: fetchErr?.message };
                         continue;
                     }
-
-                    // 400, 401, otros → error real, no retry
-                    const errBody = await r.text();
-                    lastError = { status: r.status, body: errBody.slice(0, 200) };
-                    console.error(`[Gemini] ${model} → ${r.status}: ${errBody.slice(0, 200)}`);
-                    break;
-                } catch (fetchErr) {
-                    console.warn(`[Gemini] ${model} fetch error:`, fetchErr?.message);
-                    lastError = { status: 0, body: fetchErr?.message };
-                    continue;
                 }
+                groundingFailedAll = true;
+            };
+
+            await tryModels();
+
+            // FALLBACK INTELIGENTE: si TODOS los modelos fallaron CON grounding,
+            // reintentar SIN grounding (mejor un evento aproximado que nada).
+            // El modelo conoce lugares emblemáticos por entrenamiento.
+            if (groundingFailedAll && needsSearch) {
+                console.warn('[Gemini] Grounding saturado — fallback sin Search');
+                delete body.tools;
+                body.generationConfig = expectJson
+                    ? { ...baseGenConfig, response_mime_type: 'application/json' }
+                    : baseGenConfig;
+                groundingFailedAll = false;
+                r = null; lastError = null;
+                await tryModels();
             }
 
             // Ningún modelo funcionó
