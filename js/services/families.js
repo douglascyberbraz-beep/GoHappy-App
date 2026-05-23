@@ -26,19 +26,50 @@ window.GoHappyFamilies = {
         if (!nombre || nombre.length < 2) throw new Error('El nombre de la familia debe tener al menos 2 caracteres.');
         if (nombre.length > 40) throw new Error('El nombre no puede tener más de 40 caracteres.');
 
-        // Verificar que el usuario no tenga ya una familia
-        const userDoc = await window.GoHappyDB.collection('users').doc(user.uid).get();
-        if (userDoc.exists && userDoc.data().familyId) {
+        // Forzar online: si la SDK quedó en offline (persistence fail, sleep, etc) reactiva
+        try {
+            await window.GoHappyDB.enableNetwork();
+        } catch (e) { /* ignore */ }
+
+        // Helper: timeout para cada operación Firestore (evita "client is offline" pillado)
+        const withTimeout = (promise, ms = 12000, label = 'firestore') =>
+            Promise.race([
+                promise,
+                new Promise((_, rej) => setTimeout(() => rej(new Error(`Sin conexión (${label}). Comprueba tu internet e inténtalo de nuevo.`)), ms))
+            ]);
+
+        // Verificar que el usuario no tenga ya una familia (con timeout)
+        let userDoc;
+        try {
+            userDoc = await withTimeout(
+                window.GoHappyDB.collection('users').doc(user.uid).get({ source: 'server' }).catch(() =>
+                    window.GoHappyDB.collection('users').doc(user.uid).get()
+                ),
+                12000, 'leer perfil'
+            );
+        } catch (e) {
+            if (String(e?.message || e).match(/offline|Sin conexión/i)) {
+                throw new Error('Sin conexión a internet. Reconecta y vuelve a intentar.');
+            }
+            throw e;
+        }
+        if (userDoc && userDoc.exists && userDoc.data().familyId) {
             throw new Error('Ya perteneces a una familia. Sal de ella primero para crear una nueva.');
         }
 
-        // Asegurar código único (máx 3 intentos)
+        // Asegurar código único (máx 3 intentos, cada uno con timeout)
         let codigoInvitacion = '';
         for (let i = 0; i < 3; i++) {
             const candidate = window.GoHappyFamilies._generateCode();
-            const existing = await window.GoHappyDB.collection('families')
-                .where('codigoInvitacion', '==', candidate).get();
-            if (existing.empty) { codigoInvitacion = candidate; break; }
+            try {
+                const existing = await withTimeout(
+                    window.GoHappyDB.collection('families').where('codigoInvitacion', '==', candidate).get(),
+                    8000, 'comprobar código'
+                );
+                if (existing.empty) { codigoInvitacion = candidate; break; }
+            } catch (e) {
+                if (i === 2) throw e;
+            }
         }
         if (!codigoInvitacion) throw new Error('Error generando código único. Inténtalo de nuevo.');
 
@@ -51,15 +82,21 @@ window.GoHappyFamilies = {
             miembros: [user.uid],
             maxMiembros: 6
         };
-        const familiaRef = await window.GoHappyDB.collection('families').add(familiaData);
+        const familiaRef = await withTimeout(
+            window.GoHappyDB.collection('families').add(familiaData),
+            12000, 'crear familia'
+        );
         const familyId = familiaRef.id;
 
         // Actualizar el perfil del usuario como admin
-        await window.GoHappyDB.collection('users').doc(user.uid).update({
-            familyId,
-            rol: 'admin',
-            familyName: nombre
-        });
+        await withTimeout(
+            window.GoHappyDB.collection('users').doc(user.uid).update({
+                familyId,
+                rol: 'admin',
+                familyName: nombre
+            }),
+            10000, 'actualizar perfil'
+        );
 
         // Actualizar sesión local
         window.GoHappyAuth._currentUser = {

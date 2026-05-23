@@ -83,12 +83,21 @@ if (window.firebase) {
         window.GoHappyDB          = firebase.firestore();
 
         // Persistencia offline (permite usar la app sin conexión)
-        window.GoHappyDB.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+        // SIN synchronizeTabs porque causa "client is offline" en navegadores con
+        // restricciones de IndexedDB (Safari iOS, Chrome modo privado, etc).
+        window.GoHappyDB.enablePersistence().catch((err) => {
             if (err.code === 'failed-precondition') {
-                console.warn('[GoHappy] Persistencia: múltiples pestañas abiertas.');
+                console.warn('[GoHappy] Persistencia: múltiples pestañas abiertas (no crítico).');
             } else if (err.code === 'unimplemented') {
                 console.warn('[GoHappy] Persistencia offline no soportada en este navegador.');
             }
+            // Forzar online si la persistence falló
+            try { window.GoHappyDB.enableNetwork(); } catch (e) {}
+        });
+
+        // Auto-reconectar online cuando se recupera la conexión
+        window.addEventListener('online', () => {
+            try { window.GoHappyDB.enableNetwork(); console.info('[GoHappy] Reconectado online'); } catch (e) {}
         });
 
         // Dominios autorizados de Firebase Auth (añadir en Firebase Console si cambian)

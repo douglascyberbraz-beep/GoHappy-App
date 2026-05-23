@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Gemini proxy status check (informativo)
     if (!window.GEMINI_PROXY_ACTIVE) {
-        console.info("[GoHappy] Gemini proxy desactivado — usando datos demo.");
+        console.info("[GoHappy] Gemini proxy desactivado.");
     }
 
     // Sonido de felicidad al cargar el splash (intentamos cuanto antes)

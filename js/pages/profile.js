@@ -106,32 +106,6 @@ window.GoHappyProfile = {
                     </div>
                 </div>
 
-                <!-- SECCIÓN MI FAMILIA -->
-                <div id="family-section" style="margin: 0 20px 20px; padding: 24px; background: white; border-radius: 28px; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                        <h3 style="color:var(--primary-cobalt); font-weight:900; margin:0; font-size:1rem;">${T('profile.my.family')}</h3>
-                        <div id="family-loading" style="font-size:12px; color:#94a3b8;">${T('profile.family.loading')}</div>
-                    </div>
-                    <div id="family-content"></div>
-                    
-                    <!-- INTEGRACIÓN INVISIBLE: OBJETIVOS FAMILIARES -->
-                    <div style="margin-top: 24px; padding-top: 20px; border-top: 1px dashed #f1f5f9;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <h4 style="font-size:13px; font-weight:800; color:var(--text-dark); margin:0;">🎁 Objetivo Familiar</h4>
-                            <span style="font-size:11px; font-weight:700; color:var(--primary-cobalt);">+1.500 pts</span>
-                        </div>
-                        <div style="background:#f8fafc; border-radius:14px; padding:12px; display:flex; align-items:center; gap:12px; border:1px solid #f1f5f9;">
-                            <span style="font-size:24px;">🍕</span>
-                            <div style="flex:1;">
-                                <div style="font-size:12px; font-weight:700; color:#1e293b;">Tarde de Pizza & Cine</div>
-                                <div style="height:6px; background:#e2e8f0; border-radius:3px; margin-top:6px; overflow:hidden;">
-                                    <div style="width:65%; height:100%; background:var(--primary-cobalt); border-radius:3px;"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Acceso rápido a páginas — diseño premium con icono grande, sin Noticias -->
                 <div class="profile-quick-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:18px 16px;">
                     <button class="profile-quick-card" data-goto-page="my_family" style="background:linear-gradient(135deg,rgba(11,113,252,0.10),rgba(23,200,212,0.14)); border:0.5px solid rgba(11,113,252,0.20); border-radius:20px; padding:18px 14px; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:6px; box-shadow:0 4px 14px rgba(11,76,143,0.08); transition:transform 0.2s;">
@@ -185,8 +159,8 @@ window.GoHappyProfile = {
             };
         });
 
-        // Cargar datos de familia de forma asíncrona (no bloquea el render)
-        window.GoHappyProfile._loadFamilySection(user);
+        // Mi Familia ya no se renderiza aquí — su acceso es el card del quick-grid
+        // (los datos completos viven en la página dedicada my_family)
 
         // Flujo D: renderizar ADN familiar desde family_context
         window.GoHappyProfile._renderFamilyDNA();
@@ -289,15 +263,21 @@ window.GoHappyProfile = {
                 btn.textContent = lang === 'en' ? '⌛ Saving...' : '⌛ Guardando...';
 
                 try {
-                    // 1) Update Firestore (solo el campo permitido)
-                    await window.GoHappyDB.collection('users').doc(user.uid).update({
+                    // 1) Update Firestore CON TIMEOUT (no quedarse pillado)
+                    const updatePromise = window.GoHappyDB.collection('users').doc(user.uid).update({
                         photo: selected
                     });
+                    const timeoutPromise = new Promise((_, rej) =>
+                        setTimeout(() => rej(new Error('timeout-firestore-15s')), 15000)
+                    );
+                    await Promise.race([updatePromise, timeoutPromise]);
 
-                    // 2) Update local cache
+                    // 2) Update local cache (vía SessionGuard para mantener firma de integridad)
                     user.photo = selected;
                     window.GoHappyAuth._currentUser = { ...window.GoHappyAuth._currentUser, photo: selected };
-                    localStorage.setItem('GoHappy_local_user', JSON.stringify(window.GoHappyAuth._currentUser));
+                    if (window.GoHappyAuth._saveLocalSession) {
+                        window.GoHappyAuth._saveLocalSession(window.GoHappyAuth._currentUser);
+                    }
 
                     // 3) Feedback inmediato
                     window.GoHappySound && window.GoHappySound.play('success');
@@ -315,7 +295,11 @@ window.GoHappyProfile = {
 
                     // Mensaje específico según código de error
                     let msg;
-                    if (e?.code === 'permission-denied') {
+                    if (e?.message === 'timeout-firestore-15s') {
+                        msg = lang === 'en'
+                            ? 'Took too long. Check your connection and retry.'
+                            : 'Está tardando demasiado. Comprueba tu conexión e intenta de nuevo.';
+                    } else if (e?.code === 'permission-denied') {
                         msg = lang === 'en' ? 'No permission to save. Try signing out and in again.' : 'Sin permiso para guardar. Cierra sesión y vuelve a entrar.';
                     } else if (e?.code === 'unavailable' || e?.code === 'failed-precondition') {
                         msg = lang === 'en' ? 'No connection. Try again.' : 'Sin conexión. Inténtalo de nuevo.';

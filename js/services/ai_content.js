@@ -253,21 +253,35 @@ Formato JSON estricto:
 
     // Generar Alerta/Consejo de Seguridad basado en Comunidad y Clima
     getDailySafeInsight: async (coordinates = "41.6520, -4.7286", activeAlerts = []) => {
-        let alertsContext = "No hay alertas comunitarias reportadas cerca en este momento.";
+        const cityInfo = await window.GoHappyAI.getCityFromCoords(coordinates);
+        let alertsContext = "Sin alertas comunitarias reportadas cerca en este momento.";
         if (activeAlerts && activeAlerts.length > 0) {
-            const alertsText = activeAlerts.map(a => `- ${a.title} en ${a.location}: ${a.description}`).join('\n');
+            const alertsText = activeAlerts.map(a => `- ${a.title || ''} en ${a.location || ''}: ${a.description || ''}`).join('\n');
             alertsContext = `ALERTAS COMUNITARIAS ACTUALES EN LA ZONA:\n${alertsText}`;
         }
+        const today = new Date();
+        const dayNames = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+        const todayStr = dayNames[today.getDay()];
 
-        const prompt = `Actúa como asesor de seguridad familiar de GoHappy. Ubicación: ${coordinates}.
-        1. Identifica la CIUDAD y el CLIMA ACTUAL REAL de esa zona.
-        2. Tienes la siguiente información de incidentes reportada por otros padres en la app:
-        ${alertsContext}
-        3. Genera un breve y útil resumen de precaución para HOY. Combina el clima con estas alertas de la comunidad (si las hay).
-        4. Si no hay alertas, da un consejo de salud estacional (ej: polen, abrigo).
-        No uses frases genéricas como "Analizando tu zona". Da información directa y útil en 2 o 3 frases.`;
+        const prompt = `Eres asesor de seguridad familiar de GoHappy. Genera un consejo REAL y específico para HOY (${todayStr} ${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()}).
 
-        return await window.GoHappyAI._callGemini(prompt, false); // False = Devuelve texto, no JSON
+Ubicación: ${cityInfo.full} (coords ${coordinates}).
+
+${alertsContext}
+
+INSTRUCCIONES:
+1. Busca el CLIMA REAL previsto hoy en ${cityInfo.city} (Google Search).
+2. Busca si hay AVISOS oficiales activos de AEMET, Meteoalarm, o protección civil en esa zona hoy.
+3. Combina clima + alertas comunitarias (si las hay) + estación del año.
+4. Devuelve 2-3 frases con consejo REAL, ÚTIL y específico para familias con niños.
+5. NO uses frases vacías tipo "Analizando..." o "Consulta a un profesional". Da info concreta.
+
+Ejemplo: "Hoy en Valladolid: 18°C nublado, lluvia ligera por la tarde. AEMET sin avisos. Si vais al parque, llevad chubasquero ligero. Riesgo polen gramíneas medio."
+
+Responde solo el consejo, sin introducción ni cierre.`;
+
+        // useSearch:true → activa Search Grounding para clima/avisos reales
+        return await window.GoHappyAI._callGemini(prompt, false, true);
     },
 
     // Generar Topic Diario para la Tribu
@@ -587,36 +601,8 @@ Formato JSON estricto:
         }
     },
 
-    _getMockData: (prompt) => {
-        const lowerPrompt = prompt.toLowerCase();
-        // Fallback robusto para demos sin internet/clave - Centrado en Valladolid/Castilla y León
-        if (lowerPrompt.includes('today') || lowerPrompt.includes('activities') || lowerPrompt.includes('hoy')) return [
-            { id: 1, title: "Pícnic de Lujo en el Campo Grande", summary: "Una tarde entre pavos reales y patos en el corazón verde de la ciudad.", time: "16:00 - 19:00", duration: "3 horas", location: "Parque Campo Grande", lat: 41.6444, lng: -4.7303, price: "Gratis", age: "Todas las edades", typeLabel: "🌳 Al aire libre", distanceDesc: "A 5 min andando", highlights: ["Ver a los pavos reales en libertad", "Alquilar una barca en el lago"], packingList: ["Pan seco para los patos", "Mantel de cuadros", "Cámara de fotos"], tip: "Llegad antes de las 17h para coger buen sitio en la sombra." },
-            { id: 2, title: "Exploradores de la Ciencia", summary: "Un viaje interactivo al universo en el planetario.", time: "Mañana o Tarde", duration: "2 horas", location: "Museo de la Ciencia", lat: 41.6385, lng: -4.7431, price: "Desde 5€", age: "4-15 años", typeLabel: "🏠 A cubierto", distanceDesc: "A 10 min en coche", highlights: ["Proyección especial en el planetario", "Sala de los sentidos para los más peques"], packingList: ["Entradas digitales", "Ganas de aprender"], tip: "Comprad las entradas del planetario online para evitar colas." },
-            { id: 3, title: "Ruta de los Reyes y Leyendas", summary: "Paseo por el centro histórico descubriendo secretos y fuentes.", time: "Flexible", duration: "1.5 horas", location: "Plaza Mayor", lat: 41.6525, lng: -4.7286, price: "Gratis", age: "6-12 años", typeLabel: "⛅ Mixto", distanceDesc: "A 2 min andando", highlights: ["Descubrir el pasadizo secreto", "Helado en la plaza Mayor"], packingList: ["Calzado cómodo", "Agua", "Gorra"], tip: "Empezad en la estatua del Conde Ansúrez." }
-        ];
-
-        if (lowerPrompt.includes('news') || lowerPrompt.includes('noticias')) return [
-            { id: 101, title: "Nuevas ayudas a la Conciliación JCYL", summary: "La Junta de Castilla y León anuncia el nuevo programa de apoyo para familias con niños menores de 3 años.", source: "https://www.jcyl.es", sourceName: "Junta de Castilla y León", date: "Hoy" },
-            { id: 102, title: "Valladolid amplía carriles bici escolares", summary: "El ayuntamiento mejora la seguridad en los accesos a los centros educativos del barrio de Parquesol.", source: "https://www.valladolid.es", sourceName: "Ayto. Valladolid", date: "Ayer" }
-        ];
-
-        if (lowerPrompt.includes('events') || lowerPrompt.includes('eventos')) return [
-            { id: 201, title: "Taller de Teatro Infantil", date: "Próximo Sábado", location: "Teatro Calderón", price: "3€", lat: 41.6550, lng: -4.7240 }
-        ];
-
-        if (lowerPrompt.includes('becas') || lowerPrompt.includes('ayudas')) return [
-            { title: "Ayudas de Comedor", description: "Beca de comedor para rentas bajas.", status: "PLAZO ABIERTO", statusColor: "green", linkText: "Bases" }
-        ];
-
-        if (lowerPrompt.includes('lugares') || lowerPrompt.includes('locations') || lowerPrompt.includes('guía turístico')) return [
-            { id: 301, name: "Parque Ribera de Castilla", type: "park", lat: 41.6620, lng: -4.7250, rating: 4.8, reviews: 310 },
-            { id: 302, name: "Teatro Zorrilla Infantil", type: "theater", lat: 41.6525, lng: -4.7290, rating: 4.5, reviews: 154 },
-            { id: 303, name: "Ludoteca La Magia", type: "kidzone", lat: 41.6410, lng: -4.7400, rating: 4.9, reviews: 89 },
-            { id: 304, name: "Restaurante Kid-Friendly El Parque", type: "food", lat: 41.6510, lng: -4.7320, rating: 4.3, reviews: 205 }
-        ];
-
-        return [];
-    }
+    // _getMockData ELIMINADO — la app solo usa IA real.
+    // Si la IA falla, _callGemini retorna null y la UI muestra estado de error.
+    _getMockData: () => null
 };
 

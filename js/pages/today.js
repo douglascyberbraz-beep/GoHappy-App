@@ -73,16 +73,13 @@ window.GoHappyToday = {
                 </div>
                 ${contextBanner}
 
-                <!-- TOGGLE 3 vistas — Planes IA primero (default) -->
+                <!-- TOGGLE 2 vistas — Planes IA + Eventos (Semana eliminada) -->
                 <div class="today-view-toggle">
                     <button class="t-view-btn active" data-view="planes">
                         <span>🪄</span> ${T('today.view.plans').replace('🪄 ','')}
                     </button>
                     <button class="t-view-btn" data-view="eventos">
                         <span>🎫</span> ${T('today.view.events').replace('🎫 ','')}
-                    </button>
-                    <button class="t-view-btn" data-view="semana">
-                        <span>📅</span> ${T('today.view.week').replace('📅 ','')}
                     </button>
                 </div>
 
