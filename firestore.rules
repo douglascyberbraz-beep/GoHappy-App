@@ -204,6 +204,52 @@ service cloud.firestore {
 
 
     // ═══════════════════════════════════════════════════════════════
+    // AVENTURAS (top-level, soporta familia O usuario individual)
+    // ═══════════════════════════════════════════════════════════════
+    match /adventures/{advId} {
+
+      // Helper: ¿puedo acceder a esta aventura?
+      //   - Si scopeType=family → debo ser miembro de esa familia
+      //   - Si scopeType=user   → debo ser ese usuario
+      function canAccessAdv() {
+        return isAuthenticated() && (
+          (resource.data.scopeType == 'family' && isFamilyMember(resource.data.scopeId))
+          ||
+          (resource.data.scopeType == 'user'   && request.auth.uid == resource.data.scopeId)
+        );
+      }
+
+      allow get:  if canAccessAdv();
+      // LIST: rules evaluan por doc → query con where(scopeType+scopeId) solo devuelve los míos
+      allow list: if isAuthenticated();
+
+      allow create: if isRealUser()
+        && request.auth.uid == request.resource.data.creadoPor
+        && request.resource.data.scopeType in ['family', 'user']
+        && request.resource.data.scopeId is string
+        && request.resource.data.scopeId.size() <= 100
+        && (
+          (request.resource.data.scopeType == 'user' && request.resource.data.scopeId == request.auth.uid)
+          ||
+          (request.resource.data.scopeType == 'family' && isFamilyMember(request.resource.data.scopeId))
+        )
+        && request.resource.data.adventureId is string
+        && request.resource.data.adventureId.size() <= 60
+        && request.resource.data.estado in ['activa', 'completada', 'abandonada']
+        && request.resource.data.misiones is list
+        && request.resource.data.misiones.size() <= 8;
+
+      allow update: if canAccessAdv()
+        && noFields(['adventureId', 'creadoPor', 'scopeType', 'scopeId', 'fechaInicio'])
+        && request.resource.data.estado in ['activa', 'completada', 'abandonada']
+        && request.resource.data.misiones is list
+        && request.resource.data.misiones.size() <= 8;
+
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.creadoPor;
+    }
+
+
+    // ═══════════════════════════════════════════════════════════════
     // QUESTS (Catálogo por familia)
     // ═══════════════════════════════════════════════════════════════
     match /quests/{questId} {

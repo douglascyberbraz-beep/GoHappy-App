@@ -137,6 +137,13 @@ window.GoHappyAdventures = {
     // Estado en memoria
     _currentAdventure: null,
 
+    // Scope = familia si tiene, individual si no. Aventuras funcionan en ambos casos.
+    _getScope: (user) => {
+        if (!user) return null;
+        if (user.familyId) return { type: 'family', id: user.familyId };
+        return { type: 'user', id: user.uid };
+    },
+
     render: async (container) => {
         const user = window.GoHappyAuth?.checkAuth?.();
         const lang = window.GoHappyI18n?.lang || 'es';
@@ -146,7 +153,7 @@ window.GoHappyAdventures = {
             <div class="adventures-page" style="padding:0 0 120px;">
                 <div class="unified-hero">
                     <h2>🗺️ ${T('Aventuras', 'Adventures')}</h2>
-                    <p>${T('Momentos reales para crear recuerdos juntos', 'Real moments to create memories together')}</p>
+                    <p>${T('Momentos reales para crear recuerdos', 'Real moments to create memories')}</p>
                 </div>
                 <div id="adv-content" style="padding:0 14px;">
                     <div class="center-text p-40"><div class="typing-dots"><span></span><span></span><span></span></div></div>
@@ -159,26 +166,32 @@ window.GoHappyAdventures = {
                 <div class="moments-empty" style="margin-top:40px;">
                     <div class="moments-empty-icon">🔐</div>
                     <div class="moments-empty-title">${T('Inicia sesión', 'Sign in')}</div>
-                    <div class="moments-empty-text">${T('Para empezar vuestras aventuras', 'To start your adventures')}</div>
+                    <div class="moments-empty-text">${T('Para empezar tus aventuras', 'To start your adventures')}</div>
                 </div>`;
             return;
         }
 
-        if (!user.familyId) {
-            document.getElementById('adv-content').innerHTML = `
-                <div style="text-align:center; padding:40px 20px;">
-                    <div style="font-size:60px;">👨‍👩‍👧</div>
-                    <p style="color:var(--text-secondary); font-size:14px; margin:14px 0 22px;">${T('Necesitas pertenecer a una familia para vivir aventuras juntos.', 'You need to be in a family to live adventures together.')}</p>
-                    <button onclick="window.GoHappyApp?.loadPage?.('profile')" class="btn-primary" style="padding:14px 28px; border-radius:999px; border:none; font-weight:800; cursor:pointer;">${T('Crear o unirme a una familia', 'Create or join a family')}</button>
-                </div>`;
-            return;
-        }
+        // Banner sutil "más divertido en familia" para usuarios sin familia
+        const scope = window.GoHappyAdventures._getScope(user);
+        window.GoHappyAdventures._soloBanner = (scope.type === 'user') ? `
+            <div style="background:linear-gradient(135deg,rgba(11,113,252,0.08),rgba(23,200,212,0.10)); border:0.5px solid rgba(11,113,252,0.20); border-radius:16px; padding:12px 14px; margin-bottom:14px; display:flex; align-items:center; gap:10px;">
+                <div style="font-size:22px;">👨‍👩‍👧</div>
+                <div style="flex:1; min-width:0;">
+                    <div style="font-size:12.5px; font-weight:800; color:var(--cobalt);">${T('Más divertido en familia', 'More fun together')}</div>
+                    <div style="font-size:11px; color:var(--text-secondary); line-height:1.3;">${T('Crea/únete a una para compartir aventuras', 'Create/join one to share adventures')}</div>
+                </div>
+                <button id="adv-create-family-btn" style="background:var(--brand-bright); color:white; border:none; padding:7px 12px; border-radius:999px; font-weight:800; font-size:11px; cursor:pointer; flex-shrink:0; box-shadow:0 4px 10px rgba(11,113,252,0.28);">
+                    ${T('Crear', 'Create')} →
+                </button>
+            </div>
+        ` : '';
 
-        // Cargar aventura activa de Firestore
+        // Cargar aventura activa de Firestore (top-level collection 'adventures')
         try {
             const snap = await window.GoHappyDB
-                .collection('families').doc(user.familyId)
                 .collection('adventures')
+                .where('scopeType', '==', scope.type)
+                .where('scopeId', '==', scope.id)
                 .where('estado', '==', 'activa')
                 .limit(1).get();
 
@@ -187,10 +200,11 @@ window.GoHappyAdventures = {
                 window.GoHappyAdventures._currentAdventure = adv;
                 window.GoHappyAdventures._renderActive(adv, user);
             } else {
-                // Cargar insignias ganadas
+                // Cargar insignias ganadas (aventuras completadas)
                 const compSnap = await window.GoHappyDB
-                    .collection('families').doc(user.familyId)
                     .collection('adventures')
+                    .where('scopeType', '==', scope.type)
+                    .where('scopeId', '==', scope.id)
                     .where('estado', '==', 'completada')
                     .get();
                 const completed = compSnap.docs.map(d => d.data().adventureId);
@@ -221,6 +235,7 @@ window.GoHappyAdventures = {
             .join('');
 
         content.innerHTML = `
+            ${window.GoHappyAdventures._soloBanner || ''}
             ${completedCount > 0 ? `
                 <div style="background:linear-gradient(135deg,rgba(255,215,0,0.10),rgba(255,165,0,0.12)); border:0.5px solid rgba(255,180,80,0.25); border-radius:16px; padding:14px 16px; margin-bottom:16px;">
                     <div style="font-size:11px; font-weight:800; color:#8B5C00; text-transform:uppercase; margin-bottom:8px;">🏆 ${T('Insignias ganadas', 'Badges earned')} (${completedCount})</div>
@@ -229,7 +244,7 @@ window.GoHappyAdventures = {
             ` : ''}
 
             <div style="text-align:center; padding:8px 4px 18px;">
-                <h3 style="font-family:'Poppins',sans-serif; color:var(--cobalt); font-weight:900; margin:0 0 6px; font-size:1.15rem;">${T('Elegid vuestra próxima aventura', 'Choose your next adventure')}</h3>
+                <h3 style="font-family:'Poppins',sans-serif; color:var(--cobalt); font-weight:900; margin:0 0 6px; font-size:1.15rem;">${T('Elige tu próxima aventura', 'Choose your next adventure')}</h3>
                 <p style="color:var(--text-secondary); font-size:12.5px; margin:0;">${T('Una historia de 1 semana con misiones reales', 'A 1-week story with real missions')}</p>
             </div>
 
@@ -282,12 +297,17 @@ window.GoHappyAdventures = {
         content.querySelectorAll('.adv-start-btn').forEach(btn => {
             btn.onclick = () => window.GoHappyAdventures._startAdventure(btn.dataset.id);
         });
+        // Banner solo: botón crear familia
+        const createBtn = document.getElementById('adv-create-family-btn');
+        if (createBtn) createBtn.onclick = () => window.GoHappyFamilyOnboarding?.show?.();
     },
 
-    // ─── Empezar una aventura ───
+    // ─── Empezar una aventura (funciona con o sin familia) ───
     _startAdventure: async (advId) => {
         const user = window.GoHappyAuth?.checkAuth?.();
-        if (!user || !user.familyId) return;
+        if (!user || user.isGuest) return;
+        const scope = window.GoHappyAdventures._getScope(user);
+        if (!scope) return;
         const lang = window.GoHappyI18n?.lang || 'es';
 
         const adv = window.GoHappyAdventures.CATALOG.find(a => a.id === advId);
@@ -315,12 +335,12 @@ window.GoHappyAdventures = {
                 cuentoTitulo: adv.cuentoTitulo,
                 estado: 'activa',
                 creadoPor: user.uid,
+                scopeType: scope.type,   // 'family' o 'user'
+                scopeId:   scope.id,     // familyId o uid
                 fechaInicio: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            await window.GoHappyDB
-                .collection('families').doc(user.familyId)
-                .collection('adventures').add(docData);
+            await window.GoHappyDB.collection('adventures').add(docData);
 
             window.GoHappySound?.play('success');
             window.GoHappyToast?.success(lang === 'en' ? '🚀 Adventure started!' : '🚀 ¡Aventura empezada!', 2500);
@@ -427,8 +447,8 @@ window.GoHappyAdventures = {
         if (abandonBtn) abandonBtn.onclick = async () => {
             if (!confirm(T('¿Seguro que quieres abandonar esta aventura?', 'Sure you want to abandon this adventure?'))) return;
             try {
-                await window.GoHappyDB.collection('families').doc(user.familyId)
-                    .collection('adventures').doc(adv.docId).update({ estado: 'abandonada' });
+                await window.GoHappyDB.collection('adventures').doc(adv.docId)
+                    .update({ estado: 'abandonada' });
                 window.GoHappyAdventures.render(document.getElementById('main-content'));
             } catch (e) {}
         };
@@ -474,13 +494,10 @@ window.GoHappyAdventures = {
 
         try {
             // Marcar completada
-            await window.GoHappyDB
-                .collection('families').doc(user.familyId)
-                .collection('adventures').doc(adv.docId)
-                .update({
-                    estado: 'completada',
-                    fechaFin: firebase.firestore.FieldValue.serverTimestamp()
-                });
+            await window.GoHappyDB.collection('adventures').doc(adv.docId).update({
+                estado: 'completada',
+                fechaFin: firebase.firestore.FieldValue.serverTimestamp()
+            });
 
             // Añadir puntos al usuario
             await window.GoHappyDB.collection('users').doc(user.uid).update({
@@ -587,9 +604,7 @@ window.GoHappyAdventures = {
                     ? { ...m, completada: true, proofPhoto: proofData, completadoPor: user.uid, ts: Date.now() }
                     : m
                 );
-                await window.GoHappyDB
-                    .collection('families').doc(user.familyId)
-                    .collection('adventures').doc(adv.docId)
+                await window.GoHappyDB.collection('adventures').doc(adv.docId)
                     .update({ misiones: updated });
 
                 // Puntos al usuario

@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "App dev server (node http :8080)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "serve"],
+      "port": 8080
+    },
+    {
+      "name": "Firebase Emulators (Functions + Firestore + Hosting)",
+      "runtimeExecutable": "firebase",
+      "runtimeArgs": ["emulators:start"],
+      "port": 4000
+    },
+    {
+      "name": "Firebase Hosting only (preview app target)",
+      "runtimeExecutable": "firebase",
+      "runtimeArgs": ["serve", "--only", "hosting:app", "--port", "5000"],
+      "port": 5000
+    },
+    {
+      "name": "Landing preview (Firebase Hosting :5001)",
+      "runtimeExecutable": "firebase",
+      "runtimeArgs": ["serve", "--only", "hosting:landing", "--port", "5001"],
+      "port": 5001
+    }
+  ]
+}
