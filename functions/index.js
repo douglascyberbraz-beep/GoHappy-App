@@ -33,13 +33,17 @@ const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 horas
 // Timeout por modelo (corto para fallar rápido y probar el siguiente)
 const MODEL_TIMEOUT_MS = 12000;
 
-// BETA TEST MODE: TODOS los usuarios disfrutan PREMIUM ilimitado
-// Al lanzar producción, restablecer límites por plan
+// LÍMITES DE PRODUCCIÓN — anti-abuse y control de coste
+// Diseñados para uso humano normal, no para scrapers.
+// Si un usuario legítimo se queja, podemos subirlos individualmente.
 const LIMITS = {
-    guest:   { daily: 9999, monthly: 99999 },
-    free:    { daily: 9999, monthly: 99999 },
-    premium: { daily: 9999, monthly: 99999 }
+    guest:   { daily: 5,    monthly: 30,    burst: 2  },  // anónimo: muy bajo
+    free:    { daily: 50,   monthly: 800,   burst: 8  },  // normal
+    premium: { daily: 500,  monthly: 8000,  burst: 30 }   // pagado: 10x
 };
+
+// Burst (anti-flood): máximo X llamadas en 60 segundos
+const BURST_WINDOW_MS = 60 * 1000;
 
 // Hash simple para cachear por prompt+expectJson
 function promptHash(prompt, expectJson) {
@@ -79,12 +83,30 @@ async function verifyToken(req) {
     const header = req.headers.authorization || '';
     if (!header.startsWith('Bearer ')) return null;
     try {
-        return await getAuth().verifyIdToken(header.slice(7));
+        // checkRevoked: true detecta tokens revocados (logout/password change)
+        return await getAuth().verifyIdToken(header.slice(7), true);
     } catch { return null; }
+}
+
+/**
+ * AUDIT LOG — registra eventos críticos de seguridad para forensics
+ * Inmutable: la collection _audit no se puede leer ni modificar desde cliente
+ */
+async function auditLog(event, data) {
+    try {
+        await db.collection('_audit').add({
+            event,
+            ...data,
+            ts: FieldValue.serverTimestamp()
+        });
+    } catch (e) {
+        console.warn('[Audit] log error:', e?.message);
+    }
 }
 
 async function checkRateLimit(uid, userLevel) {
     const limit = LIMITS[userLevel] || LIMITS.free;
+    const now = Date.now();
     const today = new Date().toISOString().slice(0, 10);
     const month = new Date().toISOString().slice(0, 7);
     const ref = db.collection('_ratelimits').doc(uid);
@@ -95,12 +117,23 @@ async function checkRateLimit(uid, userLevel) {
         const daily   = (data.date  === today) ? (data.daily   || 0) : 0;
         const monthly = (data.month === month) ? (data.monthly || 0) : 0;
 
+        // Burst protection: contar llamadas en últimos 60s
+        const recentCalls = Array.isArray(data.recentCalls) ? data.recentCalls : [];
+        const inBurstWindow = recentCalls.filter(ts => (now - ts) < BURST_WINDOW_MS);
+
+        if (inBurstWindow.length >= limit.burst) {
+            return { allowed: false, reason: `Demasiadas peticiones (max ${limit.burst}/min). Espera un momento.` };
+        }
         if (daily   >= limit.daily)   return { allowed: false, reason: `Límite diario alcanzado (${limit.daily}/día)` };
         if (monthly >= limit.monthly) return { allowed: false, reason: `Límite mensual alcanzado (${limit.monthly}/mes)` };
+
+        // Mantener solo los últimos 20 timestamps (suficiente para burst window)
+        const newRecentCalls = [...inBurstWindow, now].slice(-20);
 
         t.set(ref, {
             uid, date: today, month,
             daily: daily + 1, monthly: monthly + 1,
+            recentCalls: newRecentCalls,
             lastCall: FieldValue.serverTimestamp()
         }, { merge: true });
 
@@ -129,8 +162,19 @@ exports.geminiProxy = onRequest(
         if (req.method === 'OPTIONS') return res.status(204).send('');
         if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
 
+        // SEGURIDAD: bloquear origins no permitidos también del lado servidor
+        // (CORS solo no es suficiente contra requests sin Origin como curl)
+        const origin = req.headers.origin;
+        if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+            auditLog('origin_blocked', { origin, ua: (req.headers['user-agent'] || '').slice(0, 100) });
+            return res.status(403).json({ error: 'Origin no autorizado' });
+        }
+
         const decoded = await verifyToken(req);
-        if (!decoded) return res.status(401).json({ error: 'No autenticado.' });
+        if (!decoded) {
+            auditLog('auth_failed', { ua: (req.headers['user-agent'] || '').slice(0, 100), origin: origin || 'none' });
+            return res.status(401).json({ error: 'No autenticado.' });
+        }
 
         const uid = decoded.uid;
 
@@ -323,6 +367,7 @@ exports.completeQuest = onCall(
         const questData = questDoc.data();
         // La quest debe pertenecer a esta familia O ser una quest pública (familyId == null)
         if (questData.familyId && questData.familyId !== familyId) {
+            auditLog('quest_wrong_family', { uid: auth.uid, questId, familyId, questFamily: questData.familyId });
             throw new HttpsError('permission-denied', 'Quest no pertenece a esta familia');
         }
         const basePuntos = (typeof questData.puntos === 'number' && questData.puntos >= 0 && questData.puntos <= 1000)
@@ -387,6 +432,7 @@ exports.rewardReferrer = onCall({ region: 'europe-west1' }, async ({ data, auth 
         throw new HttpsError('invalid-argument', 'referrerId inválido');
     }
     if (referrerId === newUserId) {
+        auditLog('referral_self_attempt', { uid: newUserId, referrerId });
         throw new HttpsError('failed-precondition', 'Self-referral prohibido');
     }
 

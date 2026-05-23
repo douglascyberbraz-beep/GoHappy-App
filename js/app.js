@@ -57,6 +57,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // SessionGuard: integridad, auto-logout y sync multi-tab (CRÍTICO seguridad)
+    if (window.GoHappySessionGuard) {
+        try { window.GoHappySessionGuard.init(); } catch (e) { console.warn('SessionGuard init:', e); }
+    }
+
     // Family Context (Sprint 1: memoria compartida) — carga en background
     if (window.GoHappyContext) {
         window.GoHappyContext.load().catch(e => console.warn('[Context] load:', e?.message));

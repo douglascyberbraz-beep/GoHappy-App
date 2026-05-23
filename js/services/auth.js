@@ -34,8 +34,8 @@ window.GoHappyAuth = {
                         familyName: profile.familyName || null,
                         rol: profile.rol || null
                     };
-                    // Persistir localmente para acceso offline
-                    localStorage.setItem('GoHappy_local_user', JSON.stringify(window.GoHappyAuth._currentUser));
+                    // Persistir localmente con firma de integridad (anti-tamper)
+                    window.GoHappyAuth._saveLocalSession(window.GoHappyAuth._currentUser);
                 } catch (e) {
                     console.warn("Resilient Init: Error fetching firestore profile, usando sesión local", e);
                     const local = window.GoHappyAuth._checkLocalSession();
@@ -154,6 +154,10 @@ window.GoHappyAuth = {
     },
 
     logout: async () => {
+        // SEGURIDAD: broadcast a TODAS las pestañas abiertas
+        if (window.GoHappySessionGuard?.broadcastLogout) {
+            try { window.GoHappySessionGuard.broadcastLogout(); } catch (e) {}
+        }
         // SEGURIDAD: limpiar TODOS los rastros de sesión y datos personales
         try {
             // 1. Limpiar todo localStorage que empiece con GoHappy_ (datos del usuario)
@@ -207,7 +211,12 @@ window.GoHappyAuth = {
     },
 
     _saveLocalSession: (user) => {
-        localStorage.setItem('GoHappy_local_user', JSON.stringify(user));
+        // SEGURIDAD: Si SessionGuard está disponible, usa firma de integridad
+        if (window.GoHappySessionGuard) {
+            window.GoHappySessionGuard.saveSession(user);
+        } else {
+            localStorage.setItem('GoHappy_local_user', JSON.stringify(user));
+        }
     },
 
     _checkLocalSession: () => {

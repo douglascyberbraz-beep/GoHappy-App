@@ -37,6 +37,19 @@ service cloud.firestore {
         && !field.matches('.*[<>].*');
     }
 
+    // Validar que un string es una data URI de imagen real (JPEG/PNG/WebP)
+    // Defensa contra payloads ejecutables disfrazados de imagen
+    function isValidImageDataURI(field) {
+      return field is string
+        && field.size() <= 800000  // 800KB máximo (~600KB real comprimido)
+        && field.size() >= 100
+        && (
+          field.matches('^data:image/jpeg;base64,/9j/.*')   // magic bytes JPEG
+          || field.matches('^data:image/png;base64,iVBOR.*') // magic bytes PNG
+          || field.matches('^data:image/webp;base64,UklGR.*') // magic bytes WebP
+        );
+    }
+
     function onlyFields(allowed) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowed);
     }
@@ -219,13 +232,18 @@ service cloud.firestore {
       allow get:  if isAuthenticated() && request.auth.uid == resource.data.userId;
       allow list: if isAuthenticated() && request.auth.uid == resource.data.userId;
 
-      // CREATE: el propio usuario, type obligatorio, title opcional
+      // CREATE: el propio usuario, type whitelist, title sin HTML, max 10 fields
       allow create: if isAuthenticated()
         && request.auth.uid == request.resource.data.userId
         && request.resource.data.type is string
+        && request.resource.data.type.size() <= 50
         && (!request.resource.data.keys().hasAny(['title']) ||
-            validString(request.resource.data.title, 1, 200));
+            safeString(request.resource.data.title, 1, 200))
+        && (!request.resource.data.keys().hasAny(['description']) ||
+            safeString(request.resource.data.description, 1, 500))
+        && request.resource.data.keys().size() <= 10;
 
+      // No editar ni borrar (audit trail)
       allow update, delete: if false;
     }
 
@@ -302,17 +320,23 @@ service cloud.firestore {
       // Si hace where('visibility', '==', 'public'), las rules permiten esos.
       allow list: if canReadMoment();
 
-      // Crear: usuario real, su uid, validaciones de tamaño + visibility opcional + sin HTML
+      // Crear: usuario real, su uid, validaciones estrictas
+      // - caption SIN HTML
+      // - imageData DEBE ser data URI de imagen real (magic bytes)
+      // - visibility en whitelist
+      // - cap total del doc (vía limit en number de keys)
       allow create: if isRealUser()
         && request.auth.uid == request.resource.data.userId
         && request.resource.data.familyId is string
         && request.resource.data.familyId.size() >= 2
+        && request.resource.data.familyId.size() <= 40
         && (request.resource.data.caption == '' ||
             safeString(request.resource.data.caption, 1, 300))
         && (!request.resource.data.keys().hasAny(['imageData']) ||
-            (request.resource.data.imageData is string && request.resource.data.imageData.size() <= 800000))
+            isValidImageDataURI(request.resource.data.imageData))
         && (!request.resource.data.keys().hasAny(['visibility']) ||
-            request.resource.data.visibility in ['family', 'public']);
+            request.resource.data.visibility in ['family', 'public'])
+        && request.resource.data.keys().size() <= 12;
 
       // Actualizar: reacciones / commentsCount, solo si puedo leer el moment
       // (anti spam-reactions y anti enumeración)
@@ -408,6 +432,8 @@ service cloud.firestore {
     match /_ailogs/{docId}    { allow read, write: if false; }
     match /_referrals/{docId} { allow read, write: if false; }
     match /_aicache/{docId}   { allow read, write: if false; }
+    match /_audit/{docId}     { allow read, write: if false; }
+    match /_security/{docId}  { allow read, write: if false; }
 
 
     // ═══════════════════════════════════════════════════════════════

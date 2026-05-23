@@ -51,11 +51,33 @@ window.TICKETMASTER_KEY = null;
 
 
 // ─────────────────────────────────────────────────────────────────────────────
+// FIREBASE APP CHECK — Anti-bot (configurable; activar tras registrar key)
+// Pasos para activar:
+//   1. Console.cloud.google.com → reCAPTCHA Enterprise → crear key v3
+//   2. Firebase Console → App Check → Web app → Register provider reCAPTCHA v3
+//   3. Pegar la key en RECAPTCHA_V3_SITE_KEY abajo
+//   4. Activar enforcement en cada Cloud Function / Firestore desde la consola
+// Hasta que se active, App Check NO bloquea nada (graceful degradation).
+// ─────────────────────────────────────────────────────────────────────────────
+window.RECAPTCHA_V3_SITE_KEY = null; // ← pegar aquí cuando se registre
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Inicializar Firebase
 // ─────────────────────────────────────────────────────────────────────────────
 if (window.firebase) {
     try {
         firebase.initializeApp(firebaseConfig);
+
+        // Inicializar App Check si hay key configurada
+        if (window.RECAPTCHA_V3_SITE_KEY && firebase.appCheck) {
+            try {
+                firebase.appCheck().activate(window.RECAPTCHA_V3_SITE_KEY, true);
+                console.info('[GoHappy] App Check activado ✓');
+            } catch (e) {
+                console.warn('[GoHappy] App Check init failed:', e?.message);
+            }
+        }
+
         window.GoHappyFirebaseApp = firebase.app();
         window.GoHappyAuthReal    = firebase.auth();
         window.GoHappyDB          = firebase.firestore();
