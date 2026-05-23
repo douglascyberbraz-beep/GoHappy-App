@@ -62,6 +62,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         try { window.GoHappySessionGuard.init(); } catch (e) { console.warn('SessionGuard init:', e); }
     }
 
+    // Tour de onboarding: primera vez tras login
+    setTimeout(() => {
+        try {
+            if (window.GoHappyTour && !window.GoHappyTour.hasSeen()) {
+                window.GoHappyTour.start();
+            }
+        } catch (e) {}
+    }, 3500);
+
     // Family Context (Sprint 1: memoria compartida) — carga en background
     if (window.GoHappyContext) {
         window.GoHappyContext.load().catch(e => console.warn('[Context] load:', e?.message));

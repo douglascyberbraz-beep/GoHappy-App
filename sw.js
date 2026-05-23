@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gohappy-cache-v6.3.0';
+const CACHE_NAME = 'gohappy-cache-v6.4.0';
 const TILE_CACHE = 'gohappy-tiles-v1.3.0';
 
 const ASSETS = [
@@ -19,6 +19,7 @@ const ASSETS = [
     'js/services/family_context.js',
     'js/services/events_api.js',
     'js/services/proactive.js',
+    'js/services/onboarding_tour.js',
     'js/services/ai_content.js',
     'js/pages/my_family.js',
     'js/pages/adventures.js',

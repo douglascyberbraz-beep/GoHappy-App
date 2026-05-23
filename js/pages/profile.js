@@ -131,6 +131,10 @@ window.GoHappyProfile = {
                 </div>
 
                 <div class="account-actions-list">
+                    <button id="show-tour-btn" class="action-list-item">
+                        <span>🎓 ${(window.GoHappyI18n?.lang === 'en') ? 'Show tutorial again' : 'Ver tutorial otra vez'}</span>
+                        <span class="arrow">→</span>
+                    </button>
                     <button id="terms-link" class="action-list-item">
                         <span>${T('profile.terms')}</span>
                         <span class="arrow">→</span>
@@ -144,6 +148,16 @@ window.GoHappyProfile = {
 
         // Interaction logic
         document.getElementById('logout-btn').onclick = () => window.GoHappyAuth.logout();
+
+        // Re-disparar tour bajo demanda
+        const tourBtn = document.getElementById('show-tour-btn');
+        if (tourBtn) tourBtn.onclick = () => {
+            if (window.GoHappyTour) {
+                window.GoHappyTour.reset();
+                window.GoHappyApp?.loadPage?.('adventures');  // ir a primera pestaña antes
+                setTimeout(() => window.GoHappyTour.start(true), 600);
+            }
+        };
 
         // Bindings de navegación a páginas extra
         document.querySelectorAll('[data-goto-page]').forEach(btn => {
