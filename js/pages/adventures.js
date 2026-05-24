@@ -500,10 +500,10 @@ window.GoHappyAdventures = {
             });
 
             // Añadir puntos al usuario
-            await window.GoHappyDB.collection('users').doc(user.uid).update({
+            await window.GoHappyDB.collection('users').doc(user.uid).set({
                 points: firebase.firestore.FieldValue.increment(totalPts),
                 weeklyPoints: firebase.firestore.FieldValue.increment(totalPts)
-            });
+            }, { merge: true });
 
             // Family context
             if (window.GoHappyContext) {

@@ -107,10 +107,10 @@ window.GoHappyPoints = {
                 else localStorage.setItem('GoHappy_local_user', JSON.stringify(user));
 
                 // Sincronizar con Firestore — increment atómico, solo campos permitidos
-                await window.GoHappyDB.collection('users').doc(user.uid).update({
+                await window.GoHappyDB.collection('users').doc(user.uid).set({
                     points:       firebase.firestore.FieldValue.increment(pointsToAdd),
                     weeklyPoints: firebase.firestore.FieldValue.increment(pointsToAdd)
-                });
+                }, { merge: true });
 
                 // Disparar eventos para actualizar UI en todas las pages
                 window.dispatchEvent(new CustomEvent('GoHappy-points-sync', {
@@ -152,9 +152,9 @@ window.GoHappyPoints = {
         if (lastReset === week) return;
 
         try {
-            await window.GoHappyDB.collection('users').doc(user.uid).update({
+            await window.GoHappyDB.collection('users').doc(user.uid).set({
                 weeklyPoints: 0
-            });
+            }, { merge: true });
             localStorage.setItem('GoHappy_last_weekly_reset', week);
             user.weeklyPoints = 0;
             if (window.GoHappyAuth._saveLocalSession) window.GoHappyAuth._saveLocalSession(user);

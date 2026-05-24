@@ -76,14 +76,15 @@ window.GoHappyFamilies = {
         }
         const familyId = familiaRef.id;
 
-        // Actualizar el perfil del usuario como admin (no crítico — si falla, lo arreglamos después)
+        // Actualizar el perfil del usuario como admin (set+merge para auto-heal
+        // si el doc no existe todavía). No crítico — si falla, la familia ya está creada.
         try {
             await withTimeout(
-                window.GoHappyDB.collection('users').doc(user.uid).update({
+                window.GoHappyDB.collection('users').doc(user.uid).set({
                     familyId,
                     rol: 'admin',
                     familyName: nombre
-                }),
+                }, { merge: true }),
                 20000, 'actualizar-perfil'
             );
         } catch (e) {
@@ -163,11 +164,11 @@ window.GoHappyFamilies = {
         });
 
         // Actualizar el perfil del usuario
-        await window.GoHappyDB.collection('users').doc(user.uid).update({
+        await window.GoHappyDB.collection('users').doc(user.uid).set({
             familyId,
             rol: 'miembro',
             familyName: familiaData.nombre
-        });
+        }, { merge: true });
 
         // Actualizar sesión local
         window.GoHappyAuth._currentUser = {
@@ -240,11 +241,11 @@ window.GoHappyFamilies = {
             }
         });
 
-        await window.GoHappyDB.collection('users').doc(user.uid).update({
+        await window.GoHappyDB.collection('users').doc(user.uid).set({
             familyId: null,
             rol: null,
             familyName: null
-        });
+        }, { merge: true });
 
         window.GoHappyAuth._currentUser = {
             ...window.GoHappyAuth._currentUser,

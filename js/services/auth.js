@@ -14,10 +14,48 @@ window.GoHappyAuth = {
             if (user) {
                 try {
                     // Obtener perfil extendido de Firestore si existe
-                    const doc = await window.GoHappyDB.collection('users').doc(user.uid).get();
-                    const profile = doc.exists ? doc.data() : {};
+                    const ref = window.GoHappyDB.collection('users').doc(user.uid);
+                    let doc = await ref.get();
+                    let profile = doc.exists ? doc.data() : {};
 
-                    // FIX: Cargar TODOS los campos del perfil en _currentUser (incluyendo firstName, lastName)
+                    // ─── FIX CRÍTICO: SELF-HEAL del perfil ───
+                    // Si el user está autenticado (real, no anónimo) pero su doc
+                    // en Firestore NO existe, lo creamos AQUÍ. Sin esto, todas
+                    // las llamadas .update() (avatar, familyId, points, etc)
+                    // fallarían con 'not-found' rompiendo toda la app.
+                    // Esto puede pasar si: rules antiguas bloquearon create,
+                    // user borró su doc, migración fallida, etc.
+                    if (!doc.exists && !user.isAnonymous) {
+                        console.warn('[Auth] Perfil Firestore ausente — auto-creando para', user.uid);
+                        const nameParts = (user.displayName || 'Explorador').split(' ');
+                        const newProfile = {
+                            uid: user.uid,
+                            email: user.email || `${user.uid}@guest.local`,
+                            nickname: nameParts[0]?.slice(0, 24) || 'Explorador',
+                            firstName: nameParts[0] || '',
+                            lastName: nameParts.slice(1).join(' ').slice(0, 50) || '',
+                            photo: user.photoURL || '👤',
+                            points: 50,
+                            weeklyPoints: 50,
+                            level: 'Explorador Novato',
+                            referralCode: 'GH-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+                            familyId: null,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+                        try {
+                            await ref.set(newProfile);
+                            console.info('[Auth] ✓ Perfil auto-creado correctamente');
+                            doc = await ref.get();
+                            profile = doc.exists ? doc.data() : newProfile;
+                        } catch (createErr) {
+                            console.error('[Auth] Auto-create profile falló:', createErr?.code, createErr?.message);
+                            // Continuamos con profile vacío — algunas funciones fallarán
+                            // pero al menos la sesión local funciona
+                            profile = newProfile;
+                        }
+                    }
+
+                    // Cargar TODOS los campos del perfil en _currentUser
                     window.GoHappyAuth._currentUser = {
                         uid: user.uid,
                         email: user.email || "Invitado",

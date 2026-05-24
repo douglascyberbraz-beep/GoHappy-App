@@ -368,9 +368,11 @@ window.GoHappyProfile = {
 
                 try {
                     // 1) Update Firestore CON TIMEOUT (no quedarse pillado)
-                    const updatePromise = window.GoHappyDB.collection('users').doc(user.uid).update({
+                    // Uso set+merge en lugar de update para que funcione incluso
+                    // si el doc no existe todavía (auto-heal)
+                    const updatePromise = window.GoHappyDB.collection('users').doc(user.uid).set({
                         photo: selected
-                    });
+                    }, { merge: true });
                     const timeoutPromise = new Promise((_, rej) =>
                         setTimeout(() => rej(new Error('timeout-firestore-15s')), 15000)
                     );

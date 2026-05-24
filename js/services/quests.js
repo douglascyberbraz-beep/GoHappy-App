@@ -361,10 +361,10 @@ window.GoHappyQuests = {
                 });
 
             // Actualizar puntos del usuario (atomic increment, sin race conditions)
-            await window.GoHappyDB.collection('users').doc(user.uid).update({
+            await window.GoHappyDB.collection('users').doc(user.uid).set({
                 points:       firebase.firestore.FieldValue.increment(puntos),
                 weeklyPoints: firebase.firestore.FieldValue.increment(puntos)
-            });
+            }, { merge: true });
 
             // Sumar puntos al total de la familia (atomic increment, best-effort)
             // Solo el creador de la familia puede actualizar este campo según las
