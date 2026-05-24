@@ -1,5 +1,65 @@
-// GoHappy App Core - v2.8.0
+// GoHappy App Core - v2.9.0
 // toast.js y sound.js se cargan antes que este archivo
+
+// ═══════════════════════════════════════════════════════════════════
+// CACHE PURGE — al bumpear este número, todos los clientes se autolimpian
+// la próxima vez que abran la app: localStorage, SW caches, IndexedDB.
+// Sólo se preserva la sesión activa (Firebase Auth). Cero datos demo.
+// ═══════════════════════════════════════════════════════════════════
+const APP_STATE_VERSION = 'v7.0.0';
+
+(function purgeStaleClientState() {
+    try {
+        const stored = localStorage.getItem('GoHappy_state_version');
+        if (stored === APP_STATE_VERSION) return; // ya está limpio
+
+        console.info('[GoHappy] State version bump → purgando caches:', stored, '→', APP_STATE_VERSION);
+
+        // 1) Borrar todas las claves GoHappy_* / ai_* / gh_* EXCEPTO sesión Firebase
+        const KEEP = new Set([
+            'GoHappy_lang',                     // preferencia idioma
+            'GoHappy_cookies_consent_v1'        // consentimiento GDPR
+        ]);
+        const FIREBASE_KEEP_PREFIX = 'firebase:';
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+            const k = localStorage.key(i);
+            if (!k) continue;
+            if (KEEP.has(k)) continue;
+            if (k.startsWith(FIREBASE_KEEP_PREFIX)) continue;
+            if (k.startsWith('GoHappy_') || k.startsWith('ai_') || k.startsWith('gh_')) {
+                try { localStorage.removeItem(k); } catch (e) {}
+            }
+        }
+
+        // 2) SessionStorage
+        try { sessionStorage.clear(); } catch (e) {}
+
+        // 3) Service Worker caches (todas excepto las del navegador)
+        if ('caches' in self) {
+            caches.keys().then(keys => {
+                keys.forEach(key => {
+                    if (key.startsWith('gohappy-')) caches.delete(key).catch(() => {});
+                });
+            }).catch(() => {});
+        }
+
+        // 4) IndexedDB de Firestore (si la persistencia llegó a activarse)
+        if (window.indexedDB && indexedDB.databases) {
+            indexedDB.databases().then(dbs => {
+                dbs.forEach(db => {
+                    if (db.name && (db.name.startsWith('firestore') || db.name.startsWith('GoHappy'))) {
+                        try { indexedDB.deleteDatabase(db.name); } catch (e) {}
+                    }
+                });
+            }).catch(() => {});
+        }
+
+        localStorage.setItem('GoHappy_state_version', APP_STATE_VERSION);
+        console.info('[GoHappy] Estado cliente reseteado ✓');
+    } catch (e) {
+        console.warn('[GoHappy] purge fallback:', e?.message);
+    }
+})();
 
 const appState = {
     currentPage: 'map',
