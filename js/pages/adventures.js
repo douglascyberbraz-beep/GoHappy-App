@@ -5,11 +5,23 @@
 // ================================================================
 window.GoHappyAdventures = {
 
+    // Cache del catálogo computado por idioma (evita rebuild en cada acceso)
+    _catalogCache: null,
+    _catalogLang: null,
+
     // ─── CATÁLOGO de aventuras (Fase 1: estático, Fase 2 IA semanal) ───
     get CATALOG() {
         const lang = window.GoHappyI18n?.lang || 'es';
+        // Si ya está cacheado para este idioma, devolver instantáneo
+        if (this._catalogCache && this._catalogLang === lang) return this._catalogCache;
         const T = (es, en) => lang === 'en' ? en : es;
+        const built = this._buildCatalog(T);
+        this._catalogCache = built;
+        this._catalogLang = lang;
+        return built;
+    },
 
+    _buildCatalog: (T) => {
         return [
             {
                 id: 'autumn-hunters',
@@ -186,35 +198,41 @@ window.GoHappyAdventures = {
             </div>
         ` : '';
 
-        // Cargar aventura activa de Firestore (top-level collection 'adventures')
-        try {
-            const snap = await window.GoHappyDB
-                .collection('adventures')
-                .where('scopeType', '==', scope.type)
-                .where('scopeId', '==', scope.id)
-                .where('estado', '==', 'activa')
-                .limit(1).get();
+        // OPTIMIZACIÓN: pintar catálogo INSTANTE (sin esperar Firestore)
+        // y luego en paralelo cargar aventura activa + insignias completadas.
+        // Si hay aventura activa, REEMPLAZA el catálogo. Si no, ya está pintado.
+        window.GoHappyAdventures._renderAvailable([]);
 
-            if (!snap.empty) {
-                const adv = { docId: snap.docs[0].id, ...snap.docs[0].data() };
-                window.GoHappyAdventures._currentAdventure = adv;
-                window.GoHappyAdventures._renderActive(adv, user);
-            } else {
-                // Cargar insignias ganadas (aventuras completadas)
-                const compSnap = await window.GoHappyDB
-                    .collection('adventures')
+        try {
+            // Ambas queries en PARALELO en vez de secuencial → reduce TTI a la mitad
+            const [activeSnap, completedSnap] = await Promise.all([
+                window.GoHappyDB.collection('adventures')
+                    .where('scopeType', '==', scope.type)
+                    .where('scopeId', '==', scope.id)
+                    .where('estado', '==', 'activa')
+                    .limit(1).get(),
+                window.GoHappyDB.collection('adventures')
                     .where('scopeType', '==', scope.type)
                     .where('scopeId', '==', scope.id)
                     .where('estado', '==', 'completada')
-                    .get();
-                const completed = compSnap.docs.map(d => d.data().adventureId);
-                window.GoHappyAdventures._renderAvailable(completed);
+                    .get()
+            ]);
+
+            if (!activeSnap.empty) {
+                const adv = { docId: activeSnap.docs[0].id, ...activeSnap.docs[0].data() };
+                window.GoHappyAdventures._currentAdventure = adv;
+                window.GoHappyAdventures._renderActive(adv, user);
+            } else {
+                const completed = completedSnap.docs.map(d => d.data().adventureId);
+                // Si hay insignias nuevas que no se pintaron en el render instantáneo,
+                // refrescar para mostrar la barra de insignias ganadas
+                if (completed.length > 0) {
+                    window.GoHappyAdventures._renderAvailable(completed);
+                }
             }
         } catch (e) {
-            console.error('Adventures load error:', e);
-            document.getElementById('adv-content').innerHTML = `
-                <div class="moments-empty"><div class="moments-empty-icon">⚠️</div>
-                <div class="moments-empty-title">${T('Error al cargar', 'Could not load')}</div></div>`;
+            console.warn('Adventures Firestore load error (catalog ya visible):', e?.message);
+            // No mostramos error fatal — el catálogo ya está pintado, el usuario puede empezar
         }
     },
 
