@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gohappy-cache-v7.0.0';
+const CACHE_NAME = 'gohappy-cache-v7.0.1';
 const TILE_CACHE = 'gohappy-tiles-v1.3.0';
 
 const ASSETS = [
@@ -11,7 +11,12 @@ const ASSETS = [
     'js/config.js',
     'js/lib/qrcode.min.js',
     // Services
+    'js/data/poi_seed.js',
+    'js/services/i18n.js',
+    'js/services/navigation.js',
+    'js/services/cookies_banner.js',
     'js/services/security.js',
+    'js/services/session_guard.js',
     'js/services/toast.js',
     'js/services/sound.js',
     'js/services/data.js',
@@ -23,6 +28,8 @@ const ASSETS = [
     'js/services/ai_content.js',
     'js/pages/my_family.js',
     'js/pages/adventures.js',
+    'js/pages/coach.js',
+    'js/pages/moments.js',
     'js/services/auth.js',
     'js/services/quests.js',
     'js/services/safety.js',
