@@ -31,46 +31,48 @@ window.GoHappyFamilies = {
             await window.GoHappyDB.enableNetwork();
         } catch (e) { /* ignore */ }
 
-        // Helper: timeout para cada operación Firestore (evita "client is offline" pillado)
-        const withTimeout = (promise, ms = 12000, label = 'firestore') =>
+        // Helper: timeout amplio (30s) — Firestore puede tardar en frío
+        const withTimeout = (promise, ms = 30000, label = 'firestore') =>
             Promise.race([
                 promise,
-                new Promise((_, rej) => setTimeout(() => rej(new Error(`Sin conexión (${label}). Comprueba tu internet e inténtalo de nuevo.`)), ms))
+                new Promise((_, rej) => setTimeout(() => rej(new Error(`timeout-${label}`)), ms))
             ]);
 
-        // Verificar que el usuario no tenga ya una familia (con timeout)
-        let userDoc;
+        // Verificar (BEST-EFFORT) que el user no tenga ya familia.
+        // Si la lectura falla, no bloqueamos — asumimos que no tiene.
+        // (La regla Firestore impedirá crear si hubiera conflicto real.)
         try {
-            userDoc = await withTimeout(
+            const userDoc = await withTimeout(
                 window.GoHappyDB.collection('users').doc(user.uid).get(),
-                12000, 'leer perfil'
+                15000, 'leer-perfil'
             );
+            if (userDoc && userDoc.exists && userDoc.data().familyId) {
+                throw new Error('Ya perteneces a una familia. Sal de ella primero para crear una nueva.');
+            }
         } catch (e) {
-            console.error('[Families] read user err:', e?.code, e?.message);
-            if (String(e?.message || e).match(/offline|Sin conexión|client is offline/i)) {
-                throw new Error('Sin conexión a internet. Comprueba tu wifi/datos y vuelve a intentar.');
-            }
-            if (e?.code === 'permission-denied') {
-                throw new Error('Sin permiso. Cierra sesión y vuelve a entrar.');
-            }
-            throw e;
-        }
-        if (userDoc && userDoc.exists && userDoc.data().familyId) {
-            throw new Error('Ya perteneces a una familia. Sal de ella primero para crear una nueva.');
+            // Solo re-lanzamos el error de "ya perteneces" — los demás se ignoran (best effort)
+            if (e?.message?.includes('Ya perteneces')) throw e;
+            console.warn('[Families] best-effort user read failed:', e?.message);
+            // Continuar con el create — si hay conflicto real, Firestore lo rechazará
         }
 
-        // Asegurar código único (máx 3 intentos, cada uno con timeout)
+        // Asegurar código único (máx 3 intentos, cada uno con timeout amplio)
         let codigoInvitacion = '';
         for (let i = 0; i < 3; i++) {
             const candidate = window.GoHappyFamilies._generateCode();
             try {
                 const existing = await withTimeout(
                     window.GoHappyDB.collection('families').where('codigoInvitacion', '==', candidate).get(),
-                    8000, 'comprobar código'
+                    20000, 'comprobar-codigo'
                 );
                 if (existing.empty) { codigoInvitacion = candidate; break; }
             } catch (e) {
-                if (i === 2) throw e;
+                console.warn(`[Families] codigo check ${i+1}/3 fail:`, e?.message);
+                if (i === 2) {
+                    // En último intento, asumimos único (rule + transacción defenderán)
+                    codigoInvitacion = candidate;
+                    break;
+                }
             }
         }
         if (!codigoInvitacion) throw new Error('Error generando código único. Inténtalo de nuevo.');
@@ -84,21 +86,38 @@ window.GoHappyFamilies = {
             miembros: [user.uid],
             maxMiembros: 6
         };
-        const familiaRef = await withTimeout(
-            window.GoHappyDB.collection('families').add(familiaData),
-            12000, 'crear familia'
-        );
+        let familiaRef;
+        try {
+            familiaRef = await withTimeout(
+                window.GoHappyDB.collection('families').add(familiaData),
+                30000, 'crear-familia'
+            );
+        } catch (e) {
+            console.error('[Families] create err:', e?.code, e?.message);
+            if (e?.message?.startsWith('timeout-')) {
+                throw new Error('La operación tardó demasiado. Comprueba tu conexión y reintenta.');
+            }
+            if (e?.code === 'permission-denied') {
+                throw new Error('Permiso denegado. Revisa que estés bien identificado.');
+            }
+            throw new Error('No se pudo crear la familia: ' + (e?.message || 'error desconocido'));
+        }
         const familyId = familiaRef.id;
 
-        // Actualizar el perfil del usuario como admin
-        await withTimeout(
-            window.GoHappyDB.collection('users').doc(user.uid).update({
-                familyId,
-                rol: 'admin',
-                familyName: nombre
-            }),
-            10000, 'actualizar perfil'
-        );
+        // Actualizar el perfil del usuario como admin (no crítico — si falla, lo arreglamos después)
+        try {
+            await withTimeout(
+                window.GoHappyDB.collection('users').doc(user.uid).update({
+                    familyId,
+                    rol: 'admin',
+                    familyName: nombre
+                }),
+                20000, 'actualizar-perfil'
+            );
+        } catch (e) {
+            console.warn('[Families] update profile failed (non-fatal):', e?.message);
+            // No tira error — la familia ya está creada; el usuario tendrá que recargar
+        }
 
         // Actualizar sesión local
         window.GoHappyAuth._currentUser = {

@@ -122,12 +122,21 @@ window.GoHappySafePage = {
                     } catch (e) { }
 
                     const insight = await window.GoHappyAI.getDailySafeInsight(coords, alerts);
-                    if (insight && insight.length > 5) {
+                    // Si la IA respondió algo real (string > 20 chars) → mostrar
+                    if (insight && typeof insight === 'string' && insight.length > 20) {
+                        const now = new Date().toLocaleTimeString(window.GoHappyI18n?.lang === 'en' ? 'en-GB' : 'es-ES', { hour: '2-digit', minute: '2-digit' });
                         insightText.innerText = insight;
+                        // Timestamp visible para mostrar que es info FRESCA real
+                        const tsBadge = document.createElement('div');
+                        tsBadge.style.cssText = 'font-size:10px; opacity:0.6; margin-top:6px; font-weight:600;';
+                        tsBadge.textContent = (window.GoHappyI18n?.lang === 'en' ? 'Updated at ' : 'Actualizado a las ') + now;
+                        insightText.parentNode.appendChild(tsBadge);
                     } else {
+                        // IA no respondió → esconder el box (NO mostrar fallback demo)
                         insightBox.style.display = 'none';
                     }
                 } catch (e) {
+                    console.warn('[Safe] IA error:', e?.message);
                     insightBox.style.display = 'none';
                 }
             }

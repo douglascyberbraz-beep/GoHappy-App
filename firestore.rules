@@ -37,17 +37,15 @@ service cloud.firestore {
         && !field.matches('.*[<>].*');
     }
 
-    // Validar que un string es una data URI de imagen real (JPEG/PNG/WebP)
-    // Defensa contra payloads ejecutables disfrazados de imagen
+    // Validar que un string es una data URI de imagen (JPEG/PNG/WebP/GIF)
+    // RELAJADA: la verificación de magic bytes rechazaba data URIs válidas
+    // (algunos canvas browsers añaden padding distinto). Validamos solo el
+    // prefijo MIME + tamaño razonable. Suficiente para nuestro caso.
     function isValidImageDataURI(field) {
       return field is string
-        && field.size() <= 800000  // 800KB máximo (~600KB real comprimido)
+        && field.size() <= 800000  // 800KB máximo
         && field.size() >= 100
-        && (
-          field.matches('^data:image/jpeg;base64,/9j/.*')   // magic bytes JPEG
-          || field.matches('^data:image/png;base64,iVBOR.*') // magic bytes PNG
-          || field.matches('^data:image/webp;base64,UklGR.*') // magic bytes WebP
-        );
+        && field.matches('^data:image/(jpeg|jpg|png|webp|gif);base64,.*');
     }
 
     function onlyFields(allowed) {
@@ -83,9 +81,10 @@ service cloud.firestore {
         // Validación nickname si se modifica (sin HTML peligroso)
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['nickname']) ||
             safeString(request.resource.data.nickname, 2, 24))
-        // Validación photo si se modifica (emoji o URL corta)
+        // Validación photo: emoji o URL o data URI con foto comprimida (max 50KB)
+        // 500 chars era demasiado bajo — bloqueaba data URIs de foto real (10-20KB)
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['photo']) ||
-            request.resource.data.photo is string && request.resource.data.photo.size() <= 500)
+            request.resource.data.photo is string && request.resource.data.photo.size() <= 50000)
         // familyId: null o string corto
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['familyId']) ||
             request.resource.data.familyId == null ||

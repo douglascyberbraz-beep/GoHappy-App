@@ -12,12 +12,12 @@ window.GoHappyRanking = {
             s.textContent = `
                 .gh-pod-v2-section {
                     display: flex !important;
-                    gap: 8px !important;
+                    gap: 6px !important;
                     align-items: flex-end !important;
                     justify-content: center !important;
-                    padding: 28px 12px 16px !important;
-                    margin: 0 12px 12px !important;
-                    width: calc(100% - 24px) !important;
+                    padding: 28px 20px 16px !important;
+                    margin: 0 8px 12px !important;
+                    width: calc(100% - 16px) !important;
                     box-sizing: border-box !important;
                     overflow: visible !important;
                     background: transparent !important;
@@ -28,9 +28,9 @@ window.GoHappyRanking = {
                 .gh-pod-v2-card {
                     flex: 1 1 0 !important;
                     min-width: 0 !important;
-                    max-width: 32% !important;
+                    max-width: 29% !important;
                     width: auto !important;
-                    padding: 14px 6px !important;
+                    padding: 14px 4px !important;
                     text-align: center !important;
                     box-sizing: border-box !important;
                     background: rgba(255,255,255,0.96) !important;

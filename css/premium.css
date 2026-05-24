@@ -384,11 +384,26 @@ body {
     padding-bottom: 8px !important;
 }
 
-/* Map viewport: extender hasta el bottom (nav flota encima) */
+/* Map viewport: tamaño fixed garantizado (sin height = MapLibre no renderiza tiles) */
 #map-viewport-v11,
 .map-viewport-v11 {
     background: #DFEEFF !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
     bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+}
+/* MapLibre canvas siempre 100% del viewport del mapa */
+#map-canvas,
+#map-canvas canvas,
+.maplibregl-map,
+.maplibregl-canvas {
+    width: 100% !important;
+    height: 100% !important;
 }
 
 /* ── 6. UNIFIED PAGE HEADERS — TODOS los títulos coherentes ───── */
