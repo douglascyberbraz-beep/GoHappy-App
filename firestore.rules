@@ -81,10 +81,10 @@ service cloud.firestore {
         // Validación nickname si se modifica (sin HTML peligroso)
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['nickname']) ||
             safeString(request.resource.data.nickname, 2, 24))
-        // Validación photo: emoji o URL o data URI con foto comprimida (max 50KB)
-        // 500 chars era demasiado bajo — bloqueaba data URIs de foto real (10-20KB)
+        // Validación photo: emoji o URL o data URI con foto comprimida (max 250KB)
+        // 50KB era ajustado — JPEG 240×240 q0.78 en base64 puede pasar de eso
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['photo']) ||
-            request.resource.data.photo is string && request.resource.data.photo.size() <= 50000)
+            request.resource.data.photo is string && request.resource.data.photo.size() <= 250000)
         // familyId: null o string corto
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['familyId']) ||
             request.resource.data.familyId == null ||

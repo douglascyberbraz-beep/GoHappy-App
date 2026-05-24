@@ -117,62 +117,67 @@ window.GoHappyMemories = {
     },
 
     _getActivity: async (user) => {
-        // Try Firestore first
-        if (user && !user.isGuest) {
-            try {
-                const now = new Date();
-                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                const snap = await window.GoHappyDB.collection('activity')
-                    .where('userId', '==', user.uid)
-                    .where('timestamp', '>=', startOfMonth)
-                    .orderBy('timestamp', 'desc')
-                    .get();
-
-                if (!snap.empty) {
-                    const activities = snap.docs.map(d => d.data());
-                    return {
-                        places: activities.filter(a => a.type === 'review' || a.type === 'visit').length,
-                        photos: activities.filter(a => a.type === 'photo').length,
-                        points: user.points || 0,
-                        quests: activities.filter(a => a.type === 'quest_completed').length,
-                        events: activities.map(a => window.GoHappyMemories._activityToEvent(a))
-                    };
-                } else {
-                    // Si no hay actividad real pero está logueado, devolvemos un estado vacío motivador
-                    return {
-                        places: 0, photos: 0, points: user.points || 0, quests: 0,
-                        events: [{
-                            date: 'Hoy', icon: '👋', title: '¡Bienvenido a Memories!',
-                            description: 'Aquí aparecerán tus aventuras familiares. ¡Empieza explorando el mapa o completando una misión!',
-                            color: '#002C77'
-                        }]
-                    };
-                }
-            } catch (e) {
-                console.warn("Activity fetch error:", e);
-            }
-        }
-
-        // Demo data for guests or if fetch fails
-        return {
-            places: 5,
-            photos: 3,
-            points: user?.points || 120,
-            quests: 1,
-            events: [
-                { date: 'Hoy', icon: '⚔️', title: 'Primera Misión', description: '¡Has descubierto la sección de misiones!', points: 50, color: '#4A90D9' },
-                { date: 'Ayer', icon: '🗺️', title: 'Explorador Novel', description: 'Abriste el mapa por primera vez', points: 10, color: '#E67E22' }
-            ]
+        // Estado vacío motivador (NO demos)
+        const emptyState = {
+            places: 0, photos: 0, points: user?.points || 0, quests: 0,
+            events: [{
+                date: 'Hoy', icon: '👋', title: '¡Bienvenido a Memories!',
+                description: 'Aquí aparecerán tus aventuras reales. Sube una foto en Moments, completa una misión o reseña un sitio en el mapa.',
+                color: '#002C77'
+            }]
         };
+
+        if (!user || user.isGuest) return emptyState;
+
+        try {
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+            // Query simple (sin orderBy en server) para evitar exigir índice compuesto
+            // que rompía silenciosamente la página. Ordenamos en cliente.
+            const snap = await window.GoHappyDB.collection('activity')
+                .where('userId', '==', user.uid)
+                .get();
+
+            if (snap.empty) return emptyState;
+
+            const activities = snap.docs
+                .map(d => d.data())
+                .filter(a => {
+                    const ts = a.timestamp?.toDate ? a.timestamp.toDate() : null;
+                    return ts && ts >= startOfMonth;
+                })
+                .sort((a, b) => {
+                    const ta = a.timestamp?.toDate?.() || 0;
+                    const tb = b.timestamp?.toDate?.() || 0;
+                    return tb - ta;
+                });
+
+            if (activities.length === 0) return emptyState;
+
+            return {
+                places:  activities.filter(a => a.type === 'review' || a.type === 'visit' || a.type === 'place_reviewed').length,
+                photos:  activities.filter(a => a.type === 'photo' || a.type === 'moment_shared').length,
+                points:  user.points || 0,
+                quests:  activities.filter(a => a.type === 'quest_completed' || a.type === 'mission_completed').length,
+                events:  activities.map(a => window.GoHappyMemories._activityToEvent(a))
+            };
+        } catch (e) {
+            console.warn("[Memories] activity fetch failed:", e?.message);
+            return emptyState;
+        }
     },
 
     _activityToEvent: (activity) => {
         const types = {
-            'review': { icon: '⭐', title: 'Nueva reseña', color: '#27AE60' },
-            'photo': { icon: '📸', title: 'Foto subida', color: '#E67E22' },
-            'quest_completed': { icon: '⚔️', title: 'Misión completada', color: '#4A90D9' },
-            'safety_report': { icon: '🛡️', title: 'Alerta reportada', color: '#E74C3C' },
-            'post': { icon: '💬', title: 'Post en La Tribu', color: '#8E44AD' }
+            'review':            { icon: '⭐', title: 'Nueva reseña',       color: '#27AE60' },
+            'place_reviewed':    { icon: '⭐', title: 'Sitio reseñado',     color: '#27AE60' },
+            'photo':             { icon: '📸', title: 'Foto subida',        color: '#E67E22' },
+            'moment_shared':     { icon: '📸', title: 'Momento compartido', color: '#E67E22' },
+            'quest_completed':   { icon: '⚔️', title: 'Misión completada',  color: '#4A90D9' },
+            'mission_completed': { icon: '⚔️', title: 'Misión completada',  color: '#4A90D9' },
+            'safety_report':     { icon: '🛡️', title: 'Alerta reportada',  color: '#E74C3C' },
+            'post':              { icon: '💬', title: 'Post en La Tribu',   color: '#8E44AD' }
         };
         const t = types[activity.type] || { icon: '📌', title: 'Actividad', color: '#888' };
         const date = activity.timestamp?.toDate ? activity.timestamp.toDate() : new Date();

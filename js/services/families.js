@@ -38,44 +38,16 @@ window.GoHappyFamilies = {
                 new Promise((_, rej) => setTimeout(() => rej(new Error(`timeout-${label}`)), ms))
             ]);
 
-        // Verificar (BEST-EFFORT) que el user no tenga ya familia.
-        // Si la lectura falla, no bloqueamos — asumimos que no tiene.
-        // (La regla Firestore impedirá crear si hubiera conflicto real.)
-        try {
-            const userDoc = await withTimeout(
-                window.GoHappyDB.collection('users').doc(user.uid).get(),
-                15000, 'leer-perfil'
-            );
-            if (userDoc && userDoc.exists && userDoc.data().familyId) {
-                throw new Error('Ya perteneces a una familia. Sal de ella primero para crear una nueva.');
-            }
-        } catch (e) {
-            // Solo re-lanzamos el error de "ya perteneces" — los demás se ignoran (best effort)
-            if (e?.message?.includes('Ya perteneces')) throw e;
-            console.warn('[Families] best-effort user read failed:', e?.message);
-            // Continuar con el create — si hay conflicto real, Firestore lo rechazará
+        // Verificación local: si la sesión local ya dice que tiene familia, abortar YA
+        // (evita 2 lecturas Firestore innecesarias que añaden latencia)
+        if (user.familyId) {
+            throw new Error('Ya perteneces a una familia. Sal de ella primero para crear una nueva.');
         }
 
-        // Asegurar código único (máx 3 intentos, cada uno con timeout amplio)
-        let codigoInvitacion = '';
-        for (let i = 0; i < 3; i++) {
-            const candidate = window.GoHappyFamilies._generateCode();
-            try {
-                const existing = await withTimeout(
-                    window.GoHappyDB.collection('families').where('codigoInvitacion', '==', candidate).get(),
-                    20000, 'comprobar-codigo'
-                );
-                if (existing.empty) { codigoInvitacion = candidate; break; }
-            } catch (e) {
-                console.warn(`[Families] codigo check ${i+1}/3 fail:`, e?.message);
-                if (i === 2) {
-                    // En último intento, asumimos único (rule + transacción defenderán)
-                    codigoInvitacion = candidate;
-                    break;
-                }
-            }
-        }
-        if (!codigoInvitacion) throw new Error('Error generando código único. Inténtalo de nuevo.');
+        // Generamos código localmente (6 chars sobre 32^6 ≈ 1B combinaciones).
+        // Colisión es estadísticamente improbable y la transacción del join detecta.
+        // Saltamos la query previa de comprobación que añadía 20s de timeout potencial.
+        const codigoInvitacion = window.GoHappyFamilies._generateCode();
 
         // Crear la familia en Firestore
         const familiaData = {

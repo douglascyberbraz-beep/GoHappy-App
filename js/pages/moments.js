@@ -896,10 +896,16 @@ window.GoHappyMoments = {
 
         const familyId = user.familyId || user.uid;
 
+        // Si user.photo es data URI larga (>100 chars), guardamos emoji por defecto
+        // para no inflar cada doc de moment con miles de bytes
+        const userPhotoSafe = (user.photo && user.photo.startsWith('data:') && user.photo.length > 100)
+            ? '👤'
+            : (user.photo || '👤');
+
         const moment = {
             userId: user.uid,
             userName: user.nickname || 'Familia',
-            userPhoto: user.photo || '👤',
+            userPhoto: userPhotoSafe,
             familyId: familyId,
             caption: caption || '',
             imageData: imageData,  // base64 (max ~300KB tras compresión)
@@ -908,7 +914,15 @@ window.GoHappyMoments = {
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        await window.GoHappyDB.collection('moments').add(moment);
+        try {
+            await window.GoHappyDB.collection('moments').add(moment);
+        } catch (e) {
+            console.error('[Moments] publish error:', e?.code, e?.message);
+            if (e?.code === 'permission-denied') {
+                throw new Error('Permiso denegado por las reglas. ¿Foto muy grande o caption con HTML?');
+            }
+            throw new Error('No se pudo publicar: ' + (e?.message || e?.code || 'error desconocido'));
+        }
 
         // Actividad para Memories
         try {

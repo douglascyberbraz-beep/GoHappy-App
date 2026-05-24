@@ -11,7 +11,7 @@ window.GoHappySafe = {
         INFO: { icon: 'ℹ️', label: 'Info', color: '#2980B9' }
     },
 
-    // Obtener alertas cercanas (filter active en cliente para no necesitar índice compuesto)
+    // Obtener alertas REALES de la comunidad. NUNCA devuelve demos.
     getAlerts: async (coords) => {
         try {
             const snap = await window.GoHappyDB.collection('alerts')
@@ -19,56 +19,29 @@ window.GoHappySafe = {
                 .limit(30)
                 .get();
 
-            if (!snap.empty) {
-                const alerts = snap.docs
-                    .map(d => ({ id: d.id, ...d.data() }))
-                    .filter(a => a.active !== false)
-                    .slice(0, 15);
-                if (alerts.length > 0) return alerts;
-            }
-        } catch (e) {
-            console.warn("Firestore alerts fallback:", e);
-        }
+            if (snap.empty) return [];
 
-        // Demo alerts
-        return [
-            {
-                id: 'demo-a1',
-                type: 'CONSTRUCTION',
-                title: 'Obras en zona de columpios',
-                location: 'Parque Campo Grande',
-                description: 'Zona de juegos infantiles cerrada por reformas hasta el 15 de marzo.',
-                reportedBy: 'María S.',
-                timeAgo: 'Hace 2 horas',
-                lat: 41.6444, lng: -4.7303,
-                active: true,
-                votes: 5
-            },
-            {
-                id: 'demo-a2',
-                type: 'INFO',
-                title: 'Cambio de horario del museo',
-                location: 'Museo de la Ciencia',
-                description: 'El museo cierra a las 15:00 este sábado por evento privado.',
-                reportedBy: 'Carlos R.',
-                timeAgo: 'Hace 5 horas',
-                lat: 41.6385, lng: -4.7431,
-                active: true,
-                votes: 3
-            },
-            {
-                id: 'demo-a3',
-                type: 'DANGER',
-                title: 'Camino deteriorado',
-                location: 'Parque Ribera de Castilla',
-                description: 'Zona del sendero noroeste con gravilla suelta. Cuidado con carritos.',
-                reportedBy: 'Ana P.',
-                timeAgo: 'Hace 1 día',
-                lat: 41.6661, lng: -4.7171,
-                active: true,
-                votes: 8
-            }
-        ];
+            return snap.docs
+                .map(d => {
+                    const data = d.data();
+                    let timeAgo = 'Reciente';
+                    try {
+                        const ts = data.createdAt?.toDate ? data.createdAt.toDate() : null;
+                        if (ts) {
+                            const diffMin = Math.round((Date.now() - ts.getTime()) / 60000);
+                            if (diffMin < 60) timeAgo = `Hace ${diffMin} min`;
+                            else if (diffMin < 1440) timeAgo = `Hace ${Math.round(diffMin / 60)} h`;
+                            else timeAgo = `Hace ${Math.round(diffMin / 1440)} d`;
+                        }
+                    } catch (e) { /* keep default */ }
+                    return { id: d.id, timeAgo, ...data };
+                })
+                .filter(a => a.active !== false)
+                .slice(0, 15);
+        } catch (e) {
+            console.warn("[Safe] alerts fetch failed:", e?.message);
+            return [];   // NUNCA devolver demos
+        }
     },
 
     // Reportar una nueva alerta
@@ -87,13 +60,15 @@ window.GoHappySafe = {
             };
             await window.GoHappyDB.collection('alerts').add(alert);
 
-            // Activity para Memories — title obligatorio según reglas
-            await window.GoHappyDB.collection('activity').add({
-                userId:    user.uid,
-                type:      'safety_report',
-                title:     alertData.title || 'Alerta de seguridad',
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            // Activity para Memories — title obligatorio según reglas (best-effort)
+            try {
+                await window.GoHappyDB.collection('activity').add({
+                    userId:    user.uid,
+                    type:      'safety_report',
+                    title:     alertData.title || 'Alerta de seguridad',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (e) { console.warn('[Safe] activity log skipped:', e?.message); }
 
             window.GoHappyPoints.addPoints('SAFETY_REPORT');
             return true;
