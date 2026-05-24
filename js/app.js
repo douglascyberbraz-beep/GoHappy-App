@@ -6,7 +6,7 @@
 // la próxima vez que abran la app: localStorage, SW caches, IndexedDB.
 // Sólo se preserva la sesión activa (Firebase Auth). Cero datos demo.
 // ═══════════════════════════════════════════════════════════════════
-const APP_STATE_VERSION = 'v7.1.0';
+const APP_STATE_VERSION = 'v7.2.0';
 
 (function purgeStaleClientState() {
     try {
@@ -67,6 +67,56 @@ const appState = {
     location: null,
     transitioning: false
 };
+
+// ═══════════════════════════════════════════════════════════════════
+// DIAGNÓSTICO — abre con ?diag=1 en la URL
+// Muestra estado completo de auth, Firestore, conectividad
+// ═══════════════════════════════════════════════════════════════════
+window.GoHappyDiagnose = async () => {
+    const fbUser = window.GoHappyAuthReal?.currentUser;
+    const localUser = window.GoHappyAuth?.checkAuth?.();
+    let firestorePing = '⏳';
+    try {
+        const t0 = Date.now();
+        await window.GoHappyDB.collection('users').doc('__ping__').get();
+        firestorePing = `✓ ${Date.now() - t0}ms`;
+    } catch (e) { firestorePing = '✗ ' + (e?.code || e?.message); }
+
+    const report = {
+        '🔥 Firebase Auth user': fbUser ? {
+            uid: fbUser.uid,
+            email: fbUser.email,
+            isAnonymous: fbUser.isAnonymous,
+            providerId: fbUser.providerData?.[0]?.providerId || 'none'
+        } : '❌ NO HAY USER',
+        '👤 Sesión local (_currentUser)': localUser ? {
+            uid: localUser.uid,
+            nickname: localUser.nickname,
+            isGuest: localUser.isGuest,
+            familyId: localUser.familyId
+        } : '❌ NO HAY SESIÓN LOCAL',
+        '🟰 ¿UIDs coinciden?': (fbUser && localUser) ? (fbUser.uid === localUser.uid ? '✓ SÍ' : '✗ NO COINCIDEN') : 'n/a',
+        '💾 Firestore ping': firestorePing,
+        '🛡️ Puede publicar?': fbUser && !fbUser.isAnonymous && localUser && !localUser.isGuest ? '✓ SÍ' : '✗ NO',
+        '📦 SW cache version': 'gohappy-cache-v7.x',
+        '🌐 Online': navigator.onLine ? '✓' : '✗'
+    };
+
+    const html = `<div style="position:fixed;inset:20px;background:white;z-index:99999;padding:20px;overflow:auto;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);font-family:monospace;font-size:13px;">
+        <h2 style="margin:0 0 16px;color:#0B4C8F;">🔍 GoHappy Diagnóstico</h2>
+        <pre style="background:#f8fafc;padding:14px;border-radius:10px;overflow:auto;font-size:11px;">${JSON.stringify(report, null, 2)}</pre>
+        <button onclick="this.parentElement.remove()" style="margin-top:14px;background:#0B4C8F;color:white;border:none;padding:12px 24px;border-radius:30px;font-weight:800;cursor:pointer;">Cerrar</button>
+    </div>`;
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    document.body.appendChild(div.firstChild);
+    console.table(report);
+};
+
+// Auto-abrir si ?diag=1
+if (new URLSearchParams(window.location.search).get('diag') === '1') {
+    setTimeout(() => window.GoHappyDiagnose(), 1500);
+}
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', async () => {

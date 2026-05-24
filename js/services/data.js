@@ -133,23 +133,33 @@ window.GoHappyData = {
     },
 
     addTribuPost: async (content, user) => {
+        const cleanContent = (content || '').trim().slice(0, 280);
+        if (!cleanContent) throw new Error('El mensaje está vacío.');
+        // Detectar HTML que la rule rechaza
+        if (/[<>]/.test(cleanContent)) {
+            throw new Error('No uses los caracteres < o > en tu mensaje.');
+        }
+        const post = {
+            userId:    user.uid,
+            user:      user.nickname || "Anónimo",
+            avatar:    (user.photo && user.photo.startsWith('data:') && user.photo.length > 100) ? '👤' : (user.photo || "👤"),
+            content:   cleanContent,
+            likes:     0,
+            comments:  0,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
         try {
-            const cleanContent = (content || '').trim().slice(0, 280);
-            if (!cleanContent) return false;
-            const post = {
-                userId:    user.uid,
-                user:      user.nickname || "Anónimo",
-                avatar:    (user.photo && user.photo.startsWith('data:') && user.photo.length > 100) ? '👤' : (user.photo || "👤"),
-                content:   cleanContent,
-                likes:     0,
-                comments:  0,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
             await window.GoHappyDB.collection('posts').add(post);
             return true;
         } catch (e) {
-            console.error("[Data] post error:", e);
-            return false;
+            console.error("[Data] post error:", e?.code, e?.message);
+            if (e?.code === 'permission-denied') {
+                throw new Error('Permiso denegado. Verifica que tu cuenta NO es anónima/invitado.');
+            }
+            if (e?.code === 'unavailable') {
+                throw new Error('Sin conexión a Firestore. Comprueba tu internet.');
+            }
+            throw new Error('Error al publicar: ' + (e?.message || e?.code || 'desconocido'));
         }
     },
 

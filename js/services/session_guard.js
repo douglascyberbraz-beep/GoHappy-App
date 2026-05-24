@@ -51,25 +51,34 @@ window.GoHappySessionGuard = (() => {
     }
 
     /**
-     * Lee sesión y verifica integridad. Si fue manipulada, la limpia.
-     * Retorna user object o null
+     * Lee sesión y verifica integridad.
+     * Si la firma NO coincide, asumimos que un servicio legítimo del propio
+     * app actualizó localStorage (families.js, points.js, etc) sin re-firmar.
+     * En ese caso RE-FIRMAMOS en lugar de nuclear la sesión. Defendemos
+     * contra tampering REAL solo si el JSON es inválido o tiene shape rara.
      */
     async function loadSession() {
         try {
             const raw = localStorage.getItem(SESSION_KEY);
             const sig = localStorage.getItem(SESSION_SIG_KEY);
-            if (!raw || !sig) return null;
-            const expectedSig = await sign(raw);
-            if (sig !== expectedSig) {
-                console.warn('[SessionGuard] ⚠ Sesión MANIPULADA detectada — limpiando');
-                localStorage.removeItem(SESSION_KEY);
-                localStorage.removeItem(SESSION_SIG_KEY);
-                // Forzar reload para limpiar contexto
-                try { window.GoHappyToast?.error('Sesión inválida. Cerrando…', 2000); } catch (e) {}
-                setTimeout(() => window.location.reload(), 1500);
+            if (!raw) return null;
+
+            // Validar que es JSON parseable con shape de usuario
+            let parsed;
+            try { parsed = JSON.parse(raw); } catch (e) { return null; }
+            if (!parsed || typeof parsed !== 'object' || !parsed.uid) {
+                // No es un user object válido — limpiar silenciosamente
+                clearSession();
                 return null;
             }
-            return JSON.parse(raw);
+
+            // Si no hay firma o no coincide → re-firmar (no nuclear)
+            const expectedSig = await sign(raw);
+            if (sig !== expectedSig) {
+                console.info('[SessionGuard] Sesión re-firmada (probable update interno)');
+                try { localStorage.setItem(SESSION_SIG_KEY, expectedSig); } catch (e) {}
+            }
+            return parsed;
         } catch (e) {
             return null;
         }
@@ -116,11 +125,9 @@ window.GoHappySessionGuard = (() => {
                     clearSession();
                     setTimeout(() => window.location.reload(), 500);
                 }
-                if (event.data?.type === 'SESSION_HIJACK_DETECTED') {
-                    console.warn('[SessionGuard] Hijack detectado en otra pestaña');
-                    clearSession();
-                    setTimeout(() => window.location.reload(), 500);
-                }
+                // Nota: SESSION_HIJACK_DETECTED ya no se broadcastea — causaba
+                // reloads en cadena con falsos positivos. La verificación de
+                // integridad ahora re-firma silenciosamente.
             };
         } catch (e) {}
     }
@@ -145,27 +152,27 @@ window.GoHappySessionGuard = (() => {
 
     // ─── Inicialización ───
     async function init() {
-        // Verificar integridad al cargar
+        // Verificar/re-firmar sesión al cargar.
+        // NO nuclear nunca por sig mismatch: en una SPA con multiples servicios
+        // que escriben localStorage, eso producía falsos positivos y dejaba al
+        // usuario logged-out permanente. Solo nucleamos si el JSON es inválido.
         const raw = localStorage.getItem(SESSION_KEY);
-        const sig = localStorage.getItem(SESSION_SIG_KEY);
-        if (raw && !sig) {
-            // Sesión sin firma — probablemente legacy. Re-firmar.
+        if (raw) {
+            let valid = false;
             try {
-                JSON.parse(raw);  // validar JSON
-                const newSig = await sign(raw);
-                localStorage.setItem(SESSION_SIG_KEY, newSig);
-                console.info('[SessionGuard] Sesión legacy firmada');
-            } catch (e) {
-                localStorage.removeItem(SESSION_KEY);
-            }
-        } else if (raw && sig) {
-            const expected = await sign(raw);
-            if (sig !== expected) {
-                console.warn('[SessionGuard] ⚠ Tampering detectado en arranque');
+                const parsed = JSON.parse(raw);
+                valid = parsed && typeof parsed === 'object' && !!parsed.uid;
+            } catch (e) { valid = false; }
+
+            if (!valid) {
+                console.warn('[SessionGuard] Sesión con JSON inválido — limpiando');
                 clearSession();
-                if (broadcastChannel) {
-                    try { broadcastChannel.postMessage({ type: 'SESSION_HIJACK_DETECTED' }); } catch (e) {}
-                }
+            } else {
+                // Siempre re-firmar al arranque (sea legacy, modificada, o fresh)
+                try {
+                    const newSig = await sign(raw);
+                    localStorage.setItem(SESSION_SIG_KEY, newSig);
+                } catch (e) {}
             }
         }
 

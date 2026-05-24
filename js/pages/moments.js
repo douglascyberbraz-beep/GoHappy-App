@@ -892,7 +892,21 @@ window.GoHappyMoments = {
     },
 
     _publishMoment: async (imageData, caption, user, audience = 'family') => {
-        if (!user || user.isGuest) throw new Error('Inicia sesión para compartir momentos.');
+        // Diagnóstico claro: distinguir entre los 3 estados
+        if (!user || !user.uid) {
+            throw new Error('No estás identificado. Pulsa "Iniciar sesión" arriba.');
+        }
+        if (user.isGuest) {
+            throw new Error('Como invitado no puedes publicar. Regístrate gratis (10s) para compartir momentos.');
+        }
+        // Verificar que Firebase Auth coincide con la sesión local
+        const fbUser = window.GoHappyAuthReal?.currentUser;
+        if (!fbUser || fbUser.uid !== user.uid) {
+            throw new Error('Tu sesión expiró. Recarga la página y vuelve a iniciar sesión.');
+        }
+        if (fbUser.isAnonymous) {
+            throw new Error('Las cuentas anónimas no pueden publicar. Regístrate gratis para participar.');
+        }
 
         const familyId = user.familyId || user.uid;
 

@@ -56,9 +56,18 @@ window.GoHappyTribu = {
         document.getElementById('publish-btn').addEventListener('click', async () => {
             const text = contentInput.value.trim();
             const user = window.GoHappyAuth.checkAuth();
+            const fbUser = window.GoHappyAuthReal?.currentUser;
 
-            if (!user) {
-                window.GoHappyToast.warning('Identifícate para participar en la Tribu.');
+            if (!user || !user.uid) {
+                window.GoHappyToast.warning('No estás identificado. Pulsa el botón de login arriba.');
+                return;
+            }
+            if (user.isGuest || fbUser?.isAnonymous) {
+                window.GoHappyToast.warning('Como invitado no puedes publicar. Regístrate gratis para participar en la Tribu.', 4500);
+                return;
+            }
+            if (!fbUser || fbUser.uid !== user.uid) {
+                window.GoHappyToast.error('Tu sesión expiró. Recarga la página.', 4500);
                 return;
             }
 
@@ -106,7 +115,8 @@ window.GoHappyTribu = {
                     contentInput.value = '';
                     window.GoHappyToast.points('¡Publicado! Has ganado 5 puntos. 🎉');
                 } catch (e) {
-                    window.GoHappyToast.error('Error al publicar. Inténtalo de nuevo.');
+                    console.error('[Tribu] publish error:', e);
+                    window.GoHappyToast.error(e?.message || 'Error al publicar.', 4500);
                 } finally {
                     publishBtn.disabled = false;
                     publishBtn.textContent = 'Publicar';
