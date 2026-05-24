@@ -502,3 +502,4 @@ exports.rewardReferrer = onCall({ region: 'europe-west1' }, async ({ data, auth 
 
     return { ok: true, points: REWARD };
 });
+
