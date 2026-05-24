@@ -6,7 +6,7 @@
 // la próxima vez que abran la app: localStorage, SW caches, IndexedDB.
 // Sólo se preserva la sesión activa (Firebase Auth). Cero datos demo.
 // ═══════════════════════════════════════════════════════════════════
-const APP_STATE_VERSION = 'v7.2.0';
+const APP_STATE_VERSION = 'v7.4.0';
 
 (function purgeStaleClientState() {
     try {
@@ -69,6 +69,42 @@ const appState = {
 };
 
 // ═══════════════════════════════════════════════════════════════════
+// FORCE RESET — botón nuclear: borra todo y recarga limpio
+// ═══════════════════════════════════════════════════════════════════
+window.GoHappyForceReset = async () => {
+    if (!confirm('Esto borrará TODOS los datos locales y reinstalará la app desde 0. ¿Continuar?')) return;
+    try {
+        // 1) Desregistrar TODOS los service workers
+        if ('serviceWorker' in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(r => r.unregister()));
+        }
+        // 2) Borrar TODAS las caches
+        if ('caches' in self) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+        }
+        // 3) Borrar localStorage + sessionStorage
+        try { localStorage.clear(); } catch (e) {}
+        try { sessionStorage.clear(); } catch (e) {}
+        // 4) Borrar IndexedDB
+        if (indexedDB.databases) {
+            const dbs = await indexedDB.databases();
+            await Promise.all(dbs.map(db => new Promise(r => {
+                try { const req = indexedDB.deleteDatabase(db.name); req.onsuccess = req.onerror = req.onblocked = r; }
+                catch (e) { r(); }
+            })));
+        }
+        // 5) Sign-out de Firebase
+        try { await window.GoHappyAuthReal?.signOut?.(); } catch (e) {}
+        // 6) Reload con cache bypass
+        window.location.href = window.location.pathname + '?_t=' + Date.now();
+    } catch (e) {
+        alert('Reset error: ' + e.message + ' — recarga manualmente con Ctrl+Shift+R');
+    }
+};
+
+// ═══════════════════════════════════════════════════════════════════
 // DIAGNÓSTICO — abre con ?diag=1 en la URL
 // Muestra estado completo de auth, Firestore, conectividad
 // ═══════════════════════════════════════════════════════════════════
@@ -105,7 +141,11 @@ window.GoHappyDiagnose = async () => {
     const html = `<div style="position:fixed;inset:20px;background:white;z-index:99999;padding:20px;overflow:auto;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);font-family:monospace;font-size:13px;">
         <h2 style="margin:0 0 16px;color:#0B4C8F;">🔍 GoHappy Diagnóstico</h2>
         <pre style="background:#f8fafc;padding:14px;border-radius:10px;overflow:auto;font-size:11px;">${JSON.stringify(report, null, 2)}</pre>
-        <button onclick="this.parentElement.remove()" style="margin-top:14px;background:#0B4C8F;color:white;border:none;padding:12px 24px;border-radius:30px;font-weight:800;cursor:pointer;">Cerrar</button>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+            <button onclick="this.closest('div[style*=fixed]').remove()" style="background:#0B4C8F;color:white;border:none;padding:12px 24px;border-radius:30px;font-weight:800;cursor:pointer;">Cerrar</button>
+            <button onclick="window.GoHappyForceReset()" style="background:#DC2626;color:white;border:none;padding:12px 24px;border-radius:30px;font-weight:800;cursor:pointer;">🔥 Reinstalar app (reset total)</button>
+            <button onclick="window.GoHappyAuth.renderAuthModal();this.closest('div[style*=fixed]').remove()" style="background:#0B71FC;color:white;border:none;padding:12px 24px;border-radius:30px;font-weight:800;cursor:pointer;">🔑 Login</button>
+        </div>
     </div>`;
     const div = document.createElement('div');
     div.innerHTML = html;

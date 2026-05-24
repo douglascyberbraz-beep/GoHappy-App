@@ -1,8 +1,11 @@
-const CACHE_NAME = 'gohappy-cache-v7.3.0';
+const CACHE_NAME = 'gohappy-cache-v7.4.0';
 const TILE_CACHE = 'gohappy-tiles-v1.3.0';
 
 const ASSETS = [
     './',
+    'js/lib/maplibre-gl-csp.js',
+    'js/lib/maplibre-gl-csp-worker.js',
+    'js/lib/maplibre-gl.css',
     'index.html',
     'manifest.json',
     'css/main.css',
@@ -53,8 +56,6 @@ const ASSETS = [
     'assets/logo_gohappy_official.svg',
     'assets/map-marker.png',
     // External CDN (cache for offline)
-    'https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css',
-    'https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js'
 ];
 
 self.addEventListener('install', (event) => {
@@ -89,6 +90,20 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
+
+    // HTML: NETWORK-FIRST (siempre intentar fresco para detectar updates rápido)
+    if (event.request.destination === 'document' || url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname.endsWith('/')) {
+        event.respondWith(
+            fetch(event.request).then(response => {
+                if (response && response.ok) {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone)).catch(() => {});
+                }
+                return response;
+            }).catch(() => caches.match(event.request).then(c => c || caches.match('index.html')))
+        );
+        return;
+    }
 
     // Mapa de tiles: Stale-While-Revalidate
     if (url.hostname.includes('openfreemap.org') || url.hostname.includes('demotiles.maplibre.org')) {
