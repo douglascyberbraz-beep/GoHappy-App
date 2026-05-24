@@ -62,14 +62,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         try { window.GoHappySessionGuard.init(); } catch (e) { console.warn('SessionGuard init:', e); }
     }
 
-    // Tour de onboarding: primera vez tras login
-    setTimeout(() => {
-        try {
-            if (window.GoHappyTour && !window.GoHappyTour.hasSeen()) {
-                window.GoHappyTour.start();
-            }
-        } catch (e) {}
-    }, 3500);
+    // Tour de onboarding: se dispara REACTIVAMENTE desde el callback de auth
+    // (ver más abajo en GoHappyAuth.init) cuando el usuario YA está dentro del app.
+    // No usar timer ciego — antes saltaba en la pantalla de login.
 
     // Family Context (Sprint 1: memoria compartida) — carga en background
     if (window.GoHappyContext) {
@@ -158,6 +153,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                     window.GoHappyFamilyOnboarding.show();
                 }
             }, 2000);
+
+            // Tour de onboarding interactivo: solo cuando el usuario YA está dentro del app
+            // (auth-modal cerrado, splash oculto, nav visible). La función start() además
+            // valida 4 condiciones extra para no aparecer en momento equivocado.
+            if (!user.isGuest && window.GoHappyTour && !window.GoHappyTour.hasSeen()) {
+                // Esperamos a que onboarding familiar (si aplica) se haya mostrado/cerrado
+                // Reintentamos hasta 6 veces (12s) hasta que las 4 condiciones se cumplan
+                let attempts = 0;
+                const tryStartTour = () => {
+                    if (attempts++ >= 6) return;
+                    if (window.GoHappyTour.hasSeen()) return;
+                    // start() devuelve silenciosamente si no se cumplen las condiciones
+                    window.GoHappyTour.start();
+                    // Si tras intentar no se activó, reintentar en 2s
+                    setTimeout(() => {
+                        if (!window.GoHappyTour.hasSeen()) tryStartTour();
+                    }, 2000);
+                };
+                setTimeout(tryStartTour, 3000);
+            }
         }
     });
 

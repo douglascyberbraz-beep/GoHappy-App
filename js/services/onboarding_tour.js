@@ -355,13 +355,35 @@ window.GoHappyTour = (() => {
     function start(force = false) {
         if (active) return;
         if (!force && localStorage.getItem(SEEN_KEY) === '1') return;
-        // Necesita que el nav esté visible (usuario logueado)
-        const nav = document.getElementById('bottom-nav');
-        if (!nav || nav.classList.contains('hidden')) {
-            // Reintentar en 2s si el nav aún no está visible
-            setTimeout(() => start(force), 2000);
-            return;
+
+        // ─── 3 CONDICIONES ESTRICTAS para que el tour arranque ───
+        // El usuario debe estar 100% dentro de la app, no en login/splash
+
+        // 1) Splash YA debe haberse ocultado completamente
+        const splash = document.getElementById('splash-screen');
+        if (splash && splash.offsetParent !== null && splash.style.display !== 'none') {
+            return; // Aún en splash, no disparar (auth.js lo dispara cuando toque)
         }
+
+        // 2) Debe haber USER real autenticado (no guest, no anónimo)
+        const user = window.GoHappyAuth?.checkAuth?.();
+        if (!user || user.isGuest || !user.uid) {
+            return; // Sin login real, no tour (auth.js lo dispara tras login)
+        }
+
+        // 3) Nav inferior debe estar visible (señal definitiva de "estoy dentro")
+        const nav = document.getElementById('bottom-nav');
+        if (!nav || nav.classList.contains('hidden') || nav.offsetParent === null) {
+            return; // Nav oculto = aún en auth/splash
+        }
+
+        // 4) NO debe haber un modal de auth/onboarding abierto
+        const blockingModals = document.querySelector('.modal:not(.hidden), #auth-modal, #family-onboarding-modal');
+        if (blockingModals && blockingModals.offsetParent !== null) {
+            return; // Modal abierto = no es buen momento
+        }
+
+        // Todo OK — arrancar tour
         active = true;
         currentStep = 0;
         steps = getSteps();
