@@ -335,7 +335,8 @@ window.GoHappyQuests = {
                         if (window.GoHappyAuth._currentUser) {
                             window.GoHappyAuth._currentUser.points = (window.GoHappyAuth._currentUser.points || 0) + puntos;
                             window.GoHappyAuth._currentUser.weeklyPoints = (window.GoHappyAuth._currentUser.weeklyPoints || 0) + puntos;
-                            localStorage.setItem('GoHappy_local_user', JSON.stringify(window.GoHappyAuth._currentUser));
+                            if (window.GoHappyAuth._saveLocalSession) window.GoHappyAuth._saveLocalSession(window.GoHappyAuth._currentUser);
+                            else localStorage.setItem('GoHappy_local_user', JSON.stringify(window.GoHappyAuth._currentUser));
                         }
                         return { ok: true, puntos };
                     }
@@ -365,10 +366,15 @@ window.GoHappyQuests = {
                 weeklyPoints: firebase.firestore.FieldValue.increment(puntos)
             });
 
-            // Sumar puntos al total de la familia (atomic increment)
-            await window.GoHappyDB.collection('families').doc(familyId).update({
-                puntosTotales: firebase.firestore.FieldValue.increment(puntos)
-            });
+            // Sumar puntos al total de la familia (atomic increment, best-effort)
+            // Solo el creador de la familia puede actualizar este campo según las
+            // reglas. Para otros miembros se ignora silenciosamente — el sumatorio
+            // se puede recalcular client-side desde la suma de users.points.
+            try {
+                await window.GoHappyDB.collection('families').doc(familyId).update({
+                    puntosTotales: firebase.firestore.FieldValue.increment(puntos)
+                });
+            } catch (e) { /* non-creator → ignore */ }
 
             // Registrar en 'activity' para Memories — incluir title obligatorio
             await window.GoHappyDB.collection('activity').add({
@@ -383,7 +389,8 @@ window.GoHappyQuests = {
             if (window.GoHappyAuth._currentUser) {
                 window.GoHappyAuth._currentUser.points = (window.GoHappyAuth._currentUser.points || 0) + puntos;
                 window.GoHappyAuth._currentUser.weeklyPoints = (window.GoHappyAuth._currentUser.weeklyPoints || 0) + puntos;
-                localStorage.setItem('GoHappy_local_user', JSON.stringify(window.GoHappyAuth._currentUser));
+                if (window.GoHappyAuth._saveLocalSession) window.GoHappyAuth._saveLocalSession(window.GoHappyAuth._currentUser);
+                else localStorage.setItem('GoHappy_local_user', JSON.stringify(window.GoHappyAuth._currentUser));
             }
 
             console.log(`✅ Quest "${titulo}" completada. +${puntos} pts`);

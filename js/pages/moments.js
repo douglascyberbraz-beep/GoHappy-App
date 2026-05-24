@@ -689,6 +689,10 @@ window.GoHappyMoments = {
         if (btn) btn.disabled = true;
         input.disabled = true;
 
+        // Si user.photo es data URI larga, evitar bloat por comentario
+        const userPhotoSafe = (user.photo && user.photo.startsWith('data:') && user.photo.length > 100)
+            ? '👤'
+            : (user.photo || '👤');
         try {
             await window.GoHappyDB
                 .collection('moments').doc(momentId)
@@ -696,7 +700,7 @@ window.GoHappyMoments = {
                 .add({
                     userId: user.uid,
                     userName: user.nickname || user.email?.split('@')[0] || 'Familia',
-                    userPhoto: user.photo || '👤',
+                    userPhoto: userPhotoSafe,
                     text,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });

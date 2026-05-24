@@ -301,25 +301,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 function setupNavigation() {
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
-        // pointerdown en lugar de click = ~80-100ms más rápido (sin el 300ms tap delay)
-        const fireNav = (e) => {
+        // Híbrido: pointerdown para feedback visual instantáneo + click para disparar
+        // (click respeta gestos del navegador como long-press, drag, etc — evita
+        //  navegación accidental cuando el usuario hace swipe sobre la nav)
+        let pressed = false;
+        item.addEventListener('pointerdown', (e) => {
+            pressed = true;
+            const target = e.currentTarget;
+            target.classList.add('nav-active-pop');
+            setTimeout(() => target.classList.remove('nav-active-pop'), 280);
+        }, { passive: true });
+
+        item.addEventListener('pointercancel', () => { pressed = false; }, { passive: true });
+        item.addEventListener('pointerleave', () => { pressed = false; }, { passive: true });
+
+        item.addEventListener('click', (e) => {
             const target = e.currentTarget;
             const page = target.dataset.page;
             if (page === appState.currentPage) return;
 
-            // Feedback visual INMEDIATO (no esperamos al load)
             navItems.forEach(nav => nav.classList.remove('active'));
             target.classList.add('active');
-            target.classList.add('nav-active-pop');
-            setTimeout(() => target.classList.remove('nav-active-pop'), 280);
 
-            // Sonido fire-and-forget
             try { window.GoHappySound && window.GoHappySound.play('click'); } catch (err) {}
-
-            // Render en la siguiente frame para que el feedback visual se vea YA
             requestAnimationFrame(() => loadPage(page));
-        };
-        item.addEventListener('pointerdown', fireNav, { passive: true });
+        });
     });
 }
 

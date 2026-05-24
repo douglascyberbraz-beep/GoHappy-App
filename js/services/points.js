@@ -62,7 +62,8 @@ window.GoHappyPoints = {
                 // Actualizar localmente para feedback inmediato
                 user.points = (user.points || 0) + pointsToAdd;
                 user.weeklyPoints = (user.weeklyPoints || 0) + pointsToAdd;
-                localStorage.setItem('GoHappy_local_user', JSON.stringify(user));
+                if (window.GoHappyAuth._saveLocalSession) window.GoHappyAuth._saveLocalSession(user);
+                else localStorage.setItem('GoHappy_local_user', JSON.stringify(user));
 
                 // Sincronizar con Firestore — increment atómico, solo campos permitidos
                 await window.GoHappyDB.collection('users').doc(user.uid).update({
@@ -115,7 +116,8 @@ window.GoHappyPoints = {
             });
             localStorage.setItem('GoHappy_last_weekly_reset', week);
             user.weeklyPoints = 0;
-            localStorage.setItem('GoHappy_local_user', JSON.stringify(user));
+            if (window.GoHappyAuth._saveLocalSession) window.GoHappyAuth._saveLocalSession(user);
+            else localStorage.setItem('GoHappy_local_user', JSON.stringify(user));
         } catch (e) {
             console.warn('Weekly reset failed:', e);
         }

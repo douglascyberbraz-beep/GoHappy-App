@@ -98,7 +98,8 @@ window.GoHappyFamilies = {
             rol: 'admin',
             familyName: nombre
         };
-        localStorage.setItem('GoHappy_local_user', JSON.stringify(window.GoHappyAuth._currentUser));
+        if (window.GoHappyAuth._saveLocalSession) window.GoHappyAuth._saveLocalSession(window.GoHappyAuth._currentUser);
+        else localStorage.setItem('GoHappy_local_user', JSON.stringify(window.GoHappyAuth._currentUser));
 
         console.log(`✅ Familia "${nombre}" creada con ID ${familyId} y código ${codigoInvitacion}`);
 
@@ -175,7 +176,8 @@ window.GoHappyFamilies = {
             rol: 'miembro',
             familyName: familiaData.nombre
         };
-        localStorage.setItem('GoHappy_local_user', JSON.stringify(window.GoHappyAuth._currentUser));
+        if (window.GoHappyAuth._saveLocalSession) window.GoHappyAuth._saveLocalSession(window.GoHappyAuth._currentUser);
+        else localStorage.setItem('GoHappy_local_user', JSON.stringify(window.GoHappyAuth._currentUser));
 
         console.log(`✅ ${user.uid} se unió a la familia "${familiaData.nombre}" (${familyId})`);
         return { familyId, nombre: familiaData.nombre };
@@ -250,7 +252,8 @@ window.GoHappyFamilies = {
             rol: null,
             familyName: null
         };
-        localStorage.setItem('GoHappy_local_user', JSON.stringify(window.GoHappyAuth._currentUser));
+        if (window.GoHappyAuth._saveLocalSession) window.GoHappyAuth._saveLocalSession(window.GoHappyAuth._currentUser);
+        else localStorage.setItem('GoHappy_local_user', JSON.stringify(window.GoHappyAuth._currentUser));
         return true;
     }
 };
