@@ -3,12 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title id="page-title" data-en="GoHappy Family — Your path to family joy">GoHappy Family — Tu camino a la alegría en familia</title>
-    <meta name="description" id="meta-desc" data-en="The premium app for modern families. 3D map with local plans, AI-powered family missions, community safety alerts and a parent tribe. Free download." content="La app premium para familias modernas. Mapa 3D con planes locales, misiones familiares con IA, alertas de seguridad comunitarias y tribu de padres. Descarga gratis.">
-    <meta name="keywords" content="family app, family plans, parenting, kids activities, family map, GoHappy">
+    <title id="page-title" data-en="GoHappy Family — Real adventures for modern families">GoHappy Family — Aventuras reales para familias modernas</title>
+    <meta name="description" id="meta-desc" data-en="The smart family app. AI Adventures, parenting coach, real events, private memories. Free." content="La app inteligente para familias. Aventuras con IA, coach de crianza, eventos reales, recuerdos privados. Gratis.">
     <meta name="theme-color" content="#0B4C8F">
 
-    <!-- ─── Idioma: auto-detección síncrona ANTES de renderizar ─── -->
+    <meta property="og:title" content="GoHappy Family — Aventuras reales en familia">
+    <meta property="og:description" content="Aventuras IA, coach de crianza, eventos reales, álbum privado. La app de las familias que viven más.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="assets/ESLOGAN.png">
+    <meta property="og:locale" content="es_ES">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Auto-detect idioma sincrónico -->
     <script>
         (function() {
             try {
@@ -22,7 +28,7 @@
                     try {
                         var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
                         if (tz.indexOf('Madrid') >= 0 || tz.indexOf('Canary') >= 0) lang = 'es';
-                        else if (tz.indexOf('London') >= 0 || tz.indexOf('Dublin') >= 0 || tz.indexOf('Belfast') >= 0) lang = 'en';
+                        else if (tz.indexOf('London') >= 0 || tz.indexOf('Dublin') >= 0) lang = 'en';
                     } catch(e) {}
                 }
                 window.__landingLang = lang;
@@ -31,44 +37,43 @@
         })();
     </script>
 
-    <!-- Open Graph / Social -->
-    <meta property="og:title" content="GoHappy Family — Tu camino a la alegría">
-    <meta property="og:description" content="Stop searching. Start living. La app que une a las familias modernas con planes reales, IA inteligente y comunidad.">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="assets/ESLOGAN.png">
-    <meta property="og:locale" content="es_ES">
-    <meta name="twitter:card" content="summary_large_image">
-
-    <link rel="icon" type="image/png" href="assets/logo.png?v=4.9.0">
-    <link rel="apple-touch-icon" href="assets/logo.png?v=4.9.0">
+    <link rel="icon" type="image/png" href="assets/logo.png?v=7.0.0">
+    <link rel="apple-touch-icon" href="assets/logo.png?v=7.0.0">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- QR Code library para CTA final -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js" defer></script>
 
     <style>
-        /* ─── Brand Tokens ──────────────────────────────────────── */
+        /* ═══════════════════════════════════════════════════════════════
+           BRAND TOKENS
+           ═══════════════════════════════════════════════════════════════ */
         :root {
             --cobalt:           #0B4C8F;
+            --cobalt-deep:      #052E5C;
             --cobalt-bright:    #0B71FC;
             --cyan:             #17C8D4;
             --cyan-bright:      #00D4E0;
             --cyan-pastel:      #B8F0F4;
-            --brand-gradient:   linear-gradient(135deg, #0B4C8F 0%, #0B71FC 50%, #17C8D4 100%);
-            --brand-bright:     linear-gradient(135deg, #0B71FC 0%, #17C8D4 100%);
+            --accent-orange:    #FF8A50;
+            --accent-pink:      #FF6B9D;
 
-            --bg-app:           #F4F8FF;
-            --bg-card:          rgba(255,255,255,0.72);
+            --brand-gradient:    linear-gradient(135deg, #0B4C8F 0%, #0B71FC 50%, #17C8D4 100%);
+            --brand-bright:      linear-gradient(135deg, #0B71FC 0%, #17C8D4 100%);
+            --hero-gradient:     linear-gradient(180deg, #F0F7FF 0%, #E5F2FB 30%, #FFFFFF 100%);
+            --warm-gradient:     linear-gradient(135deg, #FF8A50 0%, #FF6B9D 100%);
+
+            --bg-app:           #F8FBFF;
+            --bg-card:          rgba(255,255,255,0.78);
             --glass-blur:       blur(40px) saturate(180%) brightness(1.05);
             --glass-shadow:     0 8px 32px rgba(11,76,143,0.08);
-            --glass-shadow-lg:  0 20px 50px rgba(11,76,143,0.12);
+            --glass-shadow-lg:  0 20px 60px rgba(11,76,143,0.14);
 
             --text-primary:     #0F172A;
             --text-secondary:   rgba(15,23,42,0.65);
-            --text-tertiary:    rgba(15,23,42,0.4);
+            --text-tertiary:    rgba(15,23,42,0.45);
             --border-light:     rgba(11,76,143,0.08);
 
             --r-md: 20px;
@@ -77,7 +82,7 @@
             --r-pill: 999px;
 
             --container: 1200px;
-            --section-pad-y: clamp(60px, 10vw, 120px);
+            --section-pad-y: clamp(70px, 11vw, 130px);
         }
 
         *, *::before, *::after {
@@ -101,778 +106,444 @@
         h1, h2, h3, h4, .brand-font {
             font-family: 'Poppins', -apple-system, sans-serif;
             font-weight: 800;
-            letter-spacing: -0.5px;
-            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            line-height: 1.15;
         }
 
-        a { color: inherit; text-decoration: none; }
-        img { max-width: 100%; display: block; }
-        button { font-family: inherit; cursor: pointer; border: none; }
+        a { text-decoration: none; color: inherit; }
+        img { display: block; max-width: 100%; }
 
         .container {
             max-width: var(--container);
             margin: 0 auto;
             padding: 0 24px;
         }
-
-        /* ─── BACKGROUND ORBS (decorative) ─────────────────────── */
-        .bg-orbs {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
+        .center { text-align: center; }
+        .gradient {
+            background: var(--brand-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        .bg-orbs::before,
-        .bg-orbs::after {
-            content: '';
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-        }
-        .bg-orbs::before {
-            top: -200px; left: -200px;
-            width: 600px; height: 600px;
-            background: radial-gradient(circle, rgba(11,113,252,0.18) 0%, transparent 70%);
-            animation: orbFloat1 20s ease-in-out infinite;
-        }
-        .bg-orbs::after {
-            bottom: -200px; right: -200px;
-            width: 700px; height: 700px;
-            background: radial-gradient(circle, rgba(23,200,212,0.22) 0%, transparent 70%);
-            animation: orbFloat2 24s ease-in-out infinite;
-        }
-        @keyframes orbFloat1 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50%      { transform: translate(80px, 100px) scale(1.1); }
-        }
-        @keyframes orbFloat2 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50%      { transform: translate(-80px, -60px) scale(0.95); }
+        .gradient-warm {
+            background: var(--warm-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        /* ─── NAVBAR (Floating Glass Pill) ──────────────────────── */
-        .bg-orbs {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            overflow: hidden;
-            pointer-events: none;
-        }
-        .bg-orbs::before, .bg-orbs::after {
-            content: '';
-            position: absolute;
-            width: 500px;
-            height: 500px;
-            border-radius: 50%;
-            filter: blur(120px);
-            opacity: 0.15;
-            animation: orbFloat 20s infinite alternate;
-        }
-        .bg-orbs::before {
-            background: var(--cobalt-bright);
-            top: -100px;
-            right: -100px;
-        }
-        .bg-orbs::after {
-            background: var(--cyan);
-            bottom: -100px;
-            left: -100px;
-            animation-delay: -10s;
-        }
-        @keyframes orbFloat {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(-50px, 100px) scale(1.1); }
-        }
-
+        /* ═══════════════════════════════════════════════════════════════
+           NAV
+           ═══════════════════════════════════════════════════════════════ */
         .nav {
-            position: fixed;
-            top: 16px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 32px);
-            max-width: 1100px;
-            z-index: 1000;
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(40px) saturate(200%);
-            -webkit-backdrop-filter: blur(40px) saturate(200%);
-            border: 0.5px solid rgba(255,255,255,0.85);
-            border-radius: 24px;
-            box-shadow: 0 8px 32px rgba(11,76,143,0.08);
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.3s ease;
+            position: fixed; top: 0; left: 0; right: 0;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 28px;
+            background: rgba(255,255,255,0.72);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-bottom: 0.5px solid var(--border-light);
+            z-index: 100;
+            transition: background 0.3s, padding 0.3s;
         }
-        .nav.scrolled { padding: 8px 20px; background: rgba(255,255,255,0.85); }
-
+        .nav.scrolled {
+            background: rgba(255,255,255,0.94);
+            padding: 10px 28px;
+            box-shadow: 0 4px 24px rgba(11,76,143,0.08);
+        }
         .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 900;
+            display: flex; align-items: center; gap: 10px;
             font-family: 'Poppins', sans-serif;
+            font-weight: 900;
             font-size: 18px;
             color: var(--cobalt);
-            letter-spacing: -0.5px;
         }
-        .nav-logo img, .footer-brand img {
-            height: 32px;
-            width: auto;
-            mix-blend-mode: multiply;
-            filter: contrast(1.1); /* Mejora la claridad al mezclar */
-        }
-
+        .nav-logo img { width: 32px; height: 32px; border-radius: 8px; }
         .nav-links {
-            display: flex;
-            gap: 28px;
+            display: flex; gap: 28px;
             list-style: none;
         }
         .nav-links a {
             font-size: 14px;
             font-weight: 600;
             color: var(--text-secondary);
-            transition: color 0.2s ease;
+            transition: color 0.2s;
         }
-        .nav-links a:hover { color: var(--cobalt-bright); }
-
+        .nav-links a:hover { color: var(--cobalt); }
         .nav-cta {
-            background: var(--brand-gradient);
-            color: white;
+            background: var(--brand-bright);
+            color: white !important;
             padding: 10px 22px;
             border-radius: var(--r-pill);
+            font-weight: 800;
             font-size: 14px;
-            font-weight: 700;
-            box-shadow: 0 6px 18px rgba(11,113,252,0.28);
-            transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+            box-shadow: 0 6px 18px rgba(11,113,252,0.32);
+            transition: transform 0.18s;
         }
-        .nav-cta:hover { transform: scale(1.05); }
-        .nav-cta:active { transform: scale(0.95); }
-
+        .nav-cta:hover { transform: translateY(-2px); }
         @media (max-width: 768px) {
             .nav-links { display: none; }
+            .nav { padding: 12px 18px; }
         }
 
-        /* ─── BUTTONS ────────────────────────────────────────────── */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 16px 32px;
-            border-radius: var(--r-pill);
-            font-family: 'Poppins', sans-serif;
-            font-size: 16px;
-            font-weight: 700;
-            transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease;
-            cursor: pointer;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-primary {
-            background: var(--brand-gradient);
-            color: white;
-            box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.25),
-                0 12px 32px rgba(11,113,252,0.32);
-        }
-        .btn-primary::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 50%;
-            background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 100%);
-            border-radius: inherit;
-            pointer-events: none;
-        }
-        .btn-primary:hover { transform: scale(1.04); }
-        .btn-primary:active { transform: scale(0.96); }
-        .btn-secondary {
-            background: rgba(255,255,255,0.85);
-            backdrop-filter: var(--glass-blur);
-            color: var(--cobalt);
-            border: 0.5px solid var(--border-light);
-            box-shadow: var(--glass-shadow);
-        }
-        .btn-secondary:hover { transform: scale(1.04); background: white; }
-
-        /* ─── HERO ────────────────────────────────────────────────── */
+        /* ═══════════════════════════════════════════════════════════════
+           HERO
+           ═══════════════════════════════════════════════════════════════ */
         .hero {
-            position: relative;
-            padding: 140px 0 var(--section-pad-y);
+            min-height: 100vh;
+            background: var(--hero-gradient);
+            padding: 140px 24px 80px;
             display: grid;
             grid-template-columns: 1.2fr 1fr;
             gap: 60px;
             align-items: center;
-            min-height: 100vh;
-        }
-
-        .hero-eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: var(--glass-blur);
-            border: 0.5px solid rgba(255,255,255,0.9);
-            padding: 7px 14px;
-            border-radius: var(--r-pill);
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--cobalt);
-            margin-bottom: 24px;
-            box-shadow: var(--glass-shadow);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .hero-eyebrow .dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: #22C55E;
-            box-shadow: 0 0 8px #22C55E;
-            animation: pulse 2s ease-in-out infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-
-        .hero-title {
-            font-size: clamp(2.4rem, 6vw, 4.4rem);
-            line-height: 1.05;
-            margin-bottom: 24px;
-        }
-        .hero-title .gradient {
-            background: var(--brand-gradient);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero-subtitle {
-            font-size: clamp(1.05rem, 1.4vw, 1.25rem);
-            color: var(--text-secondary);
-            margin-bottom: 36px;
-            max-width: 540px;
-            line-height: 1.6;
-        }
-
-        .hero-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-            margin-bottom: 32px;
-        }
-
-        .hero-trust {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            color: var(--text-tertiary);
-            font-size: 13px;
-            font-weight: 600;
-        }
-        .hero-trust .check { color: #22C55E; font-weight: 800; }
-
-        /* ─── PHONE MOCKUP ───────────────────────────────────────── */
-        .hero-mockup {
+            max-width: var(--container);
+            margin: 0 auto;
             position: relative;
-            display: flex;
-            justify-content: center;
-        }
-        .phone {
-            position: relative;
-            width: 300px;
-            /* Ratio coherente con las capturas reales */
-            aspect-ratio: 9 / 16;
-            background: #F4F8FF;
-            border-radius: 42px;
-            padding: 0;
-            box-shadow:
-                0 0 0 2px #333,
-                0 50px 100px -20px rgba(11,76,143,0.35),
-                0 30px 60px -30px rgba(11,76,143,0.5);
-            animation: phoneFloat 6s ease-in-out infinite;
-            border: 7px solid #1e293b;
             overflow: hidden;
         }
-        @keyframes phoneFloat {
-            0%, 100% { transform: translateY(0) rotate(-2deg); }
-            50%      { transform: translateY(-15px) rotate(0deg); }
-        }
-        .phone::before {
+        .hero::before {
             content: '';
             position: absolute;
-            top: 12px; left: 50%;
-            transform: translateX(-50%);
-            width: 80px; height: 24px;
-            background: #000;
-            border-radius: 20px;
-            z-index: 10;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            top: -200px; right: -200px;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(23,200,212,0.18), transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
         }
-        .phone-screen {
-            width: 100%;
-            height: 100%;
-            background: #F4F8FF;
-            border-radius: 34px;
-            overflow: hidden;
-            position: relative;
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -100px; left: -100px;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(11,113,252,0.14), transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
         }
-        .phone-content {
-            flex: 1;
-            padding: 56px 16px 80px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .phone-header {
-            background: var(--brand-gradient);
-            margin: -56px -16px 0;
-            padding: 60px 18px 24px;
-            border-radius: 0 0 28px 28px;
-            color: white;
-            position: relative;
-        }
-        .phone-header h3 {
-            color: white;
-            font-size: 18px;
-            margin-bottom: 4px;
-        }
-        .phone-header p {
-            font-size: 11px;
-            opacity: 0.9;
-        }
-        .phone-card {
+        .hero > * { position: relative; z-index: 2; }
+
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
             background: rgba(255,255,255,0.85);
-            backdrop-filter: blur(16px);
-            border-radius: 16px;
-            padding: 12px;
-            box-shadow: 0 4px 12px rgba(11,76,143,0.06);
-            border: 0.5px solid rgba(255,255,255,0.9);
-            font-size: 11px;
-        }
-        .phone-card-title {
+            backdrop-filter: blur(10px);
+            border: 0.5px solid rgba(11,113,252,0.20);
+            padding: 8px 16px;
+            border-radius: var(--r-pill);
+            font-size: 12px;
             font-weight: 800;
             color: var(--cobalt);
-            margin-bottom: 4px;
-            font-size: 12px;
+            box-shadow: 0 4px 14px rgba(11,76,143,0.08);
+            margin-bottom: 24px;
         }
-        .phone-card-meta {
-            font-size: 9px;
-            color: var(--text-tertiary);
-        }
-        .phone-nav {
-            position: absolute;
-            bottom: 12px; left: 12px; right: 12px;
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(20px);
-            border: 0.5px solid rgba(255,255,255,0.85);
-            border-radius: 22px;
-            padding: 8px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            font-size: 14px;
-            box-shadow: 0 8px 20px rgba(11,76,143,0.12);
-        }
-        .phone-nav span { opacity: 0.5; }
-        .phone-nav span.active { opacity: 1; }
-        .phone-nav .orb {
-            background: white;
-            width: 36px; height: 36px;
+        .hero-badge .dot {
+            width: 8px; height: 8px;
+            background: #22C55E;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(11,113,252,0.3);
-            margin-top: -16px;
-            border: 2px solid var(--cobalt-bright);
+            box-shadow: 0 0 12px #22C55E;
+            animation: pulse 2s infinite;
         }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
 
+        .hero-title {
+            font-size: clamp(2.4rem, 6vw, 4.2rem);
+            color: var(--text-primary);
+            margin-bottom: 22px;
+        }
+        .hero-subtitle {
+            font-size: clamp(1rem, 1.6vw, 1.15rem);
+            color: var(--text-secondary);
+            max-width: 540px;
+            margin-bottom: 32px;
+            line-height: 1.55;
+        }
+        .hero-actions {
+            display: flex; gap: 14px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 16px 32px;
+            border-radius: var(--r-pill);
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            transition: transform 0.18s, box-shadow 0.18s;
+            border: none;
+            font-family: inherit;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-primary {
+            background: var(--brand-bright);
+            color: white;
+            box-shadow: 0 12px 30px rgba(11,113,252,0.32);
+        }
+        .btn-primary:hover { box-shadow: 0 16px 38px rgba(11,113,252,0.42); }
+        .btn-secondary {
+            background: rgba(255,255,255,0.85);
+            color: var(--cobalt);
+            border: 0.5px solid var(--border-light);
+            backdrop-filter: blur(10px);
+        }
+        .hero-trust {
+            display: flex; gap: 22px;
+            font-size: 13px;
+            color: var(--text-tertiary);
+            font-weight: 600;
+            flex-wrap: wrap;
+        }
+        .hero-trust .check { color: #22C55E; font-weight: 900; margin-right: 6px; }
+
+        .hero-mockup {
+            display: flex; justify-content: center;
+            position: relative;
+        }
         @media (max-width: 900px) {
             .hero {
                 grid-template-columns: 1fr;
                 text-align: center;
-                padding: 120px 0 60px;
+                padding-top: 110px;
             }
             .hero-actions { justify-content: center; }
-            .hero-trust { justify-content: center; flex-wrap: wrap; }
+            .hero-trust { justify-content: center; }
             .hero-subtitle { margin-left: auto; margin-right: auto; }
-            .phone { width: 240px; height: 500px; }
         }
 
-        /* ─── SECTIONS ─────────────────────────────────────────── */
-        section {
+        /* ═══════════════════════════════════════════════════════════════
+           IPHONE 17 PRO MAX MOCKUP (premium)
+           ═══════════════════════════════════════════════════════════════ */
+        .iphone-17 {
             position: relative;
-            padding: var(--section-pad-y) 0;
-            z-index: 1;
-        }
-        .section-eyebrow {
-            display: inline-block;
-            font-size: 12px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--cobalt-bright);
-            margin-bottom: 16px;
-        }
-        .section-title {
-            font-size: clamp(2rem, 4vw, 3rem);
-            line-height: 1.1;
-            margin-bottom: 18px;
-            max-width: 800px;
-        }
-        .section-title .gradient {
-            background: var(--brand-bright);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .section-subtitle {
-            font-size: clamp(1rem, 1.3vw, 1.15rem);
-            color: var(--text-secondary);
-            max-width: 700px;
-            line-height: 1.6;
-            margin-bottom: 56px;
-        }
-        .section-header.center {
-            text-align: center;
-        }
-        .section-header.center .section-title,
-        .section-header.center .section-subtitle {
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        /* ─── PROBLEMA SECTION ─────────────────────────────────── */
-        .problem {
-            background: linear-gradient(180deg, transparent 0%, rgba(11,76,143,0.03) 100%);
-        }
-        .problem-quote {
-            font-family: 'Poppins', sans-serif;
-            font-size: clamp(1.6rem, 3vw, 2.4rem);
-            font-weight: 800;
-            line-height: 1.3;
-            text-align: center;
-            max-width: 900px;
-            margin: 0 auto 48px;
-            color: var(--text-primary);
-        }
-        .problem-quote .strike {
-            color: var(--text-tertiary);
-            text-decoration: line-through;
-            text-decoration-color: rgba(231,76,60,0.5);
-            text-decoration-thickness: 3px;
-        }
-        .problem-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            margin-top: 60px;
-        }
-        .stat-card {
-            background: var(--bg-card);
-            backdrop-filter: var(--glass-blur);
-            border: 0.5px solid rgba(255,255,255,0.9);
-            border-radius: var(--r-lg);
-            padding: 32px 24px;
-            text-align: center;
-            box-shadow: var(--glass-shadow);
-        }
-        .stat-num {
-            font-family: 'Poppins', sans-serif;
-            font-size: clamp(2.4rem, 5vw, 3.4rem);
-            font-weight: 900;
-            background: var(--brand-bright);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            line-height: 1;
-            margin-bottom: 8px;
-        }
-        .stat-label {
-            font-size: 13px;
-            color: var(--text-secondary);
-            font-weight: 600;
-        }
-        @media (max-width: 700px) {
-            .problem-stats { grid-template-columns: 1fr; }
-        }
-
-        /* ─── FEATURES (7 tabs as cards) ───────────────────────── */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 40px;
-            margin-top: 60px;
-        }
-        .feature-card {
-            background: white;
-            padding: 40px 30px;
-            border-radius: 40px;
-            box-shadow: 0 10px 40px rgba(11,76,143,0.04);
-            border: 1px solid rgba(11,76,143,0.06);
-            transition: all 0.5s cubic-bezier(0.19,1,0.22,1);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-        .feature-card:hover {
-            transform: translateY(-12px);
-            box-shadow: 0 30px 60px rgba(11,76,143,0.12);
-        }
-        
-        /* Mockup móvil — ratio adaptado al contenido real de las capturas */
-        .feature-mockup {
             width: 100%;
-            max-width: 280px;
-            /* Ratio que coincide con las capturas reales (no iPhone vertical extremo) */
-            aspect-ratio: 9 / 16;
-            background: #F4F8FF;
-            border-radius: 36px;
-            margin-bottom: 30px;
-            overflow: hidden;
-            border: 6px solid #1e293b;
+            max-width: 320px;
+            aspect-ratio: 9 / 19.5;          /* iPhone 17 Pro Max real ratio */
+            background: linear-gradient(135deg, #1A1F2E 0%, #0A0E1A 50%, #1A1F2E 100%);
+            border-radius: 58px;
+            padding: 7px;
             box-shadow:
-                0 20px 50px rgba(0,0,0,0.22),
-                inset 0 0 2px rgba(255,255,255,0.25);
-            position: relative;
-            transform: translateZ(0);
+                inset 0 0 0 1px rgba(255,255,255,0.06),
+                inset 0 1px 0 rgba(255,255,255,0.12),
+                0 30px 60px -20px rgba(11,76,143,0.5),
+                0 50px 100px -30px rgba(11,76,143,0.35);
         }
-
-        /* Dynamic Island — decorativa encima */
-        .feature-mockup::before {
+        .iphone-17::before {
+            /* Titanium frame edge highlight */
             content: '';
             position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 70px;
-            height: 22px;
-            background: #000;
-            border-radius: 20px;
-            z-index: 10;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            inset: 0;
+            border-radius: 58px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.10), transparent 30%, transparent 70%, rgba(255,255,255,0.08));
+            pointer-events: none;
         }
-
-        .feature-mockup img {
+        .iphone-17-screen {
+            position: relative;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            object-position: center top;
-            background: #F4F8FF;
-            display: block;
+            background: #FFFFFF;
+            border-radius: 52px;
+            overflow: hidden;
         }
+        .iphone-17-island {
+            position: absolute;
+            top: 12px; left: 50%;
+            transform: translateX(-50%);
+            width: 36%;
+            max-width: 110px;
+            height: 28px;
+            background: #000;
+            border-radius: 999px;
+            z-index: 50;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+        .iphone-17-island::after {
+            /* Camera lens */
+            content: '';
+            position: absolute;
+            top: 50%; right: 11px;
+            transform: translateY(-50%);
+            width: 7px; height: 7px;
+            background: radial-gradient(circle at 30% 30%, #2A4A6A, #050810);
+            border-radius: 50%;
+        }
+        .iphone-17-btn-right {
+            position: absolute;
+            top: 110px; right: -3px;
+            width: 4px; height: 90px;
+            background: linear-gradient(90deg, #2A2F3E, #0A0E1A);
+            border-radius: 0 2px 2px 0;
+        }
+        .iphone-17-btn-left {
+            position: absolute;
+            top: 100px; left: -3px;
+            width: 4px; height: 50px;
+            background: linear-gradient(270deg, #2A2F3E, #0A0E1A);
+            border-radius: 2px 0 0 2px;
+        }
+        .iphone-17-btn-left.below {
+            top: 165px; height: 70px;
+        }
+        .iphone-17-btn-left.action {
+            top: 245px; height: 35px;
+        }
+        /* Floating animation */
+        @keyframes phoneFloat {
+            0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+            50%      { transform: translateY(-12px) rotate(0deg); }
+        }
+        .iphone-17.floating { animation: phoneFloat 7s ease-in-out infinite; }
 
-        /* ════════════════════════════════════════════════════════════
-           MOCKUPS HTML — Capturas in-code de la app GoHappy
-           ════════════════════════════════════════════════════════════ */
+        /* ═══════════════════════════════════════════════════════════════
+           PANTALLAS DE LA APP (in-code mockups)
+           ═══════════════════════════════════════════════════════════════ */
         .m-screen {
             position: absolute; inset: 0;
-            background: linear-gradient(180deg, #FFFFFF 0%, #F0F7FF 40%, #E5F2FB 100%);
+            background: linear-gradient(180deg, #FFFFFF 0%, #F0F7FF 50%, #E5F2FB 100%);
             display: flex; flex-direction: column;
-            font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
-            font-size: 9px;
+            font-family: -apple-system, sans-serif;
+            font-size: 10px;
             color: #0F172A;
             overflow: hidden;
-            padding: 26px 10px 38px;
-            box-sizing: border-box;
+            padding: 50px 14px 50px;
         }
-        .m-statusbar {
-            position: absolute; top: 4px; left: 14px; right: 14px;
+        .m-sb {
+            position: absolute; top: 16px; left: 28px; right: 28px;
             display: flex; justify-content: space-between;
-            font-size: 8px; font-weight: 700; color: #0F172A;
-            z-index: 5;
+            font-size: 11px; font-weight: 800; color: #0F172A;
+            z-index: 40;
         }
-        .m-sb-right { letter-spacing: 1px; font-size: 7px; }
+        .m-sb-r { font-size: 10px; letter-spacing: 1.5px; }
 
-        /* Nav inferior (común a todos los mockups) */
+        /* Nav inferior */
         .m-nav {
-            position: absolute; bottom: 6px; left: 10px; right: 10px;
-            background: rgba(255,255,255,0.85);
-            backdrop-filter: blur(10px);
+            position: absolute; bottom: 8px; left: 12px; right: 12px;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(20px);
             border: 0.5px solid rgba(255,255,255,0.95);
             border-radius: 999px;
-            padding: 6px 8px;
-            display: flex; justify-content: space-between; align-items: center;
-            font-size: 12px;
-            box-shadow: 0 4px 12px rgba(11,76,143,0.10);
+            padding: 7px 10px;
+            display: flex; justify-content: space-around; align-items: center;
+            font-size: 13px;
+            box-shadow: 0 6px 16px rgba(11,76,143,0.12);
+            z-index: 30;
         }
         .m-nav span { opacity: 0.45; transition: all 0.2s; }
-        .m-nav span.active { opacity: 1; transform: scale(1.15); }
+        .m-nav span.active { opacity: 1; transform: scale(1.18); }
         .m-nav span.orb {
             background: white;
             border: 2px solid var(--cobalt);
             border-radius: 50%;
-            width: 22px; height: 22px;
+            width: 26px; height: 26px;
             display: flex; align-items: center; justify-content: center;
-            opacity: 1;
-            box-shadow: 0 3px 8px rgba(11,76,143,0.25);
-            font-size: 11px;
+            opacity: 1; font-size: 12px;
+            box-shadow: 0 3px 10px rgba(11,76,143,0.28);
         }
         .m-nav span.orb.active { background: var(--brand-gradient); color: white; }
 
-        /* ─── TODAY ─── */
-        .m-today { padding: 20px 12px 38px; }
-        .m-hero-pad { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
-        .m-greet { display: flex; gap: 8px; align-items: center; padding: 0 2px; }
-        .m-greet-emoji {
-            width: 28px; height: 28px;
-            background: linear-gradient(135deg, rgba(11,113,252,0.15), rgba(23,200,212,0.20));
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 14px;
+        /* ═══════════ Pantalla: AVENTURAS ═══════════ */
+        .m-adventures { padding: 50px 12px 60px; }
+        .m-hero { text-align: center; margin-bottom: 12px; }
+        .m-hero h4 { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 900; color: var(--cobalt); margin: 0; }
+        .m-hero p { font-size: 9px; color: #64748b; margin: 2px 0 0; }
+        .m-adv-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(217,119,6,0.06));
+            border: 0.5px solid rgba(217,119,6,0.20);
+            border-radius: 16px;
+            padding: 12px;
+            margin-top: 8px;
+            box-shadow: 0 5px 14px rgba(11,76,143,0.06);
         }
-        .m-greet h4 { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 800; color: var(--cobalt); margin: 0; }
-        .m-greet p { font-size: 8px; color: #64748b; margin: 0; }
+        .m-adv-card.water { background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(14,165,233,0.08)); border-color: rgba(14,165,233,0.22); }
+        .m-adv-head { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+        .m-adv-emoji { font-size: 24px; }
+        .m-adv-title { font-size: 11px; font-weight: 800; color: var(--cobalt); }
+        .m-adv-tag { font-size: 8px; color: #D97706; font-style: italic; }
+        .m-adv-tag.water { color: #0EA5E9; }
+        .m-adv-meta { display: flex; gap: 5px; font-size: 7.5px; margin-top: 4px; }
+        .m-adv-pill {
+            background: rgba(11,76,143,0.08);
+            padding: 2px 6px;
+            border-radius: 999px;
+            font-weight: 700;
+            color: var(--cobalt);
+        }
+
+        /* ═══════════ Pantalla: TODAY ═══════════ */
+        .m-today { padding: 50px 12px 60px; }
+        .m-greet { display: flex; gap: 8px; align-items: center; padding: 0 4px 8px; }
+        .m-greet-em {
+            width: 30px; height: 30px;
+            background: linear-gradient(135deg, rgba(11,113,252,0.18), rgba(23,200,212,0.22));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px;
+        }
+        .m-greet h4 { font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 900; color: var(--cobalt); margin: 0; }
+        .m-greet p { font-size: 8.5px; color: #64748b; margin: 1px 0 0; }
         .m-toggle {
-            display: flex; gap: 3px; padding: 3px;
-            background: rgba(255,255,255,0.85);
+            display: flex; gap: 4px; padding: 3px;
+            background: rgba(255,255,255,0.92);
             border-radius: 999px;
             border: 0.5px solid rgba(255,255,255,0.95);
             box-shadow: 0 4px 10px rgba(11,76,143,0.06);
-            margin-bottom: 2px;
+            margin: 6px 0 8px;
         }
-        .m-toggle-pill {
-            flex: 1; padding: 4px 6px;
-            font-size: 8px; font-weight: 700; color: #64748b;
-            text-align: center; border-radius: 999px;
-            white-space: nowrap;
-        }
-        .m-toggle-pill.active {
-            background: var(--brand-bright);
-            color: white;
-            box-shadow: 0 3px 8px rgba(11,113,252,0.28);
-        }
-        .m-plan-card {
-            background: rgba(255,255,255,0.92);
+        .m-toggle span { flex: 1; padding: 5px 8px; font-size: 8.5px; font-weight: 800; color: #64748b; text-align: center; border-radius: 999px; }
+        .m-toggle span.active { background: var(--brand-bright); color: white; box-shadow: 0 3px 9px rgba(11,113,252,0.32); }
+        .m-plan {
+            background: rgba(255,255,255,0.96);
             border: 0.5px solid rgba(255,255,255,0.95);
             border-radius: 14px;
-            padding: 9px;
-            box-shadow: 0 4px 14px rgba(11,76,143,0.06);
+            padding: 10px;
+            margin-top: 6px;
+            box-shadow: 0 4px 14px rgba(11,76,143,0.07);
         }
-        .m-plan-card.slim { padding: 7px 9px; }
         .m-plan-head { display: flex; gap: 7px; align-items: center; }
-        .m-plan-emoji {
-            width: 26px; height: 26px;
-            background: linear-gradient(135deg, rgba(11,113,252,0.10), rgba(23,200,212,0.15));
-            border-radius: 8px;
+        .m-plan-icon {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, rgba(11,113,252,0.12), rgba(23,200,212,0.18));
+            border-radius: 9px;
             display: flex; align-items: center; justify-content: center;
             font-size: 14px;
             flex-shrink: 0;
         }
-        .m-plan-title { font-size: 10px; font-weight: 800; color: var(--cobalt); }
-        .m-plan-meta { font-size: 7.5px; color: #64748b; margin-top: 1px; }
-        .m-plan-desc {
-            font-size: 8.5px; color: #475569; line-height: 1.4;
-            margin: 6px 0; padding: 0 2px;
-        }
+        .m-plan-t { font-size: 10.5px; font-weight: 800; color: var(--cobalt); }
+        .m-plan-m { font-size: 8.5px; color: #64748b; margin-top: 1px; }
         .m-plan-cta {
             background: var(--brand-bright);
             color: white;
-            border-radius: 8px;
+            border-radius: 9px;
             padding: 5px;
             text-align: center;
-            font-size: 8.5px; font-weight: 800;
-            margin-top: 4px;
-            box-shadow: 0 3px 8px rgba(11,113,252,0.28);
+            font-size: 9px; font-weight: 800;
+            margin-top: 6px;
+            box-shadow: 0 3px 9px rgba(11,113,252,0.28);
         }
 
-        /* ─── MAP ─── */
-        .m-map {
-            background: linear-gradient(180deg, #C5D9EE 0%, #A5C0E0 100%);
-            padding: 26px 10px 38px;
-        }
-        .m-map-tiles {
-            position: absolute; inset: 0;
-            background-image:
-                linear-gradient(rgba(11,76,143,0.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(11,76,143,0.08) 1px, transparent 1px),
-                radial-gradient(circle at 30% 40%, rgba(34,197,94,0.30) 0%, transparent 30%),
-                radial-gradient(circle at 70% 65%, rgba(23,200,212,0.25) 0%, transparent 25%),
-                linear-gradient(135deg, #B8D4EE 0%, #94BEDD 100%);
-            background-size: 24px 24px, 24px 24px, 100% 100%, 100% 100%, 100% 100%;
-        }
-        .m-search-bar {
-            position: relative; z-index: 2;
-            background: rgba(255,255,255,0.92);
-            border-radius: 999px;
-            padding: 7px 12px;
-            font-size: 9px;
-            color: #64748b;
-            font-weight: 600;
-            border: 0.5px solid rgba(255,255,255,0.95);
-            box-shadow: 0 4px 12px rgba(11,76,143,0.14);
-            margin-bottom: 6px;
-        }
-        .m-chips { position: relative; z-index: 2; display: flex; gap: 4px; overflow: hidden; }
-        .m-chip {
-            background: rgba(255,255,255,0.85);
-            padding: 4px 9px;
-            border-radius: 999px;
-            font-size: 8px; font-weight: 700;
-            color: var(--cobalt);
-            white-space: nowrap;
-            box-shadow: 0 2px 6px rgba(11,76,143,0.08);
-        }
-        .m-chip.active { background: var(--cobalt); color: white; }
-        .m-pin {
-            position: absolute;
-            width: 28px; height: 28px;
-            border-radius: 50% 50% 50% 0;
-            background: white;
-            border: 2px solid var(--cobalt);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px;
-            transform: rotate(-45deg);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-            z-index: 3;
-        }
-        .m-pin > * { transform: rotate(45deg); }
-        .m-pin-1 { top: 40%; left: 25%; }
-        .m-pin-2 { top: 55%; left: 60%; }
-        .m-pin-3.me { top: 65%; left: 38%; border-color: var(--cyan); background: var(--cyan); color: white; }
-        .m-fab {
-            position: absolute; bottom: 56px; right: 14px;
-            width: 36px; height: 36px;
-            background: var(--brand-bright);
-            color: white;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 22px; font-weight: 800;
-            box-shadow: 0 6px 16px rgba(11,113,252,0.40);
-            z-index: 4;
-        }
-
-        /* ─── CARE ─── */
-        .m-care { padding: 22px 10px 38px; }
+        /* ═══════════ Pantalla: CARE (coach) ═══════════ */
+        .m-care { padding: 50px 12px 60px; }
         .m-care-header {
             display: flex; gap: 8px; align-items: center;
-            background: linear-gradient(135deg, rgba(255,138,101,0.10), rgba(255,107,107,0.08));
+            background: linear-gradient(135deg, rgba(255,138,80,0.10), rgba(255,107,107,0.08));
             border-radius: 12px;
             padding: 8px;
             margin-bottom: 8px;
-            border: 0.5px solid rgba(255,138,101,0.20);
+            border: 0.5px solid rgba(255,138,80,0.22);
         }
-        .m-care-avatar {
+        .m-care-av {
             width: 28px; height: 28px;
-            background: linear-gradient(135deg, #FF8A65, #FF6B6B);
+            background: linear-gradient(135deg, #FF8A50, #FF6B6B);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 14px;
+            font-size: 14px; color: white;
+            box-shadow: 0 3px 8px rgba(255,138,80,0.32);
         }
-        .m-care-name { font-size: 11px; font-weight: 800; color: #C2410C; }
+        .m-care-name { font-size: 11px; font-weight: 900; color: #C2410C; }
         .m-care-sub { font-size: 8px; color: #9A3412; }
-        .m-care-chat { flex: 1; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+        .m-care-chat { flex: 1; display: flex; flex-direction: column; gap: 6px; }
         .m-bubble {
-            padding: 7px 10px;
+            padding: 8px 11px;
             border-radius: 14px;
-            font-size: 8.5px;
+            font-size: 9px;
             line-height: 1.4;
             max-width: 85%;
             word-wrap: break-word;
@@ -888,32 +559,19 @@
             color: #0F172A;
             align-self: flex-start;
             border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 8px rgba(11,76,143,0.06);
+            box-shadow: 0 2px 8px rgba(11,76,143,0.07);
             border: 0.5px solid rgba(11,76,143,0.08);
         }
-        .m-bubble.typing {
-            display: flex; gap: 2px; align-items: center; padding: 6px 10px;
-        }
-        .m-bubble.typing span {
-            width: 4px; height: 4px;
-            background: white;
-            border-radius: 50%;
-            opacity: 0.6;
-            animation: mDots 1.2s ease-in-out infinite;
-        }
-        .m-bubble.typing span:nth-child(2) { animation-delay: 0.2s; }
-        .m-bubble.typing span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes mDots { 0%, 60%, 100% { opacity: 0.3; } 30% { opacity: 1; } }
         .m-care-input {
             display: flex; gap: 6px; align-items: center;
             background: white;
             border-radius: 999px;
-            padding: 5px 6px 5px 12px;
+            padding: 6px 8px 6px 14px;
             border: 0.5px solid rgba(11,76,143,0.10);
-            margin-bottom: 38px;
+            margin-bottom: 8px;
             box-shadow: 0 2px 6px rgba(11,76,143,0.06);
         }
-        .m-input-text { flex: 1; font-size: 9px; color: #94a3b8; }
+        .m-care-input span:first-child { flex: 1; font-size: 9px; color: #94a3b8; }
         .m-send {
             width: 22px; height: 22px;
             background: var(--brand-bright);
@@ -923,717 +581,780 @@
             font-size: 13px; font-weight: 800;
         }
 
-        /* ─── QUESTS ─── */
-        .m-quests { padding: 22px 10px 38px; }
-        .m-q-header { text-align: center; margin-bottom: 8px; }
-        .m-q-header h4 { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 800; color: var(--cobalt); margin: 0; }
-        .m-q-header p { font-size: 8px; color: #64748b; margin: 1px 0 6px; }
-        .m-q-stats { display: flex; gap: 6px; justify-content: center; }
-        .m-q-stat {
-            background: white;
-            border-radius: 10px;
-            padding: 5px 8px;
-            box-shadow: 0 2px 6px rgba(11,76,143,0.06);
-            text-align: center;
-            min-width: 38px;
+        /* ═══════════ Pantalla: MAP ═══════════ */
+        .m-map {
+            background: linear-gradient(180deg, #C5D9EE 0%, #94BEDD 100%);
+            padding: 50px 12px 60px;
         }
-        .m-q-stat-val {
-            display: block; font-size: 13px; font-weight: 900;
+        .m-map-tiles {
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(11,76,143,0.10) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(11,76,143,0.10) 1px, transparent 1px),
+                radial-gradient(circle at 30% 35%, rgba(34,197,94,0.32) 0%, transparent 28%),
+                radial-gradient(circle at 70% 65%, rgba(23,200,212,0.28) 0%, transparent 25%),
+                linear-gradient(135deg, #B8D4EE 0%, #94BEDD 100%);
+            background-size: 28px 28px, 28px 28px, 100% 100%, 100% 100%, 100% 100%;
+        }
+        .m-search {
+            position: relative; z-index: 2;
+            background: rgba(255,255,255,0.94);
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-size: 10px;
+            color: #64748b;
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(11,76,143,0.14);
+            margin-bottom: 6px;
+        }
+        .m-chips { position: relative; z-index: 2; display: flex; gap: 4px; overflow: hidden; }
+        .m-chip {
+            background: rgba(255,255,255,0.88);
+            padding: 4px 9px;
+            border-radius: 999px;
+            font-size: 8.5px; font-weight: 800;
             color: var(--cobalt);
-            font-family: 'Poppins', sans-serif;
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(11,76,143,0.10);
         }
-        .m-q-stat-val.done { color: #22C55E; }
-        .m-q-stat-lbl { display: block; font-size: 7px; font-weight: 700; color: #64748b; }
-        .m-q-card {
-            display: flex; gap: 7px; align-items: center;
+        .m-chip.active { background: var(--cobalt); color: white; }
+        .m-pin {
+            position: absolute;
+            width: 32px; height: 32px;
+            border-radius: 50% 50% 50% 0;
             background: white;
-            border-radius: 12px;
-            padding: 7px 9px;
-            margin-top: 6px;
-            box-shadow: 0 2px 6px rgba(11,76,143,0.05);
-            border-left: 3px solid var(--cobalt-bright);
-        }
-        .m-q-icon { font-size: 16px; flex-shrink: 0; }
-        .m-q-text { flex: 1; min-width: 0; }
-        .m-q-title { font-size: 9.5px; font-weight: 800; color: var(--cobalt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .m-q-pts { font-size: 8px; font-weight: 700; color: #64748b; }
-        .m-q-check {
-            width: 18px; height: 18px;
-            border-radius: 50%;
-            border: 1.5px solid #cbd5e1;
+            border: 2.5px solid var(--cobalt);
             display: flex; align-items: center; justify-content: center;
-            font-size: 10px; font-weight: 900;
-            color: transparent;
-            flex-shrink: 0;
+            font-size: 13px;
+            transform: rotate(-45deg);
+            box-shadow: 0 5px 12px rgba(0,0,0,0.30);
+            z-index: 3;
         }
-        .m-q-card:first-of-type .m-q-check { background: #22C55E; border-color: #22C55E; color: white; }
+        .m-pin > * { transform: rotate(45deg); }
+        .m-pin-1 { top: 38%; left: 22%; }
+        .m-pin-2 { top: 52%; left: 58%; }
+        .m-pin-3 { top: 65%; left: 35%; border-color: var(--cyan); background: var(--cyan); color: white; }
+        .m-fab {
+            position: absolute; bottom: 72px; right: 16px;
+            width: 38px; height: 38px;
+            background: var(--brand-bright);
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; font-weight: 800;
+            box-shadow: 0 6px 16px rgba(11,113,252,0.42);
+            z-index: 4;
+        }
 
-        /* ─── MOMENTS ─── */
-        .m-moments { padding: 22px 10px 38px; }
-        .m-mom-header { text-align: center; margin-bottom: 6px; }
-        .m-mom-header h4 { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 800; color: var(--cobalt); margin: 0; }
-        .m-mom-header p { font-size: 7.5px; color: #64748b; margin: 1px 0 4px; }
+        /* ═══════════ Pantalla: MOMENTS ═══════════ */
+        .m-moments { padding: 50px 12px 60px; }
+        .m-mh { text-align: center; margin-bottom: 4px; }
+        .m-mh h4 { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 900; color: var(--cobalt); margin: 0; }
+        .m-mh p { font-size: 8px; color: #64748b; margin: 1px 0 5px; }
+        .m-feed-toggle {
+            display: flex; gap: 4px; padding: 3px;
+            background: rgba(255,255,255,0.92);
+            border-radius: 999px;
+            margin-bottom: 6px;
+        }
+        .m-feed-toggle span { flex: 1; padding: 4px; font-size: 8px; font-weight: 800; text-align: center; color: #64748b; border-radius: 999px; }
+        .m-feed-toggle span.active { background: var(--brand-bright); color: white; }
         .m-mom-card {
             background: white;
             border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(11,76,143,0.06);
+            box-shadow: 0 4px 12px rgba(11,76,143,0.07);
             margin-top: 5px;
             border: 0.5px solid rgba(255,255,255,0.95);
         }
-        .m-mom-card.slim { display: flex; gap: 6px; padding: 6px; align-items: center; }
         .m-mom-meta { display: flex; gap: 6px; align-items: center; padding: 6px 8px 4px; }
         .m-mom-av {
             width: 22px; height: 22px;
             background: linear-gradient(135deg, var(--cobalt), var(--cyan));
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 11px;
-            color: white;
-            flex-shrink: 0;
+            font-size: 11px; color: white;
         }
-        .m-mom-name { font-size: 9px; font-weight: 800; color: var(--cobalt); line-height: 1; }
+        .m-mom-name { font-size: 9px; font-weight: 800; color: var(--cobalt); }
         .m-mom-time { font-size: 7px; color: #94a3b8; margin-top: 1px; }
         .m-mom-img {
-            height: 70px;
-            background-size: cover;
-            background-position: center;
+            height: 80px;
+            background: linear-gradient(135deg, #FDE68A 0%, #FCA5A5 60%, #93C5FD 100%);
+            position: relative;
         }
-        .m-mom-img-1 { background: linear-gradient(135deg, #FDE68A 0%, #FCA5A5 60%, #93C5FD 100%); position: relative; }
-        .m-mom-img-1::after { content: '🚲'; position: absolute; bottom: 8px; right: 12px; font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
-        .m-mom-img-2 { width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg, #86EFAC 0%, #67E8F9 100%); flex-shrink: 0; }
-        .m-mom-card.slim .m-mom-meta { padding: 0; flex: 1; }
-        .m-mom-cap { font-size: 8.5px; padding: 4px 9px 2px; color: #0F172A; }
-        .m-mom-reacts {
-            display: flex; gap: 7px; padding: 4px 9px 7px;
-            font-size: 8px; color: #64748b; font-weight: 600;
+        .m-mom-img::after {
+            content: '🚲';
+            position: absolute;
+            bottom: 8px; right: 12px;
+            font-size: 30px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
-        .m-mom-fab {
-            position: absolute; bottom: 56px; right: 14px;
-            width: 38px; height: 38px;
-            background: var(--brand-bright);
-            color: white;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 16px;
-            box-shadow: 0 6px 16px rgba(11,113,252,0.36);
-            z-index: 4;
-        }
+        .m-mom-cap { font-size: 9px; padding: 4px 9px 2px; color: #0F172A; }
+        .m-mom-rx { display: flex; gap: 7px; padding: 4px 9px 7px; font-size: 8px; color: #64748b; font-weight: 700; }
 
-        /* ─── RANKING ─── */
-        .m-ranking { padding: 22px 10px 38px; }
-        .m-r-header { text-align: center; margin-bottom: 5px; }
-        .m-r-header h4 { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 900; color: var(--cobalt); margin: 0; letter-spacing: 0.5px; }
-        .m-r-header p { font-size: 7.5px; color: #64748b; margin: 1px 0 6px; }
-        .m-r-toggle {
-            display: flex; gap: 3px; padding: 3px;
-            background: rgba(255,255,255,0.9);
+        /* ═══════════ Pantalla: TOP TRIBU ═══════════ */
+        .m-top { padding: 50px 12px 60px; }
+        .m-top-h { text-align: center; margin-bottom: 6px; }
+        .m-top-h h4 { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 900; color: var(--cobalt); margin: 0; letter-spacing: 0.5px; }
+        .m-top-h p { font-size: 8px; color: #64748b; margin: 1px 0 5px; }
+        .m-top-toggle {
+            display: flex; gap: 4px; padding: 3px;
+            background: rgba(255,255,255,0.92);
             border-radius: 999px;
-            border: 0.5px solid rgba(11,76,143,0.10);
-            margin-bottom: 6px;
-            box-shadow: 0 3px 8px rgba(11,76,143,0.06);
+            margin-bottom: 8px;
         }
-        .m-r-toggle span {
-            flex: 1; text-align: center; padding: 4px 6px;
-            font-size: 8px; font-weight: 700;
-            color: #64748b; border-radius: 999px;
+        .m-top-toggle span { flex: 1; padding: 4px 6px; font-size: 8.5px; font-weight: 800; text-align: center; color: #64748b; border-radius: 999px; }
+        .m-top-toggle span.active { background: var(--brand-bright); color: white; }
+        .m-pod {
+            display: flex; gap: 5px; align-items: flex-end;
+            justify-content: center; padding: 8px 4px;
         }
-        .m-r-toggle span.active { background: var(--brand-bright); color: white; }
-        .m-r-podium {
-            display: flex; gap: 4px; align-items: flex-end;
-            justify-content: center; padding: 8px 4px 8px;
-        }
-        .m-r-pod {
-            flex: 1; max-width: 32%;
+        .m-pod-card {
+            flex: 1; max-width: 30%;
             background: white;
-            border-radius: 12px;
-            padding: 7px 4px;
+            border-radius: 14px;
+            padding: 8px 4px;
             text-align: center;
-            box-shadow: 0 3px 10px rgba(11,76,143,0.08);
+            box-shadow: 0 4px 12px rgba(11,76,143,0.10);
             border: 0.5px solid rgba(255,255,255,0.95);
         }
-        .m-r-pod.large {
-            transform: translateY(-4px);
-            background: linear-gradient(160deg, #FFFFFF, rgba(184,240,244,0.5));
+        .m-pod-card.large {
+            transform: translateY(-6px);
+            background: linear-gradient(160deg, #FFFFFF, rgba(184,240,244,0.55));
             border: 0.5px solid rgba(23,200,212,0.45);
-            box-shadow: 0 6px 16px rgba(11,76,143,0.14);
+            box-shadow: 0 6px 18px rgba(11,76,143,0.16);
         }
-        .m-r-pod-medal { font-size: 14px; line-height: 1; }
-        .m-r-pod-avatar {
-            width: 24px; height: 24px;
+        .m-pod-medal { font-size: 16px; line-height: 1; }
+        .m-pod-av {
+            width: 26px; height: 26px;
             background: linear-gradient(135deg, var(--cobalt), var(--cyan));
             color: white;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            margin: 3px auto;
-            font-size: 12px;
+            margin: 4px auto; font-size: 13px;
         }
-        .m-r-pod-name { font-size: 8px; font-weight: 800; color: var(--cobalt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .m-r-pod-pts { font-size: 7.5px; font-weight: 700; color: #64748b; margin-top: 1px; }
-        .m-r-row {
-            display: flex; gap: 6px; align-items: center;
-            background: white;
-            border-radius: 10px;
-            padding: 5px 8px;
-            margin-top: 4px;
-            box-shadow: 0 2px 5px rgba(11,76,143,0.05);
-            font-size: 8.5px;
-        }
-        .m-r-row > span:first-child { font-weight: 800; color: #94a3b8; font-size: 8px; }
-        .m-r-thumb {
-            width: 22px; height: 22px; border-radius: 8px;
-            background: linear-gradient(135deg, #67E8F9, #93C5FD);
-            flex-shrink: 0;
-        }
-        .m-r-info { flex: 1; font-weight: 700; color: var(--cobalt); }
+        .m-pod-n { font-size: 8.5px; font-weight: 800; color: var(--cobalt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .m-pod-s { font-size: 8px; font-weight: 700; color: #64748b; margin-top: 1px; }
 
-        /* ─── PROFILE ─── */
-        .m-profile { padding: 22px 10px 38px; }
+        /* ═══════════ Pantalla: PERFIL + ADN ═══════════ */
+        .m-profile { padding: 50px 12px 60px; }
         .m-p-hero {
             background: linear-gradient(180deg, #FFFFFF, #F0F7FF);
             border-radius: 14px;
             padding: 10px 8px;
             text-align: center;
-            box-shadow: 0 3px 10px rgba(11,76,143,0.08);
+            box-shadow: 0 4px 12px rgba(11,76,143,0.10);
             margin-bottom: 6px;
         }
-        .m-p-avatar {
-            width: 38px; height: 38px;
+        .m-p-av {
+            width: 42px; height: 42px;
             background: linear-gradient(135deg, var(--cobalt), var(--cyan));
             color: white;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             margin: 0 auto 4px;
-            font-size: 18px;
-            box-shadow: 0 4px 10px rgba(11,76,143,0.20);
+            font-size: 20px;
+            box-shadow: 0 5px 12px rgba(11,76,143,0.24);
         }
-        .m-p-name { font-size: 10px; font-weight: 800; color: var(--cobalt); }
+        .m-p-name { font-size: 10.5px; font-weight: 900; color: var(--cobalt); }
         .m-p-pts {
             display: inline-block;
             background: var(--brand-bright);
             color: white;
-            padding: 3px 10px;
+            padding: 3px 11px;
             border-radius: 999px;
-            font-size: 8.5px; font-weight: 900;
+            font-size: 9px; font-weight: 900;
             margin: 3px 0 4px;
-            box-shadow: 0 3px 8px rgba(11,113,252,0.28);
-        }
-        .m-p-bar {
-            height: 4px;
-            background: rgba(11,76,143,0.10);
-            border-radius: 999px;
-            overflow: hidden;
-        }
-        .m-p-bar-fill {
-            height: 100%;
-            width: 65%;
-            background: var(--brand-bright);
-            border-radius: 999px;
+            box-shadow: 0 3px 9px rgba(11,113,252,0.32);
         }
         .m-p-dna {
-            background: linear-gradient(135deg, rgba(11,113,252,0.10), rgba(23,200,212,0.12));
-            border: 0.5px solid rgba(11,113,252,0.20);
+            background: linear-gradient(135deg, rgba(11,113,252,0.10), rgba(23,200,212,0.14));
+            border: 0.5px solid rgba(11,113,252,0.22);
             border-radius: 12px;
-            padding: 8px;
+            padding: 9px;
             margin-bottom: 6px;
         }
-        .m-p-dna-title { font-size: 8.5px; font-weight: 800; color: var(--cobalt); margin-bottom: 4px; }
+        .m-p-dna-t { font-size: 9px; font-weight: 900; color: var(--cobalt); margin-bottom: 5px; }
         .m-p-tags { display: flex; gap: 4px; flex-wrap: wrap; }
         .m-p-tag {
             background: white;
             padding: 3px 7px;
             border-radius: 999px;
             font-size: 7.5px;
-            font-weight: 700;
+            font-weight: 800;
             color: var(--cobalt);
-            box-shadow: 0 1px 3px rgba(11,76,143,0.06);
+            box-shadow: 0 1px 3px rgba(11,76,143,0.08);
         }
-        .m-p-actions { display: flex; gap: 5px; }
-        .m-p-action {
-            flex: 1;
+        .m-p-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .m-p-card {
             background: white;
             border-radius: 10px;
             padding: 7px 4px;
             text-align: center;
             display: flex; flex-direction: column; gap: 2px;
             align-items: center;
-            box-shadow: 0 2px 6px rgba(11,76,143,0.06);
+            box-shadow: 0 2px 6px rgba(11,76,143,0.07);
         }
-        .m-p-action span:first-child { font-size: 16px; }
-        .m-p-action span:last-child { font-size: 7.5px; font-weight: 700; color: var(--cobalt); }
+        .m-p-card span:first-child { font-size: 15px; }
+        .m-p-card span:last-child { font-size: 7.5px; font-weight: 800; color: var(--cobalt); }
 
+        /* ═══════════ Pantalla: MI FAMILIA ═══════════ */
+        .m-family { padding: 50px 12px 60px; }
+        .m-fam-code {
+            background: linear-gradient(135deg, rgba(11,113,252,0.10), rgba(23,200,212,0.12));
+            border: 0.5px solid rgba(11,113,252,0.22);
+            border-radius: 14px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+        .m-fam-code-l { font-size: 7.5px; font-weight: 900; color: #64748b; text-transform: uppercase; margin-bottom: 3px; }
+        .m-fam-code-v { font-family: 'Courier New',monospace; font-size: 17px; font-weight: 900; color: var(--cobalt); letter-spacing: 2.5px; }
+        .m-fam-members { background: white; border-radius: 14px; padding: 10px; margin-bottom: 7px; }
+        .m-fam-h { font-size: 9.5px; font-weight: 900; color: var(--cobalt); margin-bottom: 6px; }
+        .m-fam-list { display: flex; flex-wrap: wrap; gap: 5px; }
+        .m-fam-m {
+            display: flex; gap: 5px; align-items: center;
+            padding: 5px 8px;
+            background: rgba(11,76,143,0.05);
+            border-radius: 999px;
+        }
+        .m-fam-mav {
+            width: 22px; height: 22px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--cobalt), var(--cyan));
+            color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px;
+        }
+        .m-fam-mn { font-size: 8.5px; font-weight: 800; color: var(--cobalt); }
+
+        /* ═══════════════════════════════════════════════════════════════
+           SECTION HEADERS
+           ═══════════════════════════════════════════════════════════════ */
+        section { padding: var(--section-pad-y) 0; position: relative; }
+        .section-header { text-align: center; max-width: 800px; margin: 0 auto 60px; }
+        .section-eyebrow {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--cobalt);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: rgba(11,113,252,0.08);
+            padding: 6px 14px;
+            border-radius: var(--r-pill);
+            margin-bottom: 18px;
+        }
+        .section-title {
+            font-size: clamp(2rem, 4.5vw, 3.2rem);
+            margin-bottom: 18px;
+            color: var(--text-primary);
+        }
+        .section-subtitle {
+            font-size: clamp(1rem, 1.4vw, 1.1rem);
+            color: var(--text-secondary);
+            max-width: 640px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           PROBLEMA section
+           ═══════════════════════════════════════════════════════════════ */
+        .problem-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 40px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: var(--glass-blur);
+            border: 0.5px solid var(--border-light);
+            border-radius: var(--r-lg);
+            padding: 28px 22px;
+            text-align: center;
+            box-shadow: var(--glass-shadow);
+        }
+        .stat-num {
+            font-family: 'Poppins', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 900;
+            background: var(--brand-bright);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        @media (max-width: 720px) { .problem-stats { grid-template-columns: 1fr; } }
+
+        /* ═══════════════════════════════════════════════════════════════
+           FEATURES GRID (8 funciones)
+           ═══════════════════════════════════════════════════════════════ */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        .feature-card {
+            background: rgba(255,255,255,0.88);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 0.5px solid var(--border-light);
+            border-radius: var(--r-xl);
+            padding: 28px 24px 32px;
+            box-shadow: var(--glass-shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--glass-shadow-lg);
+        }
+        .feature-mockup {
+            margin-bottom: 24px;
+            max-width: 200px;
+            width: 100%;
+        }
         .feature-icon {
-            font-size: 32px;
-            margin-bottom: 20px;
-            display: block;
+            font-size: 28px;
+            margin-bottom: 14px;
+            display: inline-block;
+            padding: 12px;
+            background: linear-gradient(135deg, rgba(11,113,252,0.10), rgba(23,200,212,0.14));
+            border-radius: 18px;
         }
         .feature-title {
-            font-size: 19px;
+            font-size: 18px;
             font-weight: 800;
-            margin-bottom: 8px;
             color: var(--cobalt);
+            margin-bottom: 10px;
+            font-family: 'Poppins', sans-serif;
         }
         .feature-desc {
             font-size: 14px;
             color: var(--text-secondary);
-            line-height: 1.6;
+            line-height: 1.55;
         }
 
-        /* ─── HOW IT WORKS (3 steps) ────────────────────────────── */
+        /* ═══════════════════════════════════════════════════════════════
+           AVENTURAS — sección dedicada
+           ═══════════════════════════════════════════════════════════════ */
+        .adv-spotlight {
+            background: linear-gradient(180deg, #FFFFFF 0%, rgba(255,247,237,0.6) 100%);
+        }
+        .adv-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-top: 40px;
+        }
+        .adv-card {
+            background: white;
+            border-radius: 22px;
+            padding: 22px 20px 24px;
+            border-left: 5px solid var(--accent-orange);
+            box-shadow: 0 8px 22px rgba(11,76,143,0.10);
+            transition: transform 0.25s;
+        }
+        .adv-card:hover { transform: translateY(-4px); }
+        .adv-card-em { font-size: 38px; margin-bottom: 8px; line-height: 1; }
+        .adv-card-t { font-family: 'Poppins', sans-serif; font-size: 17px; font-weight: 800; color: var(--cobalt); margin-bottom: 6px; }
+        .adv-card-sub { font-size: 12px; color: var(--text-secondary); font-style: italic; margin-bottom: 14px; }
+        .adv-card-pill {
+            display: inline-block;
+            background: rgba(217,119,6,0.10);
+            color: #D97706;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .adv-card.water { border-left-color: #0EA5E9; }
+        .adv-card.water .adv-card-pill { background: rgba(14,165,233,0.10); color: #0EA5E9; }
+        .adv-card.detective { border-left-color: #7C3AED; }
+        .adv-card.detective .adv-card-pill { background: rgba(124,58,237,0.10); color: #7C3AED; }
+        .adv-card.chef { border-left-color: #DC2626; }
+        .adv-card.chef .adv-card-pill { background: rgba(220,38,38,0.10); color: #DC2626; }
+        .adv-card.space { border-left-color: #1E40AF; }
+        .adv-card.space .adv-card-pill { background: rgba(30,64,175,0.10); color: #1E40AF; }
+        .adv-card.gallery { border-left-color: #DB2777; }
+        .adv-card.gallery .adv-card-pill { background: rgba(219,39,119,0.10); color: #DB2777; }
+
+        /* ═══════════════════════════════════════════════════════════════
+           PRIVACIDAD / SEGURIDAD
+           ═══════════════════════════════════════════════════════════════ */
+        .privacy {
+            background: linear-gradient(180deg, var(--cobalt-deep) 0%, var(--cobalt) 100%);
+            color: white;
+        }
+        .privacy .section-eyebrow { background: rgba(255,255,255,0.14); color: white; }
+        .privacy .section-title { color: white; }
+        .privacy .section-subtitle { color: rgba(255,255,255,0.78); }
+        .privacy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 22px;
+            margin-top: 50px;
+        }
+        .privacy-card {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+            border: 0.5px solid rgba(255,255,255,0.12);
+            border-radius: 22px;
+            padding: 26px 24px;
+        }
+        .privacy-icon {
+            display: inline-flex;
+            align-items: center; justify-content: center;
+            width: 48px; height: 48px;
+            background: rgba(23,200,212,0.18);
+            border-radius: 14px;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+        .privacy-title { font-size: 16px; font-weight: 800; margin-bottom: 8px; color: white; font-family: 'Poppins', sans-serif; }
+        .privacy-desc { font-size: 13.5px; color: rgba(255,255,255,0.75); line-height: 1.55; }
+
+        /* ═══════════════════════════════════════════════════════════════
+           HOW IT WORKS
+           ═══════════════════════════════════════════════════════════════ */
         .steps {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 32px;
-            position: relative;
+            gap: 28px;
+            margin-top: 50px;
         }
         .step {
             text-align: center;
             position: relative;
         }
         .step-num {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 20px;
-            background: var(--brand-gradient);
-            border-radius: 50%;
+            width: 52px; height: 52px;
+            background: var(--brand-bright);
             color: white;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center; justify-content: center;
             font-family: 'Poppins', sans-serif;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 900;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.25),
-                0 10px 30px rgba(11,113,252,0.28);
+            margin-bottom: 18px;
+            box-shadow: 0 10px 22px rgba(11,113,252,0.32);
         }
-        .step-title {
-            font-size: 18px;
-            margin-bottom: 8px;
-            color: var(--cobalt);
-        }
-        .step-desc {
-            font-size: 14px;
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-        @media (max-width: 768px) {
-            .steps { grid-template-columns: 1fr; }
-        }
+        .step-title { font-size: 17px; font-weight: 800; color: var(--cobalt); margin-bottom: 10px; font-family: 'Poppins', sans-serif; }
+        .step-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.55; max-width: 280px; margin: 0 auto; }
+        @media (max-width: 720px) { .steps { grid-template-columns: 1fr; } }
 
-        /* ─── PRICING ────────────────────────────────────────────── */
+        /* ═══════════════════════════════════════════════════════════════
+           PRICING
+           ═══════════════════════════════════════════════════════════════ */
         .pricing-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 24px;
-            max-width: 850px;
-            margin: 0 auto;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            max-width: 880px;
+            margin: 50px auto 0;
         }
+        @media (max-width: 720px) { .pricing-grid { grid-template-columns: 1fr; } }
         .price-card {
-            background: var(--bg-card);
-            backdrop-filter: var(--glass-blur);
-            border: 0.5px solid rgba(255,255,255,0.9);
+            background: white;
+            border: 1px solid var(--border-light);
             border-radius: var(--r-xl);
-            padding: 40px 32px;
-            box-shadow: var(--glass-shadow);
+            padding: 36px 30px;
             position: relative;
+            box-shadow: var(--glass-shadow);
         }
         .price-card.premium {
-            background: var(--brand-gradient);
-            color: white;
-            box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.2),
-                0 30px 60px rgba(11,113,252,0.3);
-            transform: scale(1.03);
+            background: linear-gradient(135deg, #FFFFFF 0%, rgba(184,240,244,0.45) 100%);
+            border: 1px solid rgba(23,200,212,0.32);
+            box-shadow: var(--glass-shadow-lg);
         }
-        .price-card.premium .price-name,
-        .price-card.premium .price-tag,
-        .price-card.premium .price-features li { color: white; }
-        .price-card.premium .price-features li::before { background: white; }
         .price-badge {
-            position: absolute;
-            top: 16px; right: 16px;
-            background: rgba(255,255,255,0.18);
-            backdrop-filter: blur(10px);
+            position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+            background: var(--brand-bright);
             color: white;
-            padding: 4px 12px;
+            padding: 6px 16px;
             border-radius: var(--r-pill);
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 800;
+            letter-spacing: 1px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            box-shadow: 0 6px 16px rgba(11,113,252,0.32);
         }
-        .price-name {
-            font-family: 'Poppins', sans-serif;
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--cobalt);
-            margin-bottom: 12px;
-        }
+        .price-name { font-size: 14px; font-weight: 800; color: var(--text-secondary); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
         .price-tag {
             font-family: 'Poppins', sans-serif;
-            font-size: 48px;
-            font-weight: 900;
+            font-size: 3rem; font-weight: 900;
             color: var(--cobalt);
-            margin-bottom: 4px;
             line-height: 1;
+            margin-bottom: 4px;
         }
-        .price-tag small {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-        .price-card.premium .price-tag small { color: rgba(255,255,255,0.85); }
-        .price-period {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-bottom: 28px;
-        }
+        .price-tag small { font-size: 1rem; font-weight: 700; color: var(--text-tertiary); }
+        .price-period { font-size: 13px; color: var(--text-tertiary); margin-bottom: 26px; }
         .price-features {
             list-style: none;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
         }
         .price-features li {
+            padding: 11px 0;
+            border-top: 0.5px solid var(--border-light);
             font-size: 14px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
             color: var(--text-primary);
-            padding: 8px 0 8px 28px;
-            position: relative;
-            line-height: 1.4;
         }
         .price-features li::before {
-            content: '';
-            position: absolute;
-            left: 0; top: 14px;
-            width: 18px; height: 18px;
-            background: var(--brand-bright);
-            border-radius: 50%;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z'/%3E%3C/svg%3E");
-            background-size: 14px;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        .price-card.premium .price-features li::before {
-            background-color: rgba(255,255,255,0.25);
+            content: '✓';
+            color: #22C55E;
+            font-weight: 900;
+            flex-shrink: 0;
         }
         .price-cta {
-            display: block;
-            text-align: center;
-            padding: 14px;
-            border-radius: var(--r-pill);
-            font-weight: 700;
-            font-size: 15px;
+            display: block; text-align: center;
+            width: 100%; padding: 14px;
             background: var(--brand-bright);
             color: white;
-            transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
-            box-shadow: 0 6px 18px rgba(11,113,252,0.25);
+            border-radius: var(--r-pill);
+            font-weight: 800;
+            font-size: 14.5px;
+            box-shadow: 0 8px 22px rgba(11,113,252,0.30);
+            transition: transform 0.18s;
         }
-        .price-card.premium .price-cta {
-            background: white;
-            color: var(--cobalt);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
-        }
-        .price-cta:hover { transform: scale(1.04); }
-        @media (max-width: 700px) {
-            .pricing-grid { grid-template-columns: 1fr; }
-            .price-card.premium { transform: none; }
-        }
+        .price-cta:hover { transform: translateY(-2px); }
 
-        /* ─── FAQ ────────────────────────────────────────────────── */
+        /* ═══════════════════════════════════════════════════════════════
+           FAQ
+           ═══════════════════════════════════════════════════════════════ */
         .faq-list {
-            max-width: 800px;
-            margin: 0 auto;
+            max-width: 720px;
+            margin: 50px auto 0;
         }
         .faq-item {
-            background: var(--bg-card);
-            backdrop-filter: var(--glass-blur);
-            border: 0.5px solid rgba(255,255,255,0.9);
-            border-radius: var(--r-md);
-            padding: 4px 24px;
-            margin-bottom: 12px;
-            box-shadow: var(--glass-shadow);
+            background: white;
+            border: 0.5px solid var(--border-light);
+            border-radius: 18px;
+            padding: 0;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 14px rgba(11,76,143,0.06);
             overflow: hidden;
-            transition: box-shadow 0.2s ease;
         }
-        .faq-item[open] { box-shadow: var(--glass-shadow-lg); }
         .faq-item summary {
-            cursor: pointer;
-            padding: 18px 0;
-            font-weight: 700;
-            font-size: 16px;
+            padding: 20px 24px;
+            font-weight: 800;
             color: var(--cobalt);
+            cursor: pointer;
+            font-size: 15.5px;
             list-style: none;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            gap: 16px;
+            align-items: center;
         }
         .faq-item summary::-webkit-details-marker { display: none; }
-        .faq-item summary::after {
-            content: '+';
-            font-family: 'Poppins', sans-serif;
-            font-size: 24px;
-            color: var(--cobalt-bright);
-            transition: transform 0.3s ease;
-            line-height: 1;
-        }
+        .faq-item summary::after { content: '+'; font-size: 26px; font-weight: 400; color: var(--text-tertiary); transition: transform 0.2s; }
         .faq-item[open] summary::after { transform: rotate(45deg); }
         .faq-item p {
-            padding: 0 0 18px;
-            font-size: 14px;
+            padding: 0 24px 22px;
             color: var(--text-secondary);
-            line-height: 1.7;
+            font-size: 14px;
+            line-height: 1.6;
         }
 
-        /* ─── CTA FINAL ──────────────────────────────────────────── */
+        /* ═══════════════════════════════════════════════════════════════
+           CTA FINAL
+           ═══════════════════════════════════════════════════════════════ */
         .cta-final {
             background: var(--brand-gradient);
-            border-radius: var(--r-xl);
-            padding: 64px 40px;
             color: white;
             text-align: center;
+            border-radius: var(--r-xl);
+            padding: 70px 30px;
+            margin: 40px 0;
             position: relative;
             overflow: hidden;
-            box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.2),
-                0 30px 80px rgba(11,113,252,0.3);
         }
-        .cta-final::before {
+        .cta-final::before, .cta-final::after {
             content: '';
             position: absolute;
-            inset: 0;
-            background:
-                radial-gradient(ellipse 60% 50% at 20% 30%, rgba(255,255,255,0.18) 0%, transparent 60%),
-                radial-gradient(ellipse 70% 60% at 85% 80%, rgba(23,200,212,0.3) 0%, transparent 55%);
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
             pointer-events: none;
         }
+        .cta-final::before { top: -150px; left: -150px; }
+        .cta-final::after  { bottom: -150px; right: -150px; }
         .cta-final h2 {
+            font-size: clamp(2rem, 5vw, 3rem);
             color: white;
-            font-size: clamp(1.8rem, 4vw, 2.8rem);
-            margin-bottom: 16px;
-            position: relative;
-            z-index: 1;
+            margin-bottom: 14px;
+            position: relative; z-index: 2;
         }
         .cta-final p {
-            font-size: 17px;
-            color: rgba(255,255,255,0.92);
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.86);
             margin-bottom: 32px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            position: relative;
-            z-index: 1;
+            max-width: 540px;
+            margin-left: auto; margin-right: auto;
+            position: relative; z-index: 2;
         }
         .cta-final .btn {
             background: white;
             color: var(--cobalt);
-            position: relative;
-            z-index: 1;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+            font-weight: 900;
+            position: relative; z-index: 2;
         }
         .cta-qr {
-            display: inline-block;
+            display: inline-flex; flex-direction: column;
+            align-items: center;
+            margin-top: 36px;
             background: white;
             padding: 16px;
-            border-radius: 16px;
-            margin-top: 32px;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.18);
-            position: relative;
-            z-index: 1;
+            border-radius: 18px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+            position: relative; z-index: 2;
         }
-        .cta-qr canvas, .cta-qr img { display: block; }
-        .cta-qr-label {
-            font-size: 11px;
-            color: var(--cobalt);
-            margin-top: 8px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        .cta-qr-label { font-size: 11px; font-weight: 800; color: var(--cobalt); margin-top: 6px; }
 
-        /* ─── FOOTER ─────────────────────────────────────────────── */
+        /* ═══════════════════════════════════════════════════════════════
+           FOOTER
+           ═══════════════════════════════════════════════════════════════ */
         footer {
-            background: var(--text-primary);
+            background: #0A1424;
             color: rgba(255,255,255,0.7);
-            padding: 60px 0 32px;
-            margin-top: 80px;
+            padding: 60px 0 30px;
         }
         .footer-grid {
             display: grid;
             grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 48px;
-            margin-bottom: 48px;
+            gap: 40px;
+            margin-bottom: 40px;
         }
-        .footer-brand {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 22px;
-            font-weight: 900;
-            color: white;
-            margin-bottom: 12px;
-        }
-        .footer-brand img {
-            height: 32px;
-            background: white;
-            padding: 4px 12px;
-            border-radius: 999px;
-            object-fit: contain;
-        }
-        .footer-tag {
-            font-size: 14px;
-            line-height: 1.6;
-            max-width: 320px;
-        }
-        .footer-col h4 {
-            color: white;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 18px;
-            font-weight: 800;
-        }
-        .footer-col ul {
-            list-style: none;
-        }
-        .footer-col li {
-            padding: 6px 0;
-            font-size: 14px;
-        }
+        @media (max-width: 720px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+        .footer-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .footer-brand img { width: 36px; height: 36px; border-radius: 8px; }
+        .footer-brand span { font-family: 'Poppins', sans-serif; font-weight: 900; font-size: 18px; color: white; }
+        .footer-tag { font-size: 13px; line-height: 1.6; max-width: 320px; }
+        .footer-col h4 { color: white; font-size: 14px; margin-bottom: 14px; font-family: 'Poppins', sans-serif; }
+        .footer-col ul { list-style: none; }
+        .footer-col li { margin-bottom: 8px; }
+        .footer-col a { font-size: 13.5px; color: rgba(255,255,255,0.65); }
         .footer-col a:hover { color: white; }
         .footer-bottom {
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding-top: 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; justify-content: space-between; align-items: center;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255,255,255,0.10);
+            font-size: 12px;
             flex-wrap: wrap;
-            gap: 16px;
-            font-size: 13px;
-        }
-        .footer-bottom .made {
-            color: rgba(255,255,255,0.5);
-        }
-        .footer-bottom .made span {
-            color: var(--cyan-bright);
-            font-weight: 700;
-        }
-        @media (max-width: 768px) {
-            .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
-            .footer-brand-col { grid-column: 1 / -1; }
+            gap: 12px;
         }
 
-        /* ─── ANIMATIONS ─────────────────────────────────────────── */
+        /* ═══════════════════════════════════════════════════════════════
+           Fade-up animation
+           ═══════════════════════════════════════════════════════════════ */
         .fade-up {
             opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.7s cubic-bezier(0.19,1,0.22,1), transform 0.7s cubic-bezier(0.19,1,0.22,1);
+            transform: translateY(28px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
         }
-        .fade-up.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .fade-up[data-delay="1"] { transition-delay: 0.1s; }
-        .fade-up[data-delay="2"] { transition-delay: 0.2s; }
-        .fade-up[data-delay="3"] { transition-delay: 0.3s; }
-        .fade-up[data-delay="4"] { transition-delay: 0.4s; }
-        .fade-up[data-delay="5"] { transition-delay: 0.5s; }
-
-        /* ─── UTIL ──────────────────────────────────────────────── */
-        .text-center { text-align: center; }
-        .mt-32 { margin-top: 32px; }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+        .fade-up[data-delay="1"] { transition-delay: 0.12s; }
+        .fade-up[data-delay="2"] { transition-delay: 0.24s; }
+        .fade-up[data-delay="3"] { transition-delay: 0.36s; }
+        .fade-up[data-delay="4"] { transition-delay: 0.48s; }
     </style>
 </head>
-<body>
-    <div class="bg-orbs"></div>
 
-    <!-- ════════════ NAV ════════════ -->
+<body>
+    <!-- ════════════════ NAV ════════════════ -->
     <nav class="nav" id="nav">
         <a href="#" class="nav-logo">
-            <img src="assets/logo.png?v=4.9.0" alt="GoHappy">
+            <img src="assets/logo.png?v=7.0.0" alt="GoHappy">
             <span>GoHappy</span>
         </a>
         <ul class="nav-links">
-            <li><a href="#features" data-en="Features">Funcionalidades</a></li>
-            <li><a href="#how" data-en="How it works">Cómo funciona</a></li>
-            <li><a href="#pricing" data-en="Pricing">Precio</a></li>
+            <li><a href="#features" data-en="Features">Funciones</a></li>
+            <li><a href="#adventures" data-en="Adventures">Aventuras</a></li>
+            <li><a href="#privacy" data-en="Privacy">Privacidad</a></li>
+            <li><a href="#pricing" data-en="Pricing">Precios</a></li>
             <li><a href="#faq">FAQ</a></li>
         </ul>
         <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="nav-cta" data-en="Try free →">Probar gratis →</a>
     </nav>
 
-    <!-- ════════════ HERO ════════════ -->
-    <header class="hero container">
+    <!-- ════════════════ HERO ════════════════ -->
+    <header class="hero">
         <div>
-            <div class="hero-eyebrow fade-up">
+            <div class="hero-badge fade-up">
                 <span class="dot"></span>
-                <span data-en="OPEN BETA · UK & SPAIN">BETA ABIERTA · ESPAÑA</span>
+                <span data-en="BETA OPEN · UK &amp; SPAIN">BETA ABIERTA · ESPAÑA · UK</span>
             </div>
-            <h1 class="hero-title fade-up" data-delay="1" data-en='Your path to <span class="gradient">family joy.</span>'>
-                Tu camino a la
-                <span class="gradient">alegría en familia.</span>
+            <h1 class="hero-title fade-up" data-delay="1" data-en='Real adventures.<br>Magical moments.<br><span class="gradient">For modern families.</span>'>
+                Aventuras reales.<br>Momentos mágicos.<br><span class="gradient">Para familias modernas.</span>
             </h1>
-            <p class="hero-subtitle fade-up" data-delay="2" data-en="Stop searching, start living. The premium app that connects modern families with real plans, smart AI and a community that truly cares.">
-                Stop searching, start living. La app premium que une a las familias modernas con planes reales, IA inteligente y una comunidad que sí cuida de los suyos.
+            <p class="hero-subtitle fade-up" data-delay="2" data-en="The smart family app with AI Adventures, parenting coach, real events and private memories. Designed for families who want to live more — not scroll more.">
+                La app inteligente para familias modernas. Aventuras con IA, coach de crianza 24/7, eventos reales y recuerdos privados. Diseñada para familias que quieren <strong>vivir más</strong>, no hacer scroll más.
             </p>
             <div class="hero-actions fade-up" data-delay="3">
-                <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="btn btn-primary" data-en="Try free now →">
-                    Probar gratis ahora →
+                <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="btn btn-primary" data-en="Try free →">
+                    Probar gratis →
                 </a>
-                <a href="#how" class="btn btn-secondary" data-en="See how it works">Ver cómo funciona</a>
+                <a href="#features" class="btn btn-secondary" data-en="See how it works">Ver cómo funciona</a>
             </div>
             <div class="hero-trust fade-up" data-delay="4">
-                <span data-en='<span class="check">✓</span> No credit card'><span class="check">✓</span> Sin tarjeta de crédito</span>
-                <span data-en='<span class="check">✓</span> Works on iOS and Android'><span class="check">✓</span> Funciona en iOS y Android</span>
-                <span data-en='<span class="check">✓</span> ES &amp; EN auto-detected'><span class="check">✓</span> 100% en español</span>
+                <span data-en='<span class="check">✓</span> Free, no card'><span class="check">✓</span> Gratis, sin tarjeta</span>
+                <span data-en='<span class="check">✓</span> iOS &amp; Android'><span class="check">✓</span> iOS y Android</span>
+                <span data-en='<span class="check">✓</span> GDPR + minors protected'><span class="check">✓</span> GDPR + menores protegidos</span>
             </div>
         </div>
 
         <div class="hero-mockup fade-up" data-delay="2">
-            <div class="phone">
-                <div class="phone-screen">
-                    <!-- MOCKUP TODAY (HTML+CSS, sin imágenes) -->
-                    <div class="m-screen m-today">
-                        <div class="m-statusbar">
-                            <span>9:41</span>
-                            <span class="m-sb-right">📶 📶 🔋</span>
+            <div class="iphone-17 floating">
+                <div class="iphone-17-btn-left"></div>
+                <div class="iphone-17-btn-left below"></div>
+                <div class="iphone-17-btn-left action"></div>
+                <div class="iphone-17-btn-right"></div>
+                <div class="iphone-17-island"></div>
+                <div class="iphone-17-screen">
+                    <!-- HERO mockup: Aventuras + insignias -->
+                    <div class="m-screen m-adventures">
+                        <div class="m-sb"><span>9:41</span><span class="m-sb-r">📶 🔋</span></div>
+                        <div class="m-hero">
+                            <h4>🗺️ <span data-en="Adventures">Aventuras</span></h4>
+                            <p data-en="Real moments to create memories">Momentos reales para crear recuerdos</p>
                         </div>
-                        <div class="m-hero-pad">
-                            <div class="m-greet">
-                                <div class="m-greet-emoji">✨</div>
+                        <div class="m-adv-card">
+                            <div class="m-adv-head">
+                                <span class="m-adv-emoji">🍂</span>
                                 <div>
-                                    <h4>Tu día hoy</h4>
-                                    <p>📍 Valladolid</p>
+                                    <div class="m-adv-title" data-en="Autumn Hunters">Cazadores del Otoño</div>
+                                    <div class="m-adv-tag" data-en="Forest detectives">Detectives del bosque</div>
                                 </div>
                             </div>
-                            <div class="m-toggle">
-                                <span class="m-toggle-pill active">🪄 Planes</span>
-                                <span class="m-toggle-pill">🎫 Eventos</span>
-                                <span class="m-toggle-pill">📅 Semana</span>
+                            <div class="m-adv-meta">
+                                <span class="m-adv-pill">📋 4 <span data-en="missions">misiones</span></span>
+                                <span class="m-adv-pill">⭐ 170 pts</span>
+                                <span class="m-adv-pill">🍁 <span data-en="badge">insignia</span></span>
                             </div>
-                            <div class="m-plan-card">
-                                <div class="m-plan-head">
-                                    <span class="m-plan-emoji">🌳</span>
-                                    <div>
-                                        <div class="m-plan-title">Mañana en el Pinar</div>
-                                        <div class="m-plan-meta">Outdoor · 11:00 · Gratis</div>
-                                    </div>
-                                </div>
-                                <p class="m-plan-desc">Perfecto para 3-7 años. Rutas cortas y zonas de pícnic.</p>
-                                <div class="m-plan-cta">✨ Guardar plan</div>
-                            </div>
-                            <div class="m-plan-card slim">
-                                <div class="m-plan-head">
-                                    <span class="m-plan-emoji">🏛️</span>
-                                    <div>
-                                        <div class="m-plan-title">Museo Ciencia</div>
-                                        <div class="m-plan-meta">Indoor · 17:00 · 5€</div>
-                                    </div>
+                        </div>
+                        <div class="m-adv-card water">
+                            <div class="m-adv-head">
+                                <span class="m-adv-emoji">💧</span>
+                                <div>
+                                    <div class="m-adv-title" data-en="Water Explorers">Exploradores del Agua</div>
+                                    <div class="m-adv-tag water" data-en="Blue city secrets">Secretos azules</div>
                                 </div>
                             </div>
                         </div>
                         <div class="m-nav">
-                            <span>⚔️</span><span>🧡</span><span class="active">✨</span><span class="orb">📍</span><span>🏆</span><span>💝</span><span>👤</span>
+                            <span class="active">🗺️</span><span>🧡</span><span>✨</span><span class="orb">📍</span><span>🏆</span><span>💝</span><span>👤</span>
                         </div>
                     </div>
                 </div>
@@ -1641,355 +1362,477 @@
         </div>
     </header>
 
-    <!-- ════════════ PROBLEMA ════════════ -->
-    <section class="problem">
+    <!-- ════════════════ PROBLEMA ════════════════ -->
+    <section>
         <div class="container">
-            <div class="section-header center fade-up">
-                <span class="section-eyebrow" data-en="The real problem">El problema real</span>
-                <h2 class="section-title" data-en='You spend hours looking for family plans.<br><span class="gradient">And usually end up staying home.</span>'>Pasáis horas buscando planes en familia.<br><span class="gradient">Y casi siempre acabáis en casa.</span></h2>
+            <div class="section-header fade-up">
+                <span class="section-eyebrow" data-en="The reality">La realidad</span>
+                <h2 class="section-title" data-en='Modern families spend hours searching plans.<br><span class="gradient">And end up at home.</span>'>Las familias modernas pasáis horas buscando planes.<br><span class="gradient">Y casi siempre acabáis en casa.</span></h2>
             </div>
-            <p class="problem-quote fade-up" data-delay="1" data-en='<span class="strike">&quot;What shall we do today with the kids?&quot;</span><br>Write that question down. <strong>GoHappy answers it for you.</strong>'>
-                <span class="strike">"¿Qué hacemos hoy con los niños?"</span><br>
-                Apuntad esa pregunta. <strong>GoHappy la responde por ti.</strong>
-            </p>
             <div class="problem-stats">
-                <div class="stat-card fade-up" data-delay="1">
+                <div class="stat-card fade-up">
                     <div class="stat-num">73%</div>
-                    <div class="stat-label" data-en="of families can't find plans for their kids' age/area">de las familias dice no encontrar planes para su edad/zona</div>
+                    <div class="stat-label" data-en="of families can't find plans suited to their kids' age">de las familias no encuentra planes adaptados a la edad de sus hijos</div>
+                </div>
+                <div class="stat-card fade-up" data-delay="1">
+                    <div class="stat-num" data-en="2.5h">2,5h</div>
+                    <div class="stat-label" data-en="per week scrolling Google and social media looking for ideas">a la semana haciendo scroll en Google y redes buscando ideas</div>
                 </div>
                 <div class="stat-card fade-up" data-delay="2">
-                    <div class="stat-num" data-en="2.5h">2,5h</div>
-                    <div class="stat-label" data-en="per week searching family activities on Google and social media">a la semana buscando ocio familiar en Google y redes</div>
-                </div>
-                <div class="stat-card fade-up" data-delay="3">
                     <div class="stat-num">68%</div>
-                    <div class="stat-label" data-en="end up staying home because they can't decide in time">acaba quedándose en casa por no decidir a tiempo</div>
+                    <div class="stat-label" data-en="give up and stay home — &quot;next week we'll do something&quot;">se rinde y se queda en casa — "la semana que viene salimos"</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ════════════ FEATURES (las 7 pestañas) ════════════ -->
-    <section id="features">
+    <!-- ════════════════ FEATURES (8 funciones con mockups iPhone 17) ════════════════ -->
+    <section id="features" style="background: linear-gradient(180deg, transparent, rgba(11,76,143,0.03));">
         <div class="container">
-            <div class="section-header center fade-up">
+            <div class="section-header fade-up">
                 <span class="section-eyebrow" data-en="All in one app">Todo en una app</span>
-            <h2 class="section-title" data-en='7 superpowers for <span class="gradient">modern families.</span>'>7 superpoderes para <span class="gradient">familias modernas.</span></h2>
-                <p class="section-subtitle" data-en="Every tab solves a real problem. No ads, no getting lost in endless menus.">Cada pestaña resuelve un problema real. Sin anuncios, sin perderse en menús infinitos.</p>
+                <h2 class="section-title" data-en='8 superpowers for <span class="gradient">families like yours.</span>'>8 superpoderes para <span class="gradient">familias como la tuya.</span></h2>
+                <p class="section-subtitle" data-en="Every tab solves a real problem. No ads, no infinite scroll, no data selling.">Cada pestaña resuelve un problema real. Sin anuncios, sin scroll infinito, sin venta de datos.</p>
             </div>
+
             <div class="features-grid">
+
+                <!-- AVENTURAS -->
                 <div class="feature-card fade-up">
                     <div class="feature-mockup">
-                        <div class="m-screen m-map">
-                            <div class="m-map-tiles"></div>
-                            <div class="m-search-bar">🔍 ¿Qué buscas hoy?</div>
-                            <div class="m-chips">
-                                <span class="m-chip active">Todo</span>
-                                <span class="m-chip">🌳 Parques</span>
-                                <span class="m-chip">🎓 Museos</span>
-                            </div>
-                            <div class="m-pin m-pin-1">📍</div>
-                            <div class="m-pin m-pin-2">🌳</div>
-                            <div class="m-pin m-pin-3 me">🎯</div>
-                            <div class="m-fab">+</div>
-                            <div class="m-nav">
-                                <span>⚔️</span><span>🧡</span><span>✨</span><span class="orb active">📍</span><span>🏆</span><span>💝</span><span>👤</span>
+                        <div class="iphone-17">
+                            <div class="iphone-17-island"></div>
+                            <div class="iphone-17-screen">
+                                <div class="m-screen m-adventures">
+                                    <div class="m-sb"><span>9:41</span><span class="m-sb-r">🔋</span></div>
+                                    <div class="m-hero"><h4>🗺️ <span data-en="Adventures">Aventuras</span></h4></div>
+                                    <div class="m-adv-card">
+                                        <div class="m-adv-head"><span class="m-adv-emoji">🍂</span>
+                                            <div><div class="m-adv-title" data-en="Autumn Hunters">Cazadores Otoño</div><div class="m-adv-tag" data-en="Forest detectives">Bosque dorado</div></div>
+                                        </div>
+                                    </div>
+                                    <div class="m-adv-card water">
+                                        <div class="m-adv-head"><span class="m-adv-emoji">💧</span>
+                                            <div><div class="m-adv-title" data-en="Water Explorers">Agua</div></div>
+                                        </div>
+                                    </div>
+                                    <div class="m-nav"><span class="active">🗺️</span><span>🧡</span><span>✨</span><span class="orb">📍</span><span>🏆</span><span>💝</span><span>👤</span></div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <span class="feature-icon">📍</span>
-                    <h3 class="feature-title" data-en="Interactive 3D Map">Mapa 3D Interactivo</h3>
-                    <p class="feature-desc" data-en="Explore your area with a gaming-style map. 3D buildings and real reviews from parents so you always find the perfect spot.">Explora tu zona con un mapa estilo gaming. Edificios 3D y reseñas reales de padres para encontrar siempre el lugar perfecto.</p>
+                    <span class="feature-icon">🗺️</span>
+                    <h3 class="feature-title" data-en="Family Adventures">Aventuras Familiares</h3>
+                    <p class="feature-desc" data-en="One-week narrative stories with 4 real missions, photo-proof and a badge when you complete them.">Historias narrativas de 1 semana con 4 misiones reales, foto como prueba y una insignia al completarlas.</p>
                 </div>
+
+                <!-- CARE -->
                 <div class="feature-card fade-up" data-delay="1">
                     <div class="feature-mockup">
-                        <div class="m-screen m-today">
-                            <div class="m-statusbar"><span>9:41</span><span class="m-sb-right">📶 🔋</span></div>
-                            <div class="m-hero-pad">
-                                <div class="m-greet"><div class="m-greet-emoji">✨</div><div><h4>Tu día hoy</h4><p>📍 Valladolid</p></div></div>
-                                <div class="m-toggle">
-                                    <span class="m-toggle-pill active">🪄 Planes</span>
-                                    <span class="m-toggle-pill">🎫 Eventos</span>
+                        <div class="iphone-17">
+                            <div class="iphone-17-island"></div>
+                            <div class="iphone-17-screen">
+                                <div class="m-screen m-care">
+                                    <div class="m-sb"><span>9:41</span><span class="m-sb-r">🔋</span></div>
+                                    <div class="m-care-header">
+                                        <div class="m-care-av">🧡</div>
+                                        <div><div class="m-care-name">Care</div><div class="m-care-sub" data-en="AI Coach · 24/7">Coach IA · 24/7</div></div>
+                                    </div>
+                                    <div class="m-care-chat">
+                                        <div class="m-bubble user" data-en="My 4yo has tantrums…">Mi hijo de 4 tiene rabietas…</div>
+                                        <div class="m-bubble bot"><strong data-en="I get it 💙">Te entiendo 💙</strong> <span data-en="At 4 the emotional brain is still developing. Try:">A los 4 el cerebro emocional no regula. Prueba:</span><br>1. <span data-en="Get to their level">Bajarte a su altura</span><br>2. <span data-en="Validate the emotion">Validar la emoción</span></div>
+                                    </div>
+                                    <div class="m-care-input"><span data-en="Ask Care…">Pregunta a Care…</span><span class="m-send">↑</span></div>
+                                    <div class="m-nav"><span>🗺️</span><span class="active">🧡</span><span>✨</span><span class="orb">📍</span><span>🏆</span><span>💝</span><span>👤</span></div>
                                 </div>
-                                <div class="m-plan-card">
-                                    <div class="m-plan-head"><span class="m-plan-emoji">🌳</span><div><div class="m-plan-title">Pinar de Antequera</div><div class="m-plan-meta">11:00 · Gratis</div></div></div>
-                                    <div class="m-plan-cta">✨ Guardar</div>
-                                </div>
-                                <div class="m-plan-card slim"><div class="m-plan-head"><span class="m-plan-emoji">🏛️</span><div><div class="m-plan-title">Museo Ciencia</div><div class="m-plan-meta">17:00 · 5€</div></div></div></div>
                             </div>
-                            <div class="m-nav"><span>⚔️</span><span>🧡</span><span class="active">✨</span><span class="orb">📍</span><span>🏆</span><span>💝</span><span>👤</span></div>
+                        </div>
+                    </div>
+                    <span class="feature-icon">🧡</span>
+                    <h3 class="feature-title" data-en="Care — AI Coach">Care — Coach IA</h3>
+                    <p class="feature-desc" data-en="Your 24/7 parenting advisor. Sleep, tantrums, eating, screens, siblings, school. Real answers from real psychology.">Tu asesor de crianza 24/7. Sueño, rabietas, alimentación, pantallas, hermanos, cole. Respuestas reales basadas en psicología infantil.</p>
+                </div>
+
+                <!-- TODAY -->
+                <div class="feature-card fade-up" data-delay="2">
+                    <div class="feature-mockup">
+                        <div class="iphone-17">
+                            <div class="iphone-17-island"></div>
+                            <div class="iphone-17-screen">
+                                <div class="m-screen m-today">
+                                    <div class="m-sb"><span>9:41</span><span class="m-sb-r">🔋</span></div>
+                                    <div class="m-greet">
+                                        <div class="m-greet-em">✨</div>
+                                        <div><h4 data-en="Today">Tu día hoy</h4><p>📍 Valladolid</p></div>
+                                    </div>
+                                    <div class="m-toggle"><span class="active" data-en="🪄 Plans">🪄 Planes</span><span data-en="🎫 Events">🎫 Eventos</span></div>
+                                    <div class="m-plan">
+                                        <div class="m-plan-head"><div class="m-plan-icon">🌳</div><div><div class="m-plan-t" data-en="Pinar park morning">Mañana en el Pinar</div><div class="m-plan-m">11:00 · <span data-en="Free">Gratis</span></div></div></div>
+                                        <div class="m-plan-cta" data-en="✨ Save plan">✨ Guardar plan</div>
+                                    </div>
+                                    <div class="m-plan">
+                                        <div class="m-plan-head"><div class="m-plan-icon">🏛️</div><div><div class="m-plan-t" data-en="Science Museum">Museo Ciencia</div><div class="m-plan-m">17:00 · 5€</div></div></div>
+                                    </div>
+                                    <div class="m-nav"><span>🗺️</span><span>🧡</span><span class="active">✨</span><span class="orb">📍</span><span>🏆</span><span>💝</span><span>👤</span></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <span class="feature-icon">✨</span>
                     <h3 class="feature-title" data-en="Today — AI Concierge">Today — IA Concierge</h3>
-                    <p class="feature-desc" data-en="Stop searching. Your AI assistant designs 3 personalised plans every day based on your kids' ages, the weather and your location.">Olvídate de buscar. Tu asistente IA diseña 3 planes personalizados cada día según la edad de tus hijos, el clima y vuestra ubicación.</p>
+                    <p class="feature-desc" data-en="Daily personalised plans + REAL events in your city. Adapted to weather, kids' age and your preferences.">Planes personalizados diarios + eventos REALES de tu ciudad. Adaptados al clima, edad de los niños y tus preferencias.</p>
                 </div>
-                <div class="feature-card fade-up" data-delay="2">
-                    <div class="feature-mockup">
-                        <div class="m-screen m-care">
-                            <div class="m-care-header">
-                                <div class="m-care-avatar">🧡</div>
-                                <div><div class="m-care-name">Care</div><div class="m-care-sub">Coach IA · 24/7</div></div>
-                            </div>
-                            <div class="m-care-chat">
-                                <div class="m-bubble user">Mi hijo de 4 años tiene rabietas cuando le digo no…</div>
-                                <div class="m-bubble bot">
-                                    <strong>Te entiendo 💙</strong> A los 4 años el cerebro emocional aún no regula bien la frustración. Prueba:
-                                    <br><br>1. Bajarte a su altura<br>2. Validar la emoción<br>3. Ofrecer 2 opciones simples
-                                </div>
-                                <div class="m-bubble user typing"><span></span><span></span><span></span></div>
-                            </div>
-                            <div class="m-care-input"><span class="m-input-text">Pregunta a Care…</span><span class="m-send">↑</span></div>
-                            <div class="m-nav"><span>⚔️</span><span class="active">🧡</span><span>✨</span><span class="orb">📍</span><span>🏆</span><span>💝</span><span>👤</span></div>
-                        </div>
-                    </div>
-                    <span class="feature-icon">🤖</span>
-                    <h3 class="feature-title" data-en="Care — AI Coach">Care — Coach IA</h3>
-                    <p class="feature-desc" data-en="Your 24/7 parenting advisor. Resolve doubts and get personalised expert advice powered by AI anytime.">Tu asesor de crianza 24/7. Resuelve dudas pedagógicas y recibe consejos expertos personalizados por IA en cualquier momento.</p>
-                </div>
+
+                <!-- MAP -->
                 <div class="feature-card fade-up" data-delay="3">
                     <div class="feature-mockup">
-                        <div class="m-screen m-quests">
-                            <div class="m-q-header">
-                                <h4>⚔️ Quests</h4>
-                                <p>Misiones Familiares</p>
-                                <div class="m-q-stats">
-                                    <div class="m-q-stat"><span class="m-q-stat-val">5</span><span class="m-q-stat-lbl">Libres</span></div>
-                                    <div class="m-q-stat"><span class="m-q-stat-val done">3</span><span class="m-q-stat-lbl">Hechas</span></div>
-                                    <div class="m-q-stat"><span class="m-q-stat-val">240</span><span class="m-q-stat-lbl">Puntos</span></div>
+                        <div class="iphone-17">
+                            <div class="iphone-17-island"></div>
+                            <div class="iphone-17-screen">
+                                <div class="m-screen m-map">
+                                    <div class="m-map-tiles"></div>
+                                    <div class="m-sb"><span style="color:#0F172A;">9:41</span><span class="m-sb-r" style="color:#0F172A;">🔋</span></div>
+                                    <div class="m-search">🔍 <span data-en="What to do today?">¿Qué buscas hoy?</span></div>
+                                    <div class="m-chips"><span class="m-chip active" data-en="All">Todo</span><span class="m-chip">🌳 <span data-en="Parks">Parques</span></span><span class="m-chip">🎓 <span data-en="Museums">Museos</span></span></div>
+                                    <div class="m-pin m-pin-1">📍</div>
+                                    <div class="m-pin m-pin-2">🌳</div>
+                                    <div class="m-pin m-pin-3">🎯</div>
+                                    <div class="m-fab">+</div>
+                                    <div class="m-nav"><span>🗺️</span><span>🧡</span><span>✨</span><span class="orb active">📍</span><span>🏆</span><span>💝</span><span>👤</span></div>
                                 </div>
                             </div>
-                            <div class="m-q-card">
-                                <span class="m-q-icon">🌳</span>
-                                <div class="m-q-text"><div class="m-q-title">Paseo sin Pantallas</div><div class="m-q-pts">+50 pts</div></div>
-                                <div class="m-q-check">✓</div>
-                            </div>
-                            <div class="m-q-card">
-                                <span class="m-q-icon">🥞</span>
-                                <div class="m-q-text"><div class="m-q-title">Desayuno Familiar</div><div class="m-q-pts">+40 pts</div></div>
-                                <div class="m-q-check"></div>
-                            </div>
-                            <div class="m-q-card">
-                                <span class="m-q-icon">📖</span>
-                                <div class="m-q-text"><div class="m-q-title">Cuento en voz alta</div><div class="m-q-pts">+60 pts</div></div>
-                                <div class="m-q-check"></div>
-                            </div>
-                            <div class="m-nav"><span class="active">⚔️</span><span>🧡</span><span>✨</span><span class="orb">📍</span><span>🏆</span><span>💝</span><span>👤</span></div>
                         </div>
                     </div>
-                    <span class="feature-icon">⚔️</span>
-                    <h3 class="feature-title" data-en="Quests — Missions">Quests — Misiones</h3>
-                    <p class="feature-desc" data-en="Turn everyday life into a family adventure. Complete challenges, earn points and strengthen your bond while playing together.">Convierte el día a día en una aventura familiar. Completa retos, gana puntos y fortalece el vínculo mientras jugáis juntos.</p>
+                    <span class="feature-icon">📍</span>
+                    <h3 class="feature-title" data-en="3D Map">Mapa 3D</h3>
+                    <p class="feature-desc" data-en="Gaming-style 3D map. Real reviews from parents like you. Find the perfect place every time.">Mapa 3D estilo gaming. Reseñas reales de padres como tú. Encuentra el sitio perfecto siempre.</p>
                 </div>
+
+                <!-- TOP -->
                 <div class="feature-card fade-up">
                     <div class="feature-mockup">
-                        <div class="m-screen m-moments">
-                            <div class="m-mom-header">
-                                <h4>💝 Moments</h4>
-                                <p>Vuestra Tribu privada</p>
-                            </div>
-                            <div class="m-mom-card">
-                                <div class="m-mom-meta"><div class="m-mom-av">👨</div><div><div class="m-mom-name">Papá</div><div class="m-mom-time">hace 2h</div></div></div>
-                                <div class="m-mom-img m-mom-img-1"></div>
-                                <div class="m-mom-cap">¡Primera bici sin ruedines! 🚲</div>
-                                <div class="m-mom-reacts"><span>❤️ 3</span><span>🥰 2</span><span>💬</span></div>
-                            </div>
-                            <div class="m-mom-card slim">
-                                <div class="m-mom-meta"><div class="m-mom-av">👩</div><div><div class="m-mom-name">Mamá</div><div class="m-mom-time">ayer</div></div></div>
-                                <div class="m-mom-img m-mom-img-2"></div>
-                            </div>
-                            <div class="m-mom-fab">📷</div>
-                            <div class="m-nav"><span>⚔️</span><span>🧡</span><span>✨</span><span class="orb">📍</span><span>🏆</span><span class="active">💝</span><span>👤</span></div>
-                        </div>
-                    </div>
-                    <span class="feature-icon">💝</span>
-                    <h3 class="feature-title" data-en="Moments — Memories">Moments — Recuerdos</h3>
-                    <p class="feature-desc" data-en="The safest place for your memories. A private diary to keep photos and stories away from conventional social media.">El lugar más seguro para vuestros recuerdos. Un diario privado para guardar fotos y anécdotas lejos de las redes sociales convencionales.</p>
-                </div>
-                <div class="feature-card fade-up" data-delay="1">
-                    <div class="feature-mockup">
-                        <div class="m-screen m-ranking">
-                            <div class="m-r-header"><h4>🏆 TOP TRIBU</h4><p>Esta semana</p></div>
-                            <div class="m-r-toggle"><span class="active">🌟 Sitios</span><span>🤝 Miembros</span></div>
-                            <div class="m-r-podium">
-                                <div class="m-r-pod medium">
-                                    <div class="m-r-pod-medal">🥈</div>
-                                    <div class="m-r-pod-avatar">📍</div>
-                                    <div class="m-r-pod-name">Pinar</div>
-                                    <div class="m-r-pod-pts">⭐ 4.6</div>
-                                </div>
-                                <div class="m-r-pod large">
-                                    <div class="m-r-pod-medal">🥇</div>
-                                    <div class="m-r-pod-avatar">📍</div>
-                                    <div class="m-r-pod-name">Museo</div>
-                                    <div class="m-r-pod-pts">⭐ 4.9</div>
-                                </div>
-                                <div class="m-r-pod medium">
-                                    <div class="m-r-pod-medal">🥉</div>
-                                    <div class="m-r-pod-avatar">⭐</div>
-                                    <div class="m-r-pod-name">Parque</div>
-                                    <div class="m-r-pod-pts">⭐ 4.5</div>
+                        <div class="iphone-17">
+                            <div class="iphone-17-island"></div>
+                            <div class="iphone-17-screen">
+                                <div class="m-screen m-top">
+                                    <div class="m-sb"><span>9:41</span><span class="m-sb-r">🔋</span></div>
+                                    <div class="m-top-h"><h4>🏆 TOP TRIBU</h4><p data-en="This week">Esta semana</p></div>
+                                    <div class="m-top-toggle"><span class="active" data-en="🌟 Places">🌟 Sitios</span><span data-en="🤝 Members">🤝 Miembros</span></div>
+                                    <div class="m-pod">
+                                        <div class="m-pod-card"><div class="m-pod-medal">🥈</div><div class="m-pod-av">📍</div><div class="m-pod-n">Pinar</div><div class="m-pod-s">⭐ 4.6</div></div>
+                                        <div class="m-pod-card large"><div class="m-pod-medal">🥇</div><div class="m-pod-av">📍</div><div class="m-pod-n" data-en="Museum">Museo</div><div class="m-pod-s">⭐ 4.9</div></div>
+                                        <div class="m-pod-card"><div class="m-pod-medal">🥉</div><div class="m-pod-av">⭐</div><div class="m-pod-n" data-en="Park">Parque</div><div class="m-pod-s">⭐ 4.5</div></div>
+                                    </div>
+                                    <div class="m-nav"><span>🗺️</span><span>🧡</span><span>✨</span><span class="orb">📍</span><span class="active">🏆</span><span>💝</span><span>👤</span></div>
                                 </div>
                             </div>
-                            <div class="m-r-row"><span>#4</span><div class="m-r-thumb"></div><div class="m-r-info">Plaza Mayor</div><div>⭐ 4.4</div></div>
-                            <div class="m-r-row"><span>#5</span><div class="m-r-thumb"></div><div class="m-r-info">Río Pisuerga</div><div>⭐ 4.3</div></div>
-                            <div class="m-nav"><span>⚔️</span><span>🧡</span><span>✨</span><span class="orb">📍</span><span class="active">🏆</span><span>💝</span><span>👤</span></div>
                         </div>
                     </div>
                     <span class="feature-icon">🏆</span>
-                    <h3 class="feature-title" data-en="Top — Gamification">Top — Gamificación</h3>
-                    <p class="feature-desc" data-en="Compete fairly with other families. Level up, earn medals and discover the most active members of the community.">Compite sano con otras familias. Sube de nivel, gana medallas y descubre quiénes son los miembros más activos de la comunidad.</p>
+                    <h3 class="feature-title" data-en="Top Tribe">Top Tribu</h3>
+                    <p class="feature-desc" data-en="Best-rated places and most active members. Fair competition with the community.">Sitios mejor valorados y miembros más activos. Competición sana con la comunidad.</p>
                 </div>
-                <div class="feature-card fade-up" data-delay="2">
+
+                <!-- MOMENTS -->
+                <div class="feature-card fade-up" data-delay="1">
                     <div class="feature-mockup">
-                        <div class="m-screen m-profile">
-                            <div class="m-p-hero">
-                                <div class="m-p-avatar">👨‍👩‍👧</div>
-                                <div class="m-p-name">Familia García</div>
-                                <div class="m-p-pts">1.240 PTS</div>
-                                <div class="m-p-bar"><div class="m-p-bar-fill"></div></div>
-                            </div>
-                            <div class="m-p-dna">
-                                <div class="m-p-dna-title">🧬 Vuestro ADN familiar</div>
-                                <div class="m-p-tags">
-                                    <span class="m-p-tag">🌿 Naturaleza</span>
-                                    <span class="m-p-tag">🏛️ Museos</span>
-                                    <span class="m-p-tag">🎭 Cultura</span>
+                        <div class="iphone-17">
+                            <div class="iphone-17-island"></div>
+                            <div class="iphone-17-screen">
+                                <div class="m-screen m-moments">
+                                    <div class="m-sb"><span>9:41</span><span class="m-sb-r">🔋</span></div>
+                                    <div class="m-mh"><h4>💝 Moments</h4><p data-en="Private Tribe">Tribu privada</p></div>
+                                    <div class="m-feed-toggle"><span class="active" data-en="👨‍👩‍👧 Family">👨‍👩‍👧 Familia</span><span data-en="🌍 Community">🌍 Comunidad</span></div>
+                                    <div class="m-mom-card">
+                                        <div class="m-mom-meta"><div class="m-mom-av">👨</div><div><div class="m-mom-name" data-en="Dad">Papá</div><div class="m-mom-time" data-en="2h ago">hace 2h</div></div></div>
+                                        <div class="m-mom-img"></div>
+                                        <div class="m-mom-cap" data-en="First bike without trainer wheels! 🚲">¡Primera bici sin ruedines! 🚲</div>
+                                        <div class="m-mom-rx"><span>❤️ 3</span><span>🥰 2</span><span>💬</span></div>
+                                    </div>
+                                    <div class="m-nav"><span>🗺️</span><span>🧡</span><span>✨</span><span class="orb">📍</span><span>🏆</span><span class="active">💝</span><span>👤</span></div>
                                 </div>
                             </div>
-                            <div class="m-p-actions">
-                                <div class="m-p-action"><span>📸</span><span>Recuerdos</span></div>
-                                <div class="m-p-action"><span>🎁</span><span>Invitar</span></div>
-                            </div>
-                            <div class="m-nav"><span>⚔️</span><span>🧡</span><span>✨</span><span class="orb">📍</span><span>🏆</span><span>💝</span><span class="active">👤</span></div>
                         </div>
                     </div>
-                    <span class="feature-icon">👤</span>
-                    <h3 class="feature-title" data-en="Profile &amp; Family">Perfil & Familia</h3>
-                    <p class="feature-desc" data-en="Manage your private tribe. Invite members with secure codes, track your progress and earn points on every adventure.">Gestiona tu tribu privada. Invita a miembros con códigos seguros, sigue vuestro progreso y acumulad puntos por cada aventura.</p>
+                    <span class="feature-icon">💝</span>
+                    <h3 class="feature-title" data-en="Moments — Family Social">Moments — Red familiar</h3>
+                    <p class="feature-desc" data-en="Private feed with your family OR public with the community. GDPR-aware: protects minors' faces.">Feed privado con tu familia O público con la comunidad. Cumple GDPR: protege caras de menores.</p>
+                </div>
+
+                <!-- MI FAMILIA -->
+                <div class="feature-card fade-up" data-delay="2">
+                    <div class="feature-mockup">
+                        <div class="iphone-17">
+                            <div class="iphone-17-island"></div>
+                            <div class="iphone-17-screen">
+                                <div class="m-screen m-family">
+                                    <div class="m-sb"><span>9:41</span><span class="m-sb-r">🔋</span></div>
+                                    <div class="m-hero" style="text-align:center; margin-bottom:8px;">
+                                        <h4>👨‍👩‍👧 <span data-en="Family García">Familia García</span></h4>
+                                        <p data-en="You are the host 👑">Eres el anfitrión 👑</p>
+                                    </div>
+                                    <div class="m-fam-code">
+                                        <div class="m-fam-code-l" data-en="🔑 Invitation code">🔑 Código invitación</div>
+                                        <div class="m-fam-code-v">GH-RM4K</div>
+                                    </div>
+                                    <div class="m-fam-members">
+                                        <div class="m-fam-h" data-en="👥 Members 3/6">👥 Miembros 3/6</div>
+                                        <div class="m-fam-list">
+                                            <div class="m-fam-m"><div class="m-fam-mav">👤</div><div class="m-fam-mn">Papá 👑</div></div>
+                                            <div class="m-fam-m"><div class="m-fam-mav">👩</div><div class="m-fam-mn">Mamá</div></div>
+                                            <div class="m-fam-m"><div class="m-fam-mav">🦊</div><div class="m-fam-mn">Mateo</div></div>
+                                        </div>
+                                    </div>
+                                    <div class="m-nav"><span>🗺️</span><span>🧡</span><span>✨</span><span class="orb">📍</span><span>🏆</span><span>💝</span><span class="active">👤</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="feature-icon">👨‍👩‍👧</span>
+                    <h3 class="feature-title" data-en="My Family">Mi Familia</h3>
+                    <p class="feature-desc" data-en="Members, invite code, custom rewards. The admin can create unique family quests for the week.">Miembros, código de invitación, recompensas personalizadas. El anfitrión crea retos únicos para su familia.</p>
+                </div>
+
+                <!-- ADN FAMILIAR -->
+                <div class="feature-card fade-up" data-delay="3">
+                    <div class="feature-mockup">
+                        <div class="iphone-17">
+                            <div class="iphone-17-island"></div>
+                            <div class="iphone-17-screen">
+                                <div class="m-screen m-profile">
+                                    <div class="m-sb"><span>9:41</span><span class="m-sb-r">🔋</span></div>
+                                    <div class="m-p-hero">
+                                        <div class="m-p-av">👨‍👩‍👧</div>
+                                        <div class="m-p-name" data-en="Family García">Familia García</div>
+                                        <div class="m-p-pts">1.240 PTS</div>
+                                    </div>
+                                    <div class="m-p-dna">
+                                        <div class="m-p-dna-t">🧬 <span data-en="Family DNA">ADN familiar</span></div>
+                                        <div class="m-p-tags">
+                                            <span class="m-p-tag">🌿 <span data-en="Nature">Naturaleza</span></span>
+                                            <span class="m-p-tag">🏛️ <span data-en="Museums">Museos</span></span>
+                                            <span class="m-p-tag">🎭 <span data-en="Culture">Cultura</span></span>
+                                        </div>
+                                    </div>
+                                    <div class="m-p-grid">
+                                        <div class="m-p-card"><span>📸</span><span data-en="Memories">Recuerdos</span></div>
+                                        <div class="m-p-card"><span>🎁</span><span data-en="Invite">Invitar</span></div>
+                                    </div>
+                                    <div class="m-nav"><span>🗺️</span><span>🧡</span><span>✨</span><span class="orb">📍</span><span>🏆</span><span>💝</span><span class="active">👤</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="feature-icon">🧬</span>
+                    <h3 class="feature-title" data-en="Family DNA — AI">ADN Familiar — IA</h3>
+                    <p class="feature-desc" data-en="AI learns your family's interests and adapts every plan. The more you use, the better it knows you.">La IA aprende los intereses de tu familia y adapta cada plan. Cuanto más usas, mejor te conoce.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════════ AVENTURAS SPOTLIGHT ════════════════ -->
+    <section id="adventures" class="adv-spotlight">
+        <div class="container">
+            <div class="section-header fade-up">
+                <span class="section-eyebrow" data-en="The main course">El plato fuerte</span>
+                <h2 class="section-title" data-en='Family Adventures. <span class="gradient-warm">Real memories.</span>'>Aventuras Familiares. <span class="gradient-warm">Recuerdos reales.</span></h2>
+                <p class="section-subtitle" data-en="Each adventure is a 1-week narrative story with 4 missions, photo-proof and a badge. The opposite of an empty checklist.">Cada aventura es una historia narrativa de 1 semana con 4 misiones, foto como prueba y una insignia. Lo opuesto a una lista vacía de tareas.</p>
+            </div>
+            <div class="adv-grid">
+                <div class="adv-card fade-up">
+                    <div class="adv-card-em">🍂</div>
+                    <div class="adv-card-t" data-en="Autumn Hunters">Cazadores del Otoño</div>
+                    <div class="adv-card-sub" data-en="Detectives of the golden forest">Detectives del bosque dorado</div>
+                    <span class="adv-card-pill" data-en="4 missions · 🍁 badge">4 misiones · 🍁 insignia</span>
+                </div>
+                <div class="adv-card water fade-up" data-delay="1">
+                    <div class="adv-card-em">💧</div>
+                    <div class="adv-card-t" data-en="Water Explorers">Exploradores del Agua</div>
+                    <div class="adv-card-sub" data-en="Discover your city's blue secrets">Los secretos azules de tu ciudad</div>
+                    <span class="adv-card-pill" data-en="4 missions · 🌊 badge">4 misiones · 🌊 insignia</span>
+                </div>
+                <div class="adv-card detective fade-up" data-delay="2">
+                    <div class="adv-card-em">🔍</div>
+                    <div class="adv-card-t" data-en="Neighborhood Detectives">Detectives del Barrio</div>
+                    <div class="adv-card-sub" data-en="Your block has stories">Tu barrio guarda historias</div>
+                    <span class="adv-card-pill" data-en="4 missions · 🕵️ badge">4 misiones · 🕵️ insignia</span>
+                </div>
+                <div class="adv-card chef fade-up" data-delay="3">
+                    <div class="adv-card-em">🍳</div>
+                    <div class="adv-card-t" data-en="Family Chefs">Chefs Familiares</div>
+                    <div class="adv-card-sub" data-en="The kitchen is the heart">La cocina es el corazón</div>
+                    <span class="adv-card-pill" data-en="4 missions · 👨‍🍳 badge">4 misiones · 👨‍🍳 insignia</span>
+                </div>
+                <div class="adv-card space fade-up">
+                    <div class="adv-card-em">🌌</div>
+                    <div class="adv-card-t" data-en="Living-Room Astronauts">Astronautas de Salón</div>
+                    <div class="adv-card-sub" data-en="No rocket needed">Sin moverse del sofá</div>
+                    <span class="adv-card-pill" data-en="4 missions · 🚀 badge">4 misiones · 🚀 insignia</span>
+                </div>
+                <div class="adv-card gallery fade-up" data-delay="1">
+                    <div class="adv-card-em">🎨</div>
+                    <div class="adv-card-t" data-en="Family Gallery">Galería Familiar</div>
+                    <div class="adv-card-sub" data-en="Everyone is an artist">Cada uno es un artista</div>
+                    <span class="adv-card-pill" data-en="4 missions · 🖼️ badge">4 misiones · 🖼️ insignia</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ════════════ HOW IT WORKS ════════════ -->
-    <section id="how" style="background: linear-gradient(180deg, transparent, rgba(11,76,143,0.04));">
+    <!-- ════════════════ PRIVACIDAD ════════════════ -->
+    <section id="privacy" class="privacy">
         <div class="container">
-            <div class="section-header center fade-up">
+            <div class="section-header fade-up">
+                <span class="section-eyebrow" data-en="Trust matters">La confianza importa</span>
+                <h2 class="section-title" data-en="Your family's data is sacred to us.">Los datos de tu familia son sagrados.</h2>
+                <p class="section-subtitle" data-en="GoHappy was built privacy-first. No ads, no data selling, no creepy tracking. Built specifically for families with minors.">GoHappy se construyó pensando en la privacidad primero. Sin anuncios, sin venta de datos, sin tracking invasivo. Diseñado específicamente para familias con menores.</p>
+            </div>
+            <div class="privacy-grid">
+                <div class="privacy-card fade-up">
+                    <div class="privacy-icon">🛡️</div>
+                    <h3 class="privacy-title" data-en="GDPR & UK-GDPR">GDPR y UK-GDPR</h3>
+                    <p class="privacy-desc" data-en="Servers in Europe. Data Processing Addendum with Google. Registered with AEPD and ICO.">Servidores en Europa. Acuerdo de procesamiento con Google. Registrados en AEPD e ICO.</p>
+                </div>
+                <div class="privacy-card fade-up" data-delay="1">
+                    <div class="privacy-icon">👶</div>
+                    <h3 class="privacy-title" data-en="Minors protected by design">Menores protegidos por diseño</h3>
+                    <p class="privacy-desc" data-en="If you share publicly, we ask you to confirm minors' faces are covered. Family photos default to private.">Si compartes en público, te pedimos confirmar que las caras de menores están tapadas. Fotos familiares por defecto privadas.</p>
+                </div>
+                <div class="privacy-card fade-up" data-delay="2">
+                    <div class="privacy-icon">🔐</div>
+                    <h3 class="privacy-title" data-en="End-to-end secured">Seguridad de extremo a extremo</h3>
+                    <p class="privacy-desc" data-en="HTTPS forced, HSTS preload, CSP strict, App Check, audit log of suspicious events, rate limits.">HTTPS forzado, HSTS preload, CSP estricto, App Check, audit log de eventos sospechosos, rate limits.</p>
+                </div>
+                <div class="privacy-card fade-up" data-delay="3">
+                    <div class="privacy-icon">🚫</div>
+                    <h3 class="privacy-title" data-en="Zero ads. Zero tracking.">Cero anuncios. Cero tracking.</h3>
+                    <p class="privacy-desc" data-en="No third-party cookies. No selling to advertisers. Your family is not the product.">Sin cookies de terceros. Sin venta a anunciantes. Tu familia no es el producto.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════════ HOW IT WORKS ════════════════ -->
+    <section id="how">
+        <div class="container">
+            <div class="section-header fade-up">
                 <span class="section-eyebrow" data-en="Start in 60 seconds">Empieza en 60 segundos</span>
                 <h2 class="section-title" data-en="How it works.">Cómo funciona.</h2>
-                <p class="section-subtitle" data-en="No endless tutorials. Sign up, tell us about your family and start living.">Sin tutoriales infinitos. Te registras, dices cómo es tu familia y empiezas a vivir.</p>
+                <p class="section-subtitle" data-en="No endless tutorials. Sign up, create your family and start living.">Sin tutoriales infinitos. Te registras, creas tu familia y empiezas a vivir.</p>
             </div>
             <div class="steps">
                 <div class="step fade-up">
                     <div class="step-num">1</div>
-                    <h3 class="step-title" data-en="Create your tribe">Crea tu tribu</h3>
-                    <p class="step-desc" data-en="Sign up free in 30 seconds and choose whether to create a family or join one with a 6-letter code.">Te registras gratis en 30 segundos y eliges si creas una familia o te unes con un código de 6 letras.</p>
+                    <h3 class="step-title" data-en="Sign up free">Crea tu cuenta gratis</h3>
+                    <p class="step-desc" data-en="30 seconds with email. Create a family or join one with a 6-letter code.">30 segundos con email. Crea una familia o únete con un código de 6 letras.</p>
                 </div>
                 <div class="step fade-up" data-delay="1">
                     <div class="step-num">2</div>
-                    <h3 class="step-title" data-en="Tell us about you">Cuéntanos quiénes sois</h3>
-                    <p class="step-desc" data-en="Kids' ages, budget, distance. The AI learns and suggests plans that really fit.">Edades de los niños, presupuesto, distancia. La IA aprende y te propone planes que de verdad encajan.</p>
+                    <h3 class="step-title" data-en="Tell us about your family">Cuéntanos quiénes sois</h3>
+                    <p class="step-desc" data-en="Kids' ages, interests, location. The AI starts learning your family DNA.">Edades, intereses, ubicación. La IA empieza a aprender vuestro ADN familiar.</p>
                 </div>
                 <div class="step fade-up" data-delay="2">
                     <div class="step-num">3</div>
-                    <h3 class="step-title" data-en="Live as a family">Vivid en familia</h3>
-                    <p class="step-desc" data-en="Every day, 3 premium plans ready to enjoy. Complete missions, earn points and share memories.">Cada día, 3 planes premium listos para hacer. Completa misiones, gana puntos y comparte recuerdos.</p>
+                    <h3 class="step-title" data-en="Live adventures">Vivid aventuras</h3>
+                    <p class="step-desc" data-en="Daily plans, weekly adventures, real events. Make memories together.">Planes diarios, aventuras semanales, eventos reales. Crear recuerdos juntos.</p>
                 </div>
-            </div>
-            <div class="text-center mt-32 fade-up" data-delay="3">
-                <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="btn btn-primary" data-en="Get started free">Empezar ahora gratis</a>
             </div>
         </div>
     </section>
 
-    <!-- ════════════ PRICING ════════════ -->
-    <section id="pricing">
+    <!-- ════════════════ PRICING ════════════════ -->
+    <section id="pricing" style="background: linear-gradient(180deg, transparent, rgba(11,76,143,0.03));">
         <div class="container">
-            <div class="section-header center fade-up">
+            <div class="section-header fade-up">
                 <span class="section-eyebrow" data-en="Honest pricing">Precios honestos</span>
-                <h2 class="section-title" data-en='Start free.<br><span class="gradient">Grow when you want.</span>'>Empieza gratis.<br><span class="gradient">Crece cuando quieras.</span></h2>
-                <p class="section-subtitle" data-en="No ads. No data selling. Just two clear plans.">Sin anuncios. Sin venta de datos. Solo dos planes claros.</p>
+                <h2 class="section-title" data-en='Start free.<br><span class="gradient">Upgrade when you want.</span>'>Empieza gratis.<br><span class="gradient">Crece cuando quieras.</span></h2>
+                <p class="section-subtitle" data-en="No ads. No data selling. Just two clear plans.">Sin anuncios. Sin venta de datos. Dos planes claros.</p>
             </div>
             <div class="pricing-grid">
                 <div class="price-card fade-up">
-                    <div class="price-name" data-en="Free">Gratis</div>
+                    <div class="price-name" data-en="Free forever">Gratis para siempre</div>
                     <div class="price-tag" data-en="£0 / €0">0€</div>
-                    <div class="price-period" data-en="Forever, no card needed">Para siempre, sin tarjeta</div>
+                    <div class="price-period" data-en="No card needed">Sin tarjeta, para siempre</div>
                     <ul class="price-features">
-                        <li data-en="3D Map and community reviews">Mapa 3D y reseñas de la comunidad</li>
+                        <li data-en="6 adventures from the catalogue">6 aventuras del catálogo</li>
                         <li data-en="3 AI plans per day (Today)">3 planes IA al día (Today)</li>
-                        <li data-en="3 active family missions">3 misiones familiares activas</li>
-                        <li data-en="Unlimited safety alerts">Alertas de seguridad ilimitadas</li>
-                        <li data-en="Full ranking and gamification">Ranking y gamificación completa</li>
-                        <li data-en="Local news and grants">News y becas locales</li>
+                        <li data-en="3D Map with real reviews">Mapa 3D con reseñas reales</li>
+                        <li data-en="Care AI coach (50 questions/day)">Care coach IA (50 consultas/día)</li>
+                        <li data-en="Moments — family album">Moments — álbum familiar</li>
+                        <li data-en="Top Tribe ranking">Top Tribu ranking</li>
                     </ul>
                     <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="price-cta" data-en="Start free">Empezar gratis</a>
                 </div>
                 <div class="price-card premium fade-up" data-delay="1">
-                    <span class="price-badge" data-en="Most popular">Más popular</span>
+                    <span class="price-badge" data-en="Coming soon">Próximamente</span>
                     <div class="price-name">Premium</div>
                     <div class="price-tag" data-en="£4.49 <small>/month</small>">4,99€ <small>/mes</small></div>
                     <div class="price-period" data-en="Cancel anytime">Cancela cuando quieras</div>
                     <ul class="price-features">
                         <li data-en="Everything in Free">Todo lo del plan Gratis</li>
-                        <li data-en="<strong>Private tribe</strong> with up to 6 family members"><strong>Tribu privada</strong> con hasta 6 familiares</li>
+                        <li data-en="<strong>Unlimited adventures</strong> + weekly AI-generated"><strong>Aventuras ilimitadas</strong> + IA semanal personalizada</li>
+                        <li data-en="<strong>Family story PDF</strong> when adventure completed"><strong>Cuento familiar PDF</strong> al completar aventura</li>
                         <li data-en="<strong>Unlimited AI plans</strong> in Today"><strong>Planes IA ilimitados</strong> en Today</li>
-                        <li data-en="<strong>Unlimited missions</strong> + monthly 500pts"><strong>Misiones ilimitadas</strong> + mensuales 500pts</li>
-                        <li data-en="Chat with personal GoHappy AI">Chat con GoHappy IA personal</li>
-                        <li data-en="Unlimited high-resolution memories">Memorias en alta resolución sin límites</li>
+                        <li data-en="<strong>Unlimited Care</strong>"><strong>Care sin límites</strong></li>
+                        <li data-en="Hi-res unlimited memories">Memorias alta resolución</li>
                         <li data-en="Priority support">Soporte prioritario</li>
                     </ul>
-                    <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="price-cta" data-en="Try Premium">Probar Premium</a>
+                    <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="price-cta" data-en="Notify me">Avísame cuando esté</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ════════════ FAQ ════════════ -->
+    <!-- ════════════════ FAQ ════════════════ -->
     <section id="faq">
         <div class="container">
-            <div class="section-header center fade-up">
+            <div class="section-header fade-up">
                 <span class="section-eyebrow" data-en="Frequently asked">Dudas frecuentes</span>
-                <h2 class="section-title" data-en="What everyone asks.">Lo que se pregunta todo el mundo.</h2>
+                <h2 class="section-title" data-en="What everyone asks.">Lo que todo el mundo pregunta.</h2>
             </div>
             <div class="faq-list">
                 <details class="faq-item fade-up">
                     <summary data-en="Do I need to install anything from the app stores?">¿Necesito instalar algo de las tiendas?</summary>
                     <p data-en='No. GoHappy is a PWA (Progressive Web App): it installs directly from the browser like a native app. On iPhone, open Safari and tap "Add to Home Screen". On Android, Chrome offers it automatically. Works offline.'>No. GoHappy es una PWA (Progressive Web App): se instala desde el navegador directamente como una app nativa. En iPhone, abres Safari y le das a "Añadir a pantalla de inicio". En Android, Chrome te lo propone automáticamente. Funciona offline.</p>
                 </details>
-                <details class="faq-item fade-up" data-delay="1">
-                    <summary data-en="Is the AI real or pre-recorded answers?">¿La IA es real o son respuestas pre-grabadas?</summary>
-                    <p data-en="100% real. We use Google's Gemini 2.5 Flash, accessed through our own secure proxy. Every plan you see in Today is generated live based on your location, kids' ages, weather and preferences.">Es 100% real. Usamos Gemini 2.5 Flash de Google, accedido a través de un proxy seguro propio. Cada plan que ves en Today está generado en vivo basándose en tu ubicación, edad de los niños, clima y preferencias.</p>
+                <details class="faq-item fade-up">
+                    <summary data-en="What's an Adventure exactly?">¿Qué es exactamente una Aventura?</summary>
+                    <p data-en="A 1-week narrative story with 3-5 real missions. For example 'Autumn Hunters': collect 5 leaves, find a chestnut, make a family drawing, cook autumn food. You upload a photo for each mission and earn a family badge when you complete it.">Una historia narrativa de 1 semana con 3-5 misiones reales. Por ejemplo "Cazadores del Otoño": recoger 5 hojas, encontrar una castaña, hacer un dibujo familiar, cocinar algo de otoño. Subes una foto por cada misión y ganáis una insignia familiar al completarla.</p>
                 </details>
-                <details class="faq-item fade-up" data-delay="2">
-                    <summary data-en="Is my data safe?">¿Mis datos están seguros?</summary>
-                    <p data-en="Yes. GoHappy never sells or shares your data. We store on Firebase (Google Cloud, GDPR/UK-GDPR compliant, EU servers). The AI only receives your approximate location and preferences, never personally identifying data.">Sí. GoHappy nunca vende ni comparte tus datos. Almacenamos en Firebase (Google Cloud, GDPR-compliant, servidores en Europa). La IA solo recibe tu ubicación aproximada y preferencias, nunca datos personales identificativos.</p>
+                <details class="faq-item fade-up">
+                    <summary data-en="Is the AI real or canned responses?">¿La IA es real o son respuestas pre-grabadas?</summary>
+                    <p data-en="100% real. We use Google Gemini 2.5 Flash via our own secure proxy. Today's plans are generated live based on your location, kids' ages, weather and preferences. Events use Google Search for real verifiable info.">100% real. Usamos Google Gemini 2.5 Flash via nuestro proxy seguro propio. Los planes de Today se generan en vivo según ubicación, edad de los niños, clima y preferencias. Los eventos usan Google Search para info real verificable.</p>
                 </details>
-                <details class="faq-item fade-up" data-delay="3">
+                <details class="faq-item fade-up">
+                    <summary data-en="Are children's photos really safe?">¿Las fotos de niños están realmente seguras?</summary>
+                    <p data-en='Family photos default to PRIVATE — only your family members see them. If you choose "Public" (community feed), we require a checkbox confirming minors\' faces are covered. Servers are in EU, full GDPR compliance.'>Las fotos familiares son PRIVADAS por defecto — solo los miembros de tu familia las ven. Si eliges "Público" (feed comunidad), te pedimos una casilla confirmando que las caras de menores están tapadas. Servidores en UE, cumplimiento total GDPR.</p>
+                </details>
+                <details class="faq-item fade-up">
                     <summary data-en="Does it work in my city?">¿Funciona en mi ciudad?</summary>
-                    <p data-en="GoHappy works across the UK, Spain and Spanish-speaking Latin America. The AI knows parks, museums, events and local grants in any city. If you live in a rural area, try the largest nearby town.">GoHappy funciona en toda España y Latinoamérica de habla hispana. La IA conoce parques, museos, eventos y becas locales de cualquier ciudad. Si vives en zona rural, prueba a poner el municipio mayor más cercano.</p>
+                    <p data-en="Yes. GoHappy works in UK, Spain and Spanish-speaking Latin America. The AI knows parks, museums, events and grants in any city. If you live rural, try the nearest larger town.">Sí. GoHappy funciona en UK, España y Latinoamérica de habla hispana. La IA conoce parques, museos, eventos y becas locales de cualquier ciudad. Si vives en zona rural, prueba con el municipio mayor más cercano.</p>
                 </details>
-                <details class="faq-item fade-up" data-delay="4">
+                <details class="faq-item fade-up">
+                    <summary data-en="What if I don't have a family yet?">¿Y si todavía no tengo familia creada?</summary>
+                    <p data-en="No problem. You can use all features as an individual user — Adventures, Care, Today, Map, Moments, all work. When you're ready, create a family or join one with a 6-letter code to share progress.">No pasa nada. Puedes usar todas las funciones como usuario individual — Aventuras, Care, Today, Mapa, Moments, todo funciona. Cuando quieras, creas una familia o te unes con un código de 6 letras para compartir progreso.</p>
+                </details>
+                <details class="faq-item fade-up">
                     <summary data-en="How do I cancel Premium?">¿Cómo cancelo Premium?</summary>
-                    <p data-en="From your Profile → Subscription → Cancel. No forms, no calls, no retention tactics. You keep access until the end of your paid period.">Desde tu perfil → Suscripción → Cancelar. Sin formularios, sin llamadas, sin retenciones. Mantienes el acceso hasta el final del período pagado.</p>
-                </details>
-                <details class="faq-item fade-up" data-delay="5">
-                    <summary data-en="Do you have Android and iOS apps?">¿Tenéis app para Android e iOS?</summary>
-                    <p data-en="Yes. We're preparing signed APKs for Google Play and the TestFlight build for iOS. Meanwhile, the PWA offers exactly the same experience, installing as a native app on both systems.">Sí. Estamos preparando los APK firmados para Google Play y la build TestFlight para iOS. Mientras, la PWA ofrece exactamente la misma experiencia, instalándose como app nativa en ambos sistemas.</p>
+                    <p data-en="From your Profile → Subscription → Cancel. No forms, no calls, no retention tactics. You keep access until the end of your paid period.">Desde Perfil → Suscripción → Cancelar. Sin formularios, sin llamadas, sin retenciones. Mantienes el acceso hasta el final del período pagado.</p>
                 </details>
             </div>
         </div>
     </section>
 
-    <!-- ════════════ CTA FINAL ════════════ -->
+    <!-- ════════════════ CTA FINAL ════════════════ -->
     <section>
         <div class="container">
             <div class="cta-final fade-up">
                 <h2 data-en="Start today.">Empezad hoy.</h2>
-                <p data-en="Your next family adventure is one click away. No card. No spam. 100% free to start.">Vuestra próxima aventura familiar está a un clic. Sin tarjeta. Sin spam. 100% gratis para empezar.</p>
+                <p data-en="Your next family adventure is one tap away. Free. No card. No spam. No tracking.">Vuestra próxima aventura está a un toque. Gratis. Sin tarjeta. Sin spam. Sin tracking.</p>
                 <a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" rel="noopener" class="btn" data-en="📱 Open GoHappy now">📱 Abrir GoHappy ahora</a>
-                <div class="cta-qr" id="qr-container">
+                <div class="cta-qr">
                     <div id="qrcode"></div>
                     <div class="cta-qr-label" data-en="Scan with your phone">Escanea con tu móvil</div>
                 </div>
@@ -1997,22 +1840,22 @@
         </div>
     </section>
 
-    <!-- ════════════ FOOTER ════════════ -->
+    <!-- ════════════════ FOOTER ════════════════ -->
     <footer>
         <div class="container">
             <div class="footer-grid">
-                <div class="footer-brand-col">
+                <div>
                     <div class="footer-brand">
-                        <img src="assets/logo.png?v=4.9.0" alt="GoHappy">
+                        <img src="assets/logo.png?v=7.0.0" alt="GoHappy">
                         <span>GoHappy Family</span>
                     </div>
-                    <p class="footer-tag" data-en="The real community for modern families. Your path to joy starts here.">La comunidad real para familias modernas. Tu camino a la alegría empieza aquí.</p>
+                    <p class="footer-tag" data-en="The smart app for families that want to live more, not scroll more.">La app inteligente para familias que quieren vivir más, no hacer scroll más.</p>
                 </div>
                 <div class="footer-col">
                     <h4 data-en="Product">Producto</h4>
                     <ul>
-                        <li><a href="#features" data-en="Features">Funcionalidades</a></li>
-                        <li><a href="#how" data-en="How it works">Cómo funciona</a></li>
+                        <li><a href="#features" data-en="Features">Funciones</a></li>
+                        <li><a href="#adventures" data-en="Adventures">Aventuras</a></li>
                         <li><a href="#pricing" data-en="Pricing">Precio</a></li>
                         <li><a href="https://douglascyberbraz-beep.github.io/GoHappy-App/" target="_blank" data-en="Try Beta">Probar Beta</a></li>
                     </ul>
@@ -2020,9 +1863,8 @@
                 <div class="footer-col">
                     <h4 data-en="Company">Empresa</h4>
                     <ul>
-                        <li><a href="mailto:hola@gohappyfamily.app?subject=Sobre%20GoHappy" data-en="About us">Sobre nosotros</a></li>
-                        <li><a href="mailto:hola@gohappyfamily.app?subject=Blog" data-en="Blog (coming soon)">Blog (próximamente)</a></li>
                         <li><a href="mailto:hola@gohappyfamily.app" data-en="Contact">Contacto</a></li>
+                        <li><a href="mailto:hola@gohappyfamily.app?subject=Press" data-en="Press kit">Prensa</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
@@ -2036,36 +1878,32 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <div data-en="© 2026 GoHappy Family. Made with ♥ in Spain &amp; UK.">© 2026 GoHappy Family. Hecho con ♥ en España.</div>
-                <div class="made" data-en="Powered by <span>Gemini AI</span> + <span>Firebase</span>">Powered by <span>Gemini IA</span> + <span>Firebase</span></div>
+                <div data-en="© 2026 GoHappy Family · Built with ♥ in Spain &amp; UK">© 2026 GoHappy Family · Hecho con ♥ en España y UK</div>
+                <div data-en="Powered by Gemini AI + Firebase">Con tecnología de Gemini AI + Firebase</div>
             </div>
         </div>
     </footer>
 
     <script>
-        // ─── i18n: aplicar traducciones EN si corresponde ───
+        // ── i18n: aplicar traducciones EN si corresponde ───
         (function() {
             var lang = window.__landingLang || 'es';
             if (lang === 'en') {
                 document.querySelectorAll('[data-en]').forEach(function(el) {
                     var t = el.getAttribute('data-en');
                     if (t == null) return;
-                    if (el.tagName === 'META' || el.tagName === 'TITLE') {
-                        if (el.tagName === 'META') el.setAttribute('content', t);
-                        else el.textContent = t;
-                    } else {
-                        el.innerHTML = t;
-                    }
+                    if (el.tagName === 'META') el.setAttribute('content', t);
+                    else if (el.tagName === 'TITLE') el.textContent = t;
+                    else el.innerHTML = t;
                 });
-                // Open Graph locale
                 var ogLocale = document.querySelector('meta[property="og:locale"]');
                 if (ogLocale) ogLocale.setAttribute('content', 'en_GB');
             }
-            // Selector manual (toggle ES/EN) — fixed bottom-right
+            // Selector flotante ES/EN
             var sw = document.createElement('button');
             sw.id = 'lang-switch';
             sw.textContent = lang === 'en' ? 'ES' : 'EN';
-            sw.style.cssText = 'position:fixed;bottom:18px;right:18px;z-index:9999;background:rgba(11,76,143,0.92);color:white;border:none;border-radius:999px;padding:10px 16px;font-weight:800;font-family:-apple-system,sans-serif;font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(11,76,143,0.32);backdrop-filter:blur(12px);';
+            sw.style.cssText = 'position:fixed;bottom:18px;right:18px;z-index:99;background:rgba(11,76,143,0.92);color:white;border:none;border-radius:999px;padding:10px 16px;font-weight:800;font-family:-apple-system,sans-serif;font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(11,76,143,0.32);backdrop-filter:blur(12px);';
             sw.onclick = function() {
                 var next = (window.__landingLang === 'en') ? 'es' : 'en';
                 try { localStorage.setItem('GoHappy_lang', next); } catch(e) {}
@@ -2074,13 +1912,13 @@
             document.body.appendChild(sw);
         })();
 
-        // Nav scroll effect
+        // Nav scroll
         const nav = document.getElementById('nav');
         window.addEventListener('scroll', () => {
-            nav.classList.toggle('scrolled', window.scrollY > 20);
+            nav.classList.toggle('scrolled', window.scrollY > 30);
         });
 
-        // Fade-up animations on scroll
+        // Fade-up animations
         const io = new IntersectionObserver((entries) => {
             entries.forEach(e => {
                 if (e.isIntersecting) {
@@ -2088,23 +1926,21 @@
                     io.unobserve(e.target);
                 }
             });
-        }, { threshold: 0.12 });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
         document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
 
-        // QR code para CTA final
+        // QR final
         window.addEventListener('load', () => {
             try {
                 const qr = qrcode(0, 'M');
                 qr.addData('https://douglascyberbraz-beep.github.io/GoHappy-App/');
                 qr.make();
                 const qrEl = document.getElementById('qrcode');
-                if (qrEl) {
-                    qrEl.innerHTML = qr.createImgTag(5, 0);
-                }
-            } catch (e) { console.warn('QR error:', e); }
+                if (qrEl) qrEl.innerHTML = qr.createImgTag(4, 0);
+            } catch (e) {}
         });
 
-        // Smooth scroll para links de nav
+        // Smooth scroll
         document.querySelectorAll('a[href^="#"]').forEach(a => {
             a.addEventListener('click', (e) => {
                 const id = a.getAttribute('href');
