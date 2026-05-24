@@ -140,17 +140,16 @@ h1, h2, h3, .logo-text, .premium-header h2 { font-family: 'Poppins', sans-serif;
     display: none !important;
 }
 
-/* Premium Transitions */
+/* Premium Transitions — optimizadas para fluidez (sin blur en mobile) */
 .page-transition-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    background: rgba(255, 255, 255, 0.55);
     z-index: 2000;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+    transition: opacity 0.14s ease-out;
+    will-change: opacity;
 }
 
 .page-transition-overlay.active {
@@ -159,21 +158,22 @@ h1, h2, h3, .logo-text, .premium-header h2 { font-family: 'Poppins', sans-serif;
 }
 
 .page-enter-premium {
-    animation: pageEnterPremium 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: pageEnterPremium 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes pageEnterPremium {
-    0% { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(10px); }
-    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
 
 .stagger-group > * {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(8px);
+    will-change: opacity, transform;
 }
 
 .stagger-group.active > * {
-    animation: staggerEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: staggerEnter 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes staggerEnter {
@@ -728,31 +728,17 @@ body { background: #f8fafc; font-family: 'Inter', sans-serif; -webkit-font-smoot
     box-shadow: var(--shadow-premium);
 }
 
-/* Staggered List Animation */
+/* Staggered List Animation — delays cortos para sensación inmediata */
 .stagger-group>* {
     opacity: 0;
-    animation: slideUpFade 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    animation: slideUpFade 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
-.stagger-group>*:nth-child(1) {
-    animation-delay: 0.1s;
-}
-
-.stagger-group>*:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.stagger-group>*:nth-child(3) {
-    animation-delay: 0.3s;
-}
-
-.stagger-group>*:nth-child(4) {
-    animation-delay: 0.4s;
-}
-
-.stagger-group>*:nth-child(5) {
-    animation-delay: 0.5s;
-}
+.stagger-group>*:nth-child(1) { animation-delay: 0.02s; }
+.stagger-group>*:nth-child(2) { animation-delay: 0.05s; }
+.stagger-group>*:nth-child(3) { animation-delay: 0.08s; }
+.stagger-group>*:nth-child(4) { animation-delay: 0.11s; }
+.stagger-group>*:nth-child(5) { animation-delay: 0.14s; }
 
 /* --- Component Styles --- */
 

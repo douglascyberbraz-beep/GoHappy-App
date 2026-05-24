@@ -191,22 +191,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 function setupNavigation() {
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
+        // pointerdown en lugar de click = ~80-100ms más rápido (sin el 300ms tap delay)
+        const fireNav = (e) => {
             const target = e.currentTarget;
             const page = target.dataset.page;
-            if (page === appState.currentPage || appState.transitioning) return;
+            if (page === appState.currentPage) return;
 
-            window.GoHappySound.play('click');
-
-            // Animación física del botón
-            target.classList.add('nav-active-pop');
-            setTimeout(() => target.classList.remove('nav-active-pop'), 350);
-
+            // Feedback visual INMEDIATO (no esperamos al load)
             navItems.forEach(nav => nav.classList.remove('active'));
             target.classList.add('active');
+            target.classList.add('nav-active-pop');
+            setTimeout(() => target.classList.remove('nav-active-pop'), 280);
 
-            loadPage(page);
-        });
+            // Sonido fire-and-forget
+            try { window.GoHappySound && window.GoHappySound.play('click'); } catch (err) {}
+
+            // Render en la siguiente frame para que el feedback visual se vea YA
+            requestAnimationFrame(() => loadPage(page));
+        };
+        item.addEventListener('pointerdown', fireNav, { passive: true });
     });
 }
 
@@ -233,89 +236,119 @@ const PAGE_RENDERERS = {
     'adventures':  () => window.GoHappyAdventures
 };
 
+// Cache de DOM por página: vuelve INSTANTÁNEO el switch entre pestañas ya visitadas
+// Guardamos los nodos detached para reinjectar sin re-render
+const _pageCache = new Map(); // pageName -> { node, ts }
+const _PAGE_CACHE_TTL = 60 * 1000; // 60s: tras esto re-renderizamos para datos frescos
+const _PAGE_CACHE_MAX = 4;        // max 4 páginas en memoria
+
+function _cacheGet(pageName) {
+    const c = _pageCache.get(pageName);
+    if (!c) return null;
+    if (Date.now() - c.ts > _PAGE_CACHE_TTL) {
+        _pageCache.delete(pageName);
+        return null;
+    }
+    return c.node;
+}
+
+function _cacheSet(pageName, node) {
+    if (_pageCache.size >= _PAGE_CACHE_MAX) {
+        // Eliminar el más antiguo
+        const oldest = [..._pageCache.entries()].sort((a,b) => a[1].ts - b[1].ts)[0];
+        if (oldest) _pageCache.delete(oldest[0]);
+    }
+    _pageCache.set(pageName, { node, ts: Date.now() });
+}
+
 async function loadPage(pageName) {
     if (appState.transitioning) return;
+    if (appState.currentPage === pageName) return; // ya estás aquí, ignorar
     appState.transitioning = true;
 
-    const overlay = document.getElementById('page-transition-overlay');
     const container = document.getElementById('main-content');
     const mapViewport = document.getElementById('map-viewport-v11');
 
     try {
-        // 1. Activar overlay de cristal
-        if (overlay) overlay.classList.add('active');
-        await new Promise(r => setTimeout(r, 200));
-
-        // 2. Route Guard
+        // 1. Route Guard (síncrono, sin esperas)
         const user = window.GoHappyAuth.checkAuth();
         const publicPages = ['legal', 'map'];
         if (!user && !publicPages.includes(pageName)) {
-            if (overlay) overlay.classList.remove('active');
             window.GoHappyAuth.renderAuthModal();
             appState.transitioning = false;
             return;
         }
 
+        // 2. Guardar la página actual en cache antes de cambiar (si no es map)
+        const previousPage = appState.currentPage;
+        if (previousPage && previousPage !== 'map' && previousPage !== pageName && container.firstChild) {
+            const snapshot = container.cloneNode(true);
+            _cacheSet(previousPage, snapshot);
+        }
+
         appState.currentPage = pageName;
         updateNavStyles(pageName);
 
-        // 3. Preparar escenario
+        // 3. Renderizar destino
         if (pageName === 'map') {
             container.classList.add('hidden');
-            container.innerHTML = '';
             if (mapViewport) {
                 mapViewport.style.display = 'flex';
                 if (window.GoHappyMap) {
-                    await window.GoHappyMap.render(mapViewport);
+                    // No await — fire & forget para que el switch sea inmediato
+                    window.GoHappyMap.render(mapViewport);
                 }
             }
-            window.GoHappySound.play('map');
+            window.GoHappySound && window.GoHappySound.play('map');
         } else {
             if (mapViewport) mapViewport.style.display = 'none';
-
-            // Skeleton loader premium
             container.classList.remove('hidden');
-            container.innerHTML = `
-                <div class="premium-loader" style="padding: 20px; padding-top: 40px;">
-                    <div class="premium-shimmer" style="height: 180px; border-radius: 32px; margin-bottom: 20px;"></div>
-                    <div class="premium-shimmer" style="height: 80px; border-radius: 24px; margin-bottom: 15px;"></div>
-                    <div class="premium-shimmer" style="height: 80px; border-radius: 24px; margin-bottom: 15px;"></div>
-                    <div class="premium-shimmer" style="height: 80px; border-radius: 24px;"></div>
-                </div>`;
 
-            const getRenderer = PAGE_RENDERERS[pageName];
-            const renderer = getRenderer ? getRenderer() : null;
-
-            if (renderer && renderer.render) {
+            // 3a. Si hay cache fresca, reinyectarla INSTANTE (0 ms render)
+            const cached = _cacheGet(pageName);
+            if (cached) {
                 container.innerHTML = '';
-                await renderer.render(container);
-
-                // Entrada premium
-                container.style.animation = 'pageEnterPremium 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-                setTimeout(() => { container.style.animation = ''; }, 650);
-
-                // Stagger groups
-                container.querySelectorAll('.stagger-group').forEach(g => {
-                    setTimeout(() => g.classList.add('active'), 80);
-                });
+                while (cached.firstChild) container.appendChild(cached.firstChild);
+                container.style.animation = 'pageEnterPremium 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+                setTimeout(() => { container.style.animation = ''; }, 230);
             } else {
+                // 3b. Sin cache: skeleton inmediato + render async
                 container.innerHTML = `
-                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:60vh; gap:16px; color:#94a3b8; font-family:Inter,sans-serif;">
-                        <span style="font-size:48px;">🚧</span>
-                        <h3 style="font-size:18px; font-weight:800; color:#334155; margin:0;">Próximamente</h3>
-                        <p style="font-size:14px; margin:0; text-align:center; max-width:240px;">Esta sección estará disponible en la próxima actualización.</p>
+                    <div class="premium-loader" style="padding:20px; padding-top:40px;">
+                        <div class="premium-shimmer" style="height:140px; border-radius:28px; margin-bottom:16px;"></div>
+                        <div class="premium-shimmer" style="height:70px; border-radius:20px; margin-bottom:12px;"></div>
+                        <div class="premium-shimmer" style="height:70px; border-radius:20px;"></div>
                     </div>`;
+
+                const getRenderer = PAGE_RENDERERS[pageName];
+                const renderer = getRenderer ? getRenderer() : null;
+
+                if (renderer && renderer.render) {
+                    // Animación arranca YA aunque el render sea async
+                    container.style.animation = 'pageEnterPremium 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+
+                    // No bloqueamos el unlock de transitioning con el await
+                    Promise.resolve(renderer.render(container)).then(() => {
+                        container.style.animation = '';
+                        // Stagger se activa enseguida
+                        container.querySelectorAll('.stagger-group').forEach(g => {
+                            requestAnimationFrame(() => g.classList.add('active'));
+                        });
+                    }).catch(err => {
+                        console.error(`[GoHappy] render ${pageName} error:`, err);
+                    });
+                } else {
+                    container.innerHTML = `
+                        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:60vh; gap:16px; color:#94a3b8;">
+                            <span style="font-size:48px;">🚧</span>
+                            <h3 style="font-size:18px; font-weight:800; color:#334155; margin:0;">Próximamente</h3>
+                        </div>`;
+                }
             }
         }
 
-        // 4. Quitar overlay suavemente
-        setTimeout(() => {
-            if (overlay) overlay.classList.remove('active');
-        }, 150);
-
     } catch (err) {
         console.error(`[GoHappy] Error cargando ${pageName}:`, err);
-        if (overlay) overlay.classList.remove('active');
         if (container) {
             container.classList.remove('hidden');
             container.innerHTML = `
