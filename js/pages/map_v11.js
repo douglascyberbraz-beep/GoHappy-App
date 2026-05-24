@@ -104,7 +104,7 @@ window.GoHappyMap = {
         // GUARD 1: ¿MapLibre cargó realmente?
         if (typeof window.maplibregl === 'undefined') {
             console.error('[Map] maplibregl no está cargado — script bloqueado o lento');
-            throw new Error('MapLibre no disponible. Recarga la página.');
+            throw new Error(window.L('MapLibre no disponible. Recarga la página.', 'MapLibre not available. Reload the page.'));
         }
 
         // GUARD 2: ¿el navegador soporta WebGL?
@@ -114,7 +114,7 @@ window.GoHappyMap = {
             if (!gl) throw new Error('WebGL no soportado');
         } catch (e) {
             console.error('[Map] WebGL no disponible:', e);
-            throw new Error('Tu navegador no soporta WebGL. Actualízalo para ver el mapa.');
+            throw new Error(window.L('Tu navegador no soporta WebGL. Actualízalo para ver el mapa.', 'Your browser does not support WebGL. Update it to see the map.'));
         }
 
         // Usar #map-canvas si existe (división dedicada), si no el container

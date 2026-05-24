@@ -19,12 +19,12 @@ window.GoHappyFamilies = {
     // ────────────────────────────────────────────────
     createFamily: async (familyName) => {
         const user = window.GoHappyAuth.checkAuth();
-        if (!user || user.isGuest) throw new Error('Debes iniciar sesión para crear una familia.');
+        if (!user || user.isGuest) throw new Error(window.L('Debes iniciar sesión para crear una familia.', 'You must sign in to create a family.'));
 
         // Validación del nombre
         const nombre = familyName.trim();
-        if (!nombre || nombre.length < 2) throw new Error('El nombre de la familia debe tener al menos 2 caracteres.');
-        if (nombre.length > 40) throw new Error('El nombre no puede tener más de 40 caracteres.');
+        if (!nombre || nombre.length < 2) throw new Error(window.L('El nombre de la familia debe tener al menos 2 caracteres.', 'Family name must be at least 2 characters.'));
+        if (nombre.length > 40) throw new Error(window.L('El nombre no puede tener más de 40 caracteres.', 'Family name cannot exceed 40 characters.'));
 
         // Forzar online: si la SDK quedó en offline (persistence fail, sleep, etc) reactiva
         try {
@@ -41,7 +41,7 @@ window.GoHappyFamilies = {
         // Verificación local: si la sesión local ya dice que tiene familia, abortar YA
         // (evita 2 lecturas Firestore innecesarias que añaden latencia)
         if (user.familyId) {
-            throw new Error('Ya perteneces a una familia. Sal de ella primero para crear una nueva.');
+            throw new Error(window.L('Ya perteneces a una familia. Sal de ella primero para crear una nueva.', 'You already belong to a family. Leave it first to create a new one.'));
         }
 
         // Generamos código localmente (6 chars sobre 32^6 ≈ 1B combinaciones).
@@ -67,12 +67,12 @@ window.GoHappyFamilies = {
         } catch (e) {
             console.error('[Families] create err:', e?.code, e?.message);
             if (e?.message?.startsWith('timeout-')) {
-                throw new Error('La operación tardó demasiado. Comprueba tu conexión y reintenta.');
+                throw new Error(window.L('La operación tardó demasiado. Comprueba tu conexión y reintenta.', 'The operation took too long. Check your connection and retry.'));
             }
             if (e?.code === 'permission-denied') {
-                throw new Error('Permiso denegado. Revisa que estés bien identificado.');
+                throw new Error(window.L('Permiso denegado. Revisa que estés bien identificado.', 'Permission denied. Check that you are properly signed in.'));
             }
-            throw new Error('No se pudo crear la familia: ' + (e?.message || 'error desconocido'));
+            throw new Error(window.L('No se pudo crear la familia: ', 'Could not create the family: ') + (e?.message || window.L('error desconocido', 'unknown error')));
         }
         const familyId = familiaRef.id;
 
@@ -119,10 +119,10 @@ window.GoHappyFamilies = {
     // ────────────────────────────────────────────────
     joinFamily: async (code) => {
         const user = window.GoHappyAuth.checkAuth();
-        if (!user || user.isGuest) throw new Error('Debes iniciar sesión para unirte a una familia.');
+        if (!user || user.isGuest) throw new Error(window.L('Debes iniciar sesión para unirte a una familia.', 'You must sign in to join a family.'));
 
         const codigoLimpio = (code || '').trim().toUpperCase();
-        if (codigoLimpio.length !== 6) throw new Error('El código debe tener exactamente 6 caracteres.');
+        if (codigoLimpio.length !== 6) throw new Error(window.L('El código debe tener exactamente 6 caracteres.', 'Code must be exactly 6 characters.'));
 
         // Verificar que el usuario no tenga ya una familia
         const userDoc = await window.GoHappyDB.collection('users').doc(user.uid).get();
@@ -136,7 +136,7 @@ window.GoHappyFamilies = {
             .limit(1)
             .get();
 
-        if (snap.empty) throw new Error('Código incorrecto. Pídele el código al creador de la familia.');
+        if (snap.empty) throw new Error(window.L('Código incorrecto. Pídele el código al creador de la familia.', 'Wrong code. Ask the family creator for the code.'));
 
         const familiaDoc = snap.docs[0];
         const familiaData = familiaDoc.data();
@@ -145,12 +145,12 @@ window.GoHappyFamilies = {
         // Validar máximo de miembros (6)
         const miembros = familiaData.miembros || [];
         if (miembros.length >= 6) {
-            throw new Error('Esta familia ya tiene 6 miembros. No puede admitir más.');
+            throw new Error(window.L('Esta familia ya tiene 6 miembros. No puede admitir más.', 'This family already has 6 members. No more can join.'));
         }
 
         // Verificar que no sea ya miembro
         if (miembros.includes(user.uid)) {
-            throw new Error('¡Ya eres miembro de esta familia!');
+            throw new Error(window.L('¡Ya eres miembro de esta familia!', 'You are already a member of this family!'));
         }
 
         // Añadir al usuario como miembro (transacción para evitar race conditions)
@@ -159,7 +159,7 @@ window.GoHappyFamilies = {
             const doc = await t.get(ref);
             if (!doc.exists) throw new Error('La familia ya no existe.');
             const currentMembers = doc.data().miembros || [];
-            if (currentMembers.length >= 6) throw new Error('La familia está llena (máx. 6 miembros).');
+            if (currentMembers.length >= 6) throw new Error(window.L('La familia está llena (máx. 6 miembros).', 'Family is full (max 6 members).'));
             t.update(ref, { miembros: [...currentMembers, user.uid] });
         });
 

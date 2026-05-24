@@ -42,7 +42,27 @@ window.GoHappyCare = {
         ];
     },
 
-    SYSTEM_PROMPT: `Eres GoHappy Care, coach experto en psicología infantil, crianza consciente, sueño infantil, alimentación familiar y desarrollo emocional. Hablas español natural y cálido.
+    // System prompt según idioma del usuario — UK users reciben British English
+    get SYSTEM_PROMPT() {
+        const lang = window.GoHappyI18n?.lang || 'es';
+        if (lang === 'en') {
+            return `You are GoHappy Care, an expert coach in child psychology, conscious parenting, child sleep, family nutrition and emotional development. You speak natural, warm British English.
+
+RESPONSE STYLE (MANDATORY):
+1. **Validate the parent's emotion** first (1 short empathetic sentence)
+2. **Explain why it happens** from psychology/development (2-3 sentences)
+3. **Actionable plan** in 2-3 specific numbered steps
+4. **Close with encouragement** (1 sentence)
+
+RULES:
+- Maximum 220 words total
+- Use British English spelling (behaviour, colour, recognise, mum)
+- Maximum 2 emojis in the entire response
+- If the question is seriously medical (high fever, blood, accident), respond briefly and recommend GP/paediatrician immediately
+- DO NOT use raw asterisk lists, use 1. 2. 3. numbering
+- DO NOT add long disclaimers at the end`;
+        }
+        return `Eres GoHappy Care, coach experto en psicología infantil, crianza consciente, sueño infantil, alimentación familiar y desarrollo emocional. Hablas español natural y cálido.
 
 ESTILO DE RESPUESTA (OBLIGATORIO):
 1. **Valida la emoción** del padre/madre primero (1 frase corta y empática)
@@ -56,7 +76,8 @@ REGLAS:
 - Máximo 2 emojis en toda la respuesta
 - Si la pregunta es médica seria (fiebre alta, sangre, accidente), responde brevemente y recomienda pediatra inmediato
 - NO uses listas con asteriscos crudos, usa numeración 1. 2. 3.
-- NO añadas disclaimers largos al final`,
+- NO añadas disclaimers largos al final`;
+    },
 
     _chatKey: 'GoHappy_coach_chat',
     _historial: [],
@@ -382,17 +403,22 @@ REGLAS:
         window.GoHappySound && window.GoHappySound.play('click');
 
         try {
+            const isEn = (window.GoHappyI18n?.lang === 'en');
+            const parentLabel = isEn ? 'Parent' : 'Padre/Madre';
+            const convoLabel  = isEn ? 'CONVERSATION SO FAR' : 'CONVERSACIÓN HASTA AHORA';
+            const respondCue  = isEn ? 'RESPOND as Care:'    : 'RESPONDE como Care:';
+
             // Construir prompt con contexto e historial reciente
             const historialReciente = window.GoHappyCare._historial.slice(-6);
             const conversation = historialReciente
-                .map(m => `${m.role === 'user' ? 'Padre/Madre' : 'Care'}: ${m.text}`)
+                .map(m => `${m.role === 'user' ? parentLabel : 'Care'}: ${m.text}`)
                 .join('\n\n');
 
             const childContext = user?.kidsAges
-                ? `Edades de los niños: ${user.kidsAges}.`
+                ? (isEn ? `Children's ages: ${user.kidsAges}.` : `Edades de los niños: ${user.kidsAges}.`)
                 : '';
 
-            const fullPrompt = `${window.GoHappyCare.SYSTEM_PROMPT}\n\n${childContext}\n\nCONVERSACIÓN HASTA AHORA:\n${conversation}\n\nRESPONDE como Care:`;
+            const fullPrompt = `${window.GoHappyCare.SYSTEM_PROMPT}\n\n${childContext}\n\n${convoLabel}:\n${conversation}\n\n${respondCue}`;
 
             const response = await window.GoHappyAI._callGemini(fullPrompt, false);
 

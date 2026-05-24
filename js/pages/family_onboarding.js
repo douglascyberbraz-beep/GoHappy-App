@@ -292,6 +292,9 @@ window.GoHappyFamilyOnboarding = {
             inp.addEventListener('blur', () => inp.style.borderColor = '#e2e8f0');
         }
 
+        // Helper bilingüe
+        const L = (es, en) => (window.GoHappyI18n?.lang === 'en' ? en : es);
+
         // ── CREAR FAMILIA ──
         document.getElementById('ob-confirm-create').onclick = async () => {
             hideError('ob-create-error');
@@ -302,19 +305,28 @@ window.GoHappyFamilyOnboarding = {
                 const result = await window.GoHappyFamilies.createFamily(nombre);
 
                 // Mostrar pantalla de éxito con el código
-                document.getElementById('ob-success-title').textContent = `¡Familia "${result.nombre}" creada! 🏠`;
-                document.getElementById('ob-success-msg').textContent = 'Comparte el código con tu familia para que se unan.';
+                document.getElementById('ob-success-title').textContent = L(
+                    `¡Familia "${result.nombre}" creada! 🏠`,
+                    `Family "${result.nombre}" created! 🏠`
+                );
+                document.getElementById('ob-success-msg').textContent = L(
+                    'Comparte el código con tu familia para que se unan.',
+                    'Share the code with your family so they can join.'
+                );
                 document.getElementById('ob-code-display').style.display = 'block';
                 document.getElementById('ob-code-value').textContent = result.codigoInvitacion;
                 showStep('ob-step-success');
 
                 document.getElementById('ob-copy-code').onclick = () => {
                     navigator.clipboard.writeText(result.codigoInvitacion).then(() => {
-                        window.GoHappyToast.success(`Código "${result.codigoInvitacion}" copiado al portapapeles`);
+                        window.GoHappyToast.success(L(
+                            `Código "${result.codigoInvitacion}" copiado al portapapeles`,
+                            `Code "${result.codigoInvitacion}" copied to clipboard`
+                        ));
                     });
                 };
             } catch (e) {
-                showError('ob-create-error', e.message || 'Error al crear la familia.');
+                showError('ob-create-error', e.message || L('Error al crear la familia.', 'Could not create the family.'));
             } finally {
                 setLoading('ob-confirm-create', false);
             }
@@ -328,7 +340,7 @@ window.GoHappyFamilyOnboarding = {
                 .join('');
 
             if (code.length < 6) {
-                showError('ob-join-error', 'Introduce los 6 caracteres del código.');
+                showError('ob-join-error', L('Introduce los 6 caracteres del código.', 'Enter the 6 characters of the code.'));
                 return;
             }
             setLoading('ob-confirm-join', true);
@@ -336,12 +348,18 @@ window.GoHappyFamilyOnboarding = {
             try {
                 const result = await window.GoHappyFamilies.joinFamily(code);
                 try { localStorage.removeItem('GoHappy_pending_family'); } catch (e) {}
-                document.getElementById('ob-success-title').textContent = `¡Te has unido a "${result.nombre}"! 🔗`;
-                document.getElementById('ob-success-msg').textContent = '¡Ya eres parte de la familia! Explorad GoHappy juntos.';
+                document.getElementById('ob-success-title').textContent = L(
+                    `¡Te has unido a "${result.nombre}"! 🔗`,
+                    `You joined "${result.nombre}"! 🔗`
+                );
+                document.getElementById('ob-success-msg').textContent = L(
+                    '¡Ya eres parte de la familia! Explorad GoHappy juntos.',
+                    'You are now part of the family! Explore GoHappy together.'
+                );
                 document.getElementById('ob-code-display').style.display = 'none';
                 showStep('ob-step-success');
             } catch (e) {
-                showError('ob-join-error', e.message || 'Error al unirse a la familia.');
+                showError('ob-join-error', e.message || L('Error al unirse a la familia.', 'Could not join the family.'));
             } finally {
                 setLoading('ob-confirm-join', false);
             }

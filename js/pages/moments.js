@@ -373,7 +373,7 @@ window.GoHappyMoments = {
 
         captureBtn.onclick = () => {
             if (!user || user.isGuest) {
-                window.GoHappyToast.warning('Inicia sesión con cuenta real para capturar momentos.');
+                window.GoHappyToast.warning(window.L('Inicia sesión con cuenta real para capturar momentos.', 'Sign in with a real account to capture moments.'));
                 return;
             }
             fileInput.click();
@@ -898,18 +898,17 @@ window.GoHappyMoments = {
     _publishMoment: async (imageData, caption, user, audience = 'family') => {
         // Diagnóstico claro: distinguir entre los 3 estados
         if (!user || !user.uid) {
-            throw new Error('No estás identificado. Pulsa "Iniciar sesión" arriba.');
+            throw new Error(window.L('No estás identificado. Pulsa "Iniciar sesión" arriba.', 'You are not signed in. Tap "Sign in" at the top.'));
         }
         if (user.isGuest) {
-            throw new Error('Como invitado no puedes publicar. Regístrate gratis (10s) para compartir momentos.');
+            throw new Error(window.L('Como invitado no puedes publicar. Regístrate gratis (10s) para compartir momentos.', 'Guests cannot post. Sign up free (10s) to share moments.'));
         }
-        // Verificar que Firebase Auth coincide con la sesión local
         const fbUser = window.GoHappyAuthReal?.currentUser;
         if (!fbUser || fbUser.uid !== user.uid) {
-            throw new Error('Tu sesión expiró. Recarga la página y vuelve a iniciar sesión.');
+            throw new Error(window.L('Tu sesión expiró. Recarga la página y vuelve a iniciar sesión.', 'Your session expired. Reload the page and sign in again.'));
         }
         if (fbUser.isAnonymous) {
-            throw new Error('Las cuentas anónimas no pueden publicar. Regístrate gratis para participar.');
+            throw new Error(window.L('Las cuentas anónimas no pueden publicar. Regístrate gratis para participar.', 'Anonymous accounts cannot post. Sign up free to take part.'));
         }
 
         const familyId = user.familyId || user.uid;
@@ -937,9 +936,9 @@ window.GoHappyMoments = {
         } catch (e) {
             console.error('[Moments] publish error:', e?.code, e?.message);
             if (e?.code === 'permission-denied') {
-                throw new Error('Permiso denegado por las reglas. ¿Foto muy grande o caption con HTML?');
+                throw new Error(window.L('Permiso denegado por las reglas. ¿Foto muy grande o caption con HTML?', 'Permission denied. Photo too large or caption contains HTML?'));
             }
-            throw new Error('No se pudo publicar: ' + (e?.message || e?.code || 'error desconocido'));
+            throw new Error(window.L('No se pudo publicar: ', 'Could not post: ') + (e?.message || e?.code || window.L('error desconocido', 'unknown error')));
         }
 
         // Actividad para Memories

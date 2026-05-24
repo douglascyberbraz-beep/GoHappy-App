@@ -134,10 +134,9 @@ window.GoHappyData = {
 
     addTribuPost: async (content, user) => {
         const cleanContent = (content || '').trim().slice(0, 280);
-        if (!cleanContent) throw new Error('El mensaje está vacío.');
-        // Detectar HTML que la rule rechaza
+        if (!cleanContent) throw new Error(window.L('El mensaje está vacío.', 'The message is empty.'));
         if (/[<>]/.test(cleanContent)) {
-            throw new Error('No uses los caracteres < o > en tu mensaje.');
+            throw new Error(window.L('No uses los caracteres < o > en tu mensaje.', 'Do not use < or > characters in your message.'));
         }
         const post = {
             userId:    user.uid,
@@ -154,12 +153,12 @@ window.GoHappyData = {
         } catch (e) {
             console.error("[Data] post error:", e?.code, e?.message);
             if (e?.code === 'permission-denied') {
-                throw new Error('Permiso denegado. Verifica que tu cuenta NO es anónima/invitado.');
+                throw new Error(window.L('Permiso denegado. Verifica que tu cuenta NO es anónima/invitado.', 'Permission denied. Make sure your account is NOT anonymous/guest.'));
             }
             if (e?.code === 'unavailable') {
-                throw new Error('Sin conexión a Firestore. Comprueba tu internet.');
+                throw new Error(window.L('Sin conexión a Firestore. Comprueba tu internet.', 'No connection to Firestore. Check your internet.'));
             }
-            throw new Error('Error al publicar: ' + (e?.message || e?.code || 'desconocido'));
+            throw new Error(window.L('Error al publicar: ', 'Post error: ') + (e?.message || e?.code || window.L('desconocido', 'unknown')));
         }
     },
 

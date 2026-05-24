@@ -755,3 +755,7 @@ window.GoHappyI18n = {
 
 // Helper global corto para uso en pages: window.t('key', vars)
 window.t = (key, vars) => window.GoHappyI18n ? window.GoHappyI18n.t(key, vars) : key;
+
+// Helper inline bilingüe — devuelve EN si lang=='en', si no ES.
+// Para strings ad-hoc que no merecen entrar al diccionario.
+window.L = (es, en) => (window.GoHappyI18n?.lang === 'en' ? en : es);

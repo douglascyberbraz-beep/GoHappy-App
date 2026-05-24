@@ -181,7 +181,7 @@ window.GoHappySafePage = {
             const desc = document.getElementById('alert-desc').value.trim();
 
             if (!title || !location) {
-                window.GoHappyToast.warning('El título y el lugar son obligatorios.');
+                window.GoHappyToast.warning(window.L('El título y el lugar son obligatorios.', 'Title and location are required.'));
                 return;
             }
 
@@ -199,10 +199,10 @@ window.GoHappySafePage = {
             if (success) {
                 modal.classList.add('hidden');
                 // Los puntos ya los suma reportAlert internamente
-                window.GoHappyToast.points('¡Alerta reportada! +20 pts. ¡Gracias por cuidar a la comunidad!');
+                window.GoHappyToast.points(window.L('¡Alerta reportada! +20 pts. ¡Gracias por cuidar a la comunidad!', 'Alert reported! +20 pts. Thanks for looking out for the community!'));
                 window.GoHappySafePage.render(container);
             } else {
-                window.GoHappyToast.error('Error al enviar. Inicia sesión con cuenta real (los invitados no pueden reportar).');
+                window.GoHappyToast.error(window.L('Error al enviar. Inicia sesión con cuenta real (los invitados no pueden reportar).', 'Send error. Sign in with a real account (guests cannot report).'));
             }
 
             submitBtn.disabled = false;

@@ -59,15 +59,15 @@ window.GoHappyTribu = {
             const fbUser = window.GoHappyAuthReal?.currentUser;
 
             if (!user || !user.uid) {
-                window.GoHappyToast.warning('No estás identificado. Pulsa el botón de login arriba.');
+                window.GoHappyToast.warning(window.L('No estás identificado. Pulsa el botón de login arriba.', 'You are not signed in. Tap the login button at the top.'));
                 return;
             }
             if (user.isGuest || fbUser?.isAnonymous) {
-                window.GoHappyToast.warning('Como invitado no puedes publicar. Regístrate gratis para participar en la Tribu.', 4500);
+                window.GoHappyToast.warning(window.L('Como invitado no puedes publicar. Regístrate gratis para participar en la Tribu.', 'Guests cannot post. Sign up free to take part in the Tribe.'), 4500);
                 return;
             }
             if (!fbUser || fbUser.uid !== user.uid) {
-                window.GoHappyToast.error('Tu sesión expiró. Recarga la página.', 4500);
+                window.GoHappyToast.error(window.L('Tu sesión expiró. Recarga la página.', 'Your session expired. Reload the page.'), 4500);
                 return;
             }
 
@@ -83,7 +83,7 @@ window.GoHappyTribu = {
             }
             // Rate limiting local: máx 3 posts por minuto
             if (sec && !sec.checkLocalRateLimit('tribu_post', 3)) {
-                window.GoHappyToast.warning('Estás publicando demasiado rápido. Espera un momento. 🙏');
+                window.GoHappyToast.warning(window.L('Estás publicando demasiado rápido. Espera un momento. 🙏', 'You are posting too fast. Please wait a moment. 🙏'));
                 return;
             }
 
@@ -113,7 +113,7 @@ window.GoHappyTribu = {
 
                     modal.classList.add('hidden');
                     contentInput.value = '';
-                    window.GoHappyToast.points('¡Publicado! Has ganado 5 puntos. 🎉');
+                    window.GoHappyToast.points(window.L('¡Publicado! Has ganado 5 puntos. 🎉', 'Posted! You earned 5 points. 🎉'));
                 } catch (e) {
                     console.error('[Tribu] publish error:', e);
                     window.GoHappyToast.error(e?.message || 'Error al publicar.', 4500);
