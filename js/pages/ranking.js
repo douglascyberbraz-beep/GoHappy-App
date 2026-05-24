@@ -117,14 +117,27 @@ window.GoHappyRanking = {
             const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉';
             const isLarge = pos === 1;
             const safeName = String(item.name || '').replace(/[<>&'"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&#39;','"':'&quot;'}[c])).slice(0, 18);
-            const safeAvatar = String(item.avatar || '👤').slice(0, 6);
+            // photo/avatar puede venir como emoji corto O como data: URI larga
+            const rawAvatar = String(item.avatar || '👤');
+            const isUrl = /^https?:\/\//.test(rawAvatar) || rawAvatar.startsWith('data:');
+            const safeAvatar = isUrl ? rawAvatar : rawAvatar.slice(0, 6);
             const safeScore = String(item.score || '').replace(/[<>]/g, '');
             const clickAttr = item.onclick ? `onclick="${item.onclick}" style="cursor:pointer;"` : '';
-            // Si avatar es URL de imagen, usar como background
-            const isUrl = /^https?:\/\//.test(safeAvatar) || safeAvatar.startsWith('data:');
-            const avatarHtml = isUrl
-                ? `<div class="gh-pod-v2-avatar" style="background-image:url('${safeAvatar}'); background-color:transparent;"></div>`
-                : `<div class="gh-pod-v2-avatar">${safeAvatar}</div>`;
+            // Aro de nivel: extraer pts del score si viene como "1250 pts"
+            const ptsNum = parseInt(String(item.score || '').replace(/[^\d]/g, '')) || 0;
+            const lvl = window.GoHappyPoints?.getLevelInfo?.(ptsNum) || { ring:'linear-gradient(135deg,#A0E0B6,#65C18C)', shadow:'rgba(101,193,140,0.45)', name:'Novato' };
+            const innerAvatarStyle = isUrl
+                ? `background-image:url('${safeAvatar}'); background-size:cover; background-position:center; font-size:0;`
+                : '';
+            const avatarHtml = `
+                <div class="gh-level-ring" data-level="${lvl.name}" title="${lvl.name}" style="
+                    position:relative; width:50px; height:50px; padding:3px; flex-shrink:0;
+                    border-radius:50%; background:${lvl.ring};
+                    box-shadow:0 0 12px ${lvl.shadow};
+                    display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box;
+                ">
+                    <div class="gh-pod-v2-avatar" style="width:44px !important; height:44px !important; ${innerAvatarStyle}">${isUrl ? '' : safeAvatar}</div>
+                </div>`;
 
             out += `
                 <div class="gh-pod-v2-card ${isLarge?'large':''} ${item.special?'is-me':''}" ${clickAttr}>
@@ -283,10 +296,21 @@ window.GoHappyRanking = {
 
             html += '<div class="ranking-rows">';
             others.forEach((user, i) => {
+                const av = String(user.avatar || '👤');
+                const isUrl = /^https?:\/\//.test(av) || av.startsWith('data:');
+                const lvl = window.GoHappyPoints?.getLevelInfo?.(user.points || 0) || { ring:'linear-gradient(135deg,#A0E0B6,#65C18C)', shadow:'rgba(101,193,140,0.45)', name:'Novato' };
+                const avatarInner = isUrl
+                    ? `<div style="width:34px;height:34px;border-radius:50%;background-image:url('${av}');background-size:cover;background-position:center;"></div>`
+                    : `<div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#0B4C8F,#17C8D4);color:white;display:flex;align-items:center;justify-content:center;font-size:14px;">${av}</div>`;
                 html += `
                     <div class="ranking-row card-anim ${user.special ? 'is-me' : ''}">
                         <span class="row-rank" style="font-weight: 800; color: #94a3b8; width: 35px;">#${i + 4}</span>
-                        <div class="row-avatar gradient-bg small" style="width: 40px; height: 40px; font-size: 16px;">${user.avatar || '👤'}</div>
+                        <div class="gh-level-ring" data-level="${lvl.name}" title="${lvl.name}" style="
+                            position:relative; width:42px; height:42px; padding:2.5px; flex-shrink:0;
+                            border-radius:50%; background:${lvl.ring};
+                            box-shadow:0 0 8px ${lvl.shadow};
+                            display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box;
+                        ">${avatarInner}</div>
                         <div class="row-info">
                             <h4 class="truncate" style="font-weight: 700; color: var(--primary-cobalt);">${user.name}</h4>
                             <span class="row-type" style="font-size: 11px;">${user.rank || 'Explorador'}</span>

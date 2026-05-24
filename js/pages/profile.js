@@ -28,9 +28,22 @@ window.GoHappyProfile = {
         container.innerHTML = `
             <div class="profile-page-premium stagger-group">
                 <div class="profile-hero-premium">
-                    <div class="profile-avatar-wrapper" id="open-avatar-editor">
-                        <div class="profile-avatar-large profile-glow" style="${(user.photo && (user.photo.startsWith('data:') || user.photo.startsWith('http'))) ? `background-image:url('${user.photo}'); background-size:cover; background-position:center; font-size:0;` : ''}">${(user.photo && (user.photo.startsWith('data:') || user.photo.startsWith('http'))) ? '' : (user.photo || '👤')}</div>
-                        <div class="level-badge-premium">${levelInfo.icon} ${levelInfo.name}</div>
+                    <div class="profile-avatar-wrapper" id="open-avatar-editor" style="cursor:pointer;">
+                        <div class="gh-level-ring" data-level="${levelInfo.name}" title="${levelInfo.name}" style="
+                            position:relative; width:124px; height:124px; padding:5px;
+                            border-radius:50%; background:${levelInfo.ring};
+                            box-shadow:0 0 30px ${levelInfo.shadow}, inset 0 0 0 1px rgba(255,255,255,0.7);
+                            display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box;
+                            animation:gh-ring-pulse 3.5s ease-in-out infinite;
+                        ">
+                            <div style="
+                                width:114px; height:114px; border-radius:50%; background:white;
+                                display:flex; align-items:center; justify-content:center; font-size:54px;
+                                overflow:hidden; box-sizing:border-box;
+                                ${(user.photo && (user.photo.startsWith('data:') || user.photo.startsWith('http'))) ? `background-image:url('${user.photo}'); background-size:cover; background-position:center; font-size:0;` : ''}
+                            ">${(user.photo && (user.photo.startsWith('data:') || user.photo.startsWith('http'))) ? '' : (user.photo || '👤')}</div>
+                        </div>
+                        <div class="level-badge-premium" style="margin-top:10px;">${levelInfo.icon} ${levelInfo.name}</div>
                     </div>
                     <div class="profile-meta-header">
                         <h2 class="profile-name-main">${safe(user.nickname || 'Explorador')}</h2>
@@ -59,6 +72,24 @@ window.GoHappyProfile = {
                         <div class="g-progress-stats">
                             <span>${Math.floor(levelInfo.progress)}%</span>
                             <span>${levelInfo.nextPoints || 'Max'} pts</span>
+                        </div>
+                    </div>
+
+                    <!-- Leyenda de fases (todos los aros visibles) -->
+                    <div style="margin-top:18px; padding-top:14px; border-top:0.5px solid rgba(11,76,143,0.10);">
+                        <div style="font-size:10px; font-weight:800; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; text-align:center;">${T('profile.phases') || 'Fases'}</div>
+                        <div style="display:flex; justify-content:space-between; gap:6px; overflow-x:auto; padding:4px 2px;">
+                            ${(window.GoHappyPoints?.LEVELS || []).map(lv => {
+                                const reached = (user.points || 0) >= lv.min;
+                                return `
+                                    <div style="flex:1; min-width:48px; text-align:center; opacity:${reached ? '1' : '0.42'};">
+                                        <div style="margin:0 auto; width:34px; height:34px; padding:2.5px; border-radius:50%; background:${lv.ring}; box-shadow:0 0 ${reached ? '8px' : '4px'} ${lv.shadow}; display:flex; align-items:center; justify-content:center; box-sizing:border-box;">
+                                            <div style="width:29px; height:29px; border-radius:50%; background:white; display:flex; align-items:center; justify-content:center; font-size:14px;">${lv.icon}</div>
+                                        </div>
+                                        <div style="font-size:9px; font-weight:700; color:var(--cobalt); margin-top:5px; line-height:1.2;">${lv.min}</div>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
                     </div>
                 </div>

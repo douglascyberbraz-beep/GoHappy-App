@@ -4,6 +4,19 @@
    Floating orb nav · Splash limpio · Headers unificados · Mapa Waze
    ================================================================ */
 
+/* ── Anillo de nivel: rotación sutil del gradient para el Héroe (conic) ── */
+@keyframes gh-ring-pulse {
+    0%, 100% { transform: scale(1);   filter: brightness(1); }
+    50%      { transform: scale(1.02); filter: brightness(1.12); }
+}
+.gh-level-ring[data-level="Héroe de la Tribu"] {
+    animation: gh-ring-pulse 3s ease-in-out infinite, gh-ring-spin 8s linear infinite;
+}
+@keyframes gh-ring-spin {
+    from { background-position: 0% 0%; }
+    to   { background-position: 100% 100%; }
+}
+
 :root {
     /* Brand */
     --cobalt:           #0B4C8F;

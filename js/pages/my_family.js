@@ -110,15 +110,30 @@ window.GoHappyMyFamily = {
                         <h3 style="font-size:14px; font-weight:800; color:var(--cobalt); margin:0;">👥 ${T('Miembros', 'Members')} (${memberDocs.length}/6)</h3>
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:10px;">
-                        ${memberDocs.map(m => `
-                            <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:rgba(11,76,143,0.05); border-radius:999px;">
-                                <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--cobalt),var(--cyan));color:white;display:flex;align-items:center;justify-content:center;font-size:14px;">${m.photo || '👤'}</div>
+                        ${memberDocs.map(m => {
+                            const pts = parseInt(m.points) || 0;
+                            const isPhoto = m.photo && (m.photo.startsWith('data:') || m.photo.startsWith('http'));
+                            const inner = isPhoto
+                                ? `<div style="width:100%;height:100%;background-image:url('${m.photo}');background-size:cover;background-position:center;border-radius:50%;"></div>`
+                                : (m.photo || '👤');
+                            const lvl = window.GoHappyPoints?.getLevelInfo?.(pts) || { ring:'linear-gradient(135deg,#A0E0B6,#65C18C)', shadow:'rgba(101,193,140,0.45)', name:'Novato' };
+                            return `
+                            <div style="display:flex; align-items:center; gap:10px; padding:6px 14px 6px 6px; background:rgba(11,76,143,0.05); border-radius:999px;">
+                                <div class="gh-level-ring" data-level="${lvl.name}" title="${lvl.name}" style="
+                                    position:relative; width:38px; height:38px; padding:2.5px; flex-shrink:0;
+                                    border-radius:50%; background:${lvl.ring};
+                                    box-shadow:0 0 8px ${lvl.shadow};
+                                    display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box;
+                                ">
+                                    <div style="width:33px;height:33px;border-radius:50%;background:white;color:var(--cobalt);display:flex;align-items:center;justify-content:center;font-size:16px;overflow:hidden;box-sizing:border-box;">${inner}</div>
+                                </div>
                                 <div>
                                     <div style="font-size:12px; font-weight:800; color:var(--cobalt);">${safe(m.nickname || 'Tribu')}</div>
-                                    <div style="font-size:10px; color:var(--text-secondary);">${parseInt(m.points) || 0} pts ${m.uid === family.creadoPor ? '· 👑' : ''}</div>
+                                    <div style="font-size:10px; color:var(--text-secondary);">${pts} pts ${m.uid === family.creadoPor ? '· 👑' : ''}</div>
                                 </div>
                             </div>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </div>
                 </div>
 
