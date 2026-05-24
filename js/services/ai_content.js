@@ -1,10 +1,60 @@
 window.GoHappyAI = {
-    // Especialización en Crianza
-    SYSTEM_PROMPT: `Eres GoHappy IA, la asistente oficial de la App GoHappy, experta líder en crianza consciente, salud infantil (0-15 años), psicología positiva y nutrición. 
-    Tu misión es ayudar a padres modernos a encontrar planes y soluciones basados ESTRICTAMENTE en su zona geográfica actual.
-    - Estilo: Empático, ultra-personalizado, premium.
-    - Geografía: Identifica SIEMPRE la ciudad y provincia de las coordenadas proporcionadas y limita la información a esa zona.
-    - Seguridad: Si detectas consultas médicas críticas, ofrece consejos de calma pero siempre recomienda visitar al pediatra.`,
+
+    // ─────────────────────────────────────────────────────────────
+    // GEO-FENCING HELPERS — garantiza que TODO contenido respeta
+    // el país del usuario (ES vs UK) en idioma + fuentes + currency.
+    // ─────────────────────────────────────────────────────────────
+    _geoContext: (cityInfo) => {
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const country = (cityInfo?.country || '').toUpperCase();
+        const isUK = lang === 'en' || ['UNITED KINGDOM', 'UK', 'GREAT BRITAIN', 'ENGLAND', 'SCOTLAND', 'WALES', 'NORTHERN IRELAND', 'IRELAND'].includes(country);
+        return {
+            lang,
+            isUK,
+            countryName:    isUK ? 'United Kingdom'        : 'España',
+            countryCode:    isUK ? 'GB'                    : 'ES',
+            currency:       isUK ? '£ (GBP)'               : '€ (EUR)',
+            weatherAuth:    isUK ? 'Met Office'            : 'AEMET',
+            councilWord:    isUK ? 'council'               : 'ayuntamiento',
+            govSite:        isUK ? 'gov.uk'                : 'boe.es / sede electrónica',
+            newspapers:     isUK ? 'BBC, The Guardian, local councils' : 'El País, El Mundo, El Norte de Castilla, prensa local',
+            ticketsSites:   isUK ? 'Eventbrite UK, Ticketmaster.co.uk, See Tickets' : 'Ticketmaster, Atrapalo, Entradas.com, festivales locales'
+        };
+    },
+
+    // Header obligatorio que se prepended a CADA prompt geo-sensible
+    _geoGuard: (cityInfo) => {
+        const g = window.GoHappyAI._geoContext(cityInfo);
+        const langInstr = g.lang === 'en'
+            ? `RESPOND IN BRITISH ENGLISH (behaviour, colour, mum, neighbourhood). Use £ for prices.`
+            : `RESPONDE EN ESPAÑOL DE ESPAÑA (vosotros/vuestro, no ustedes). Usa € para precios.`;
+        const countryRule = g.lang === 'en'
+            ? `STRICT GEO RULE: ONLY include real places, events, news, advice from ${g.countryName} (${g.countryCode}). NEVER mention places, events, currencies or institutions from other countries. If you cannot find content in ${g.countryName}, return fewer items rather than mixing countries.`
+            : `REGLA GEO ESTRICTA: SOLO incluye lugares, eventos, noticias o consejos reales de ${g.countryName} (${g.countryCode}). NUNCA menciones lugares, eventos, divisas o instituciones de otros países. Si no encuentras contenido en ${g.countryName}, devuelve menos elementos en lugar de mezclar países.`;
+        const sources = g.lang === 'en'
+            ? `Trusted sources: ${g.newspapers}. Weather: ${g.weatherAuth}. Tickets: ${g.ticketsSites}. Council/municipal: ${g.councilWord}, ${g.govSite}.`
+            : `Fuentes fiables: ${g.newspapers}. Clima: ${g.weatherAuth}. Entradas: ${g.ticketsSites}. Municipal: ${g.councilWord}, ${g.govSite}.`;
+        return `${langInstr}\n${countryRule}\n${sources}\n\n`;
+    },
+
+    // SYSTEM_PROMPT bilingüe según idioma del usuario
+    get SYSTEM_PROMPT() {
+        const lang = window.GoHappyI18n?.lang || 'es';
+        if (lang === 'en') {
+            return `You are GoHappy AI, the official assistant of the GoHappy App, leading expert in conscious parenting, child health (0-15 years), positive psychology and nutrition.
+Your mission is to help modern parents find plans and solutions based STRICTLY on their current geographic area.
+- Style: Empathetic, hyper-personalised, premium.
+- Geography: ALWAYS identify the city and county from the provided coordinates and restrict information to that area within the UNITED KINGDOM.
+- Safety: If you detect critical medical questions, offer calming advice but always recommend visiting their GP/paediatrician.
+- Language: British English (behaviour, colour, mum, neighbourhood). Use £ for prices.`;
+        }
+        return `Eres GoHappy IA, la asistente oficial de la App GoHappy, experta líder en crianza consciente, salud infantil (0-15 años), psicología positiva y nutrición.
+Tu misión es ayudar a padres modernos a encontrar planes y soluciones basados ESTRICTAMENTE en su zona geográfica actual.
+- Estilo: Empático, ultra-personalizado, premium.
+- Geografía: Identifica SIEMPRE la ciudad y provincia de las coordenadas proporcionadas y limita la información a esa zona DENTRO DE ESPAÑA.
+- Seguridad: Si detectas consultas médicas críticas, ofrece consejos de calma pero siempre recomienda visitar al pediatra.
+- Idioma: Español de España (vosotros/vuestro). Usa € para precios.`;
+    },
 
 
     // ---
@@ -38,9 +88,10 @@ PERFIL FAMILIAR ESPECÍFICO (ALTAMENTE PERSONALIZAR):
 ADAPTA cada plan a estas edades específicas: si tienen 3-5 años evita museos largos, si tienen 10-14 sugiere retos más estimulantes.`;
         }
 
-        const prompt = `Eres el Concierge Premium de actividades familiares REALES de GoHappy. Usa Google Search para encontrar lugares y horarios verificables.
-Ubicación: ${cityInfo.full} (coords ${coordinates}).
-Hoy es ${todayName} ${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()}, ${timeOfDay}.
+        const g = window.GoHappyAI._geoContext(cityInfo);
+        const prompt = `${window.GoHappyAI._geoGuard(cityInfo)}${g.lang === 'en' ? 'You are the Premium Concierge for REAL family activities of GoHappy.' : 'Eres el Concierge Premium de actividades familiares REALES de GoHappy.'} Use Google Search to find verifiable places and times.
+${g.lang === 'en' ? 'Location' : 'Ubicación'}: ${cityInfo.full} (coords ${coordinates}). Country: ${g.countryName}.
+${g.lang === 'en' ? 'Today is' : 'Hoy es'} ${todayName} ${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()}, ${timeOfDay}.
 ${prefsContext}
 
 TAREA OBLIGATORIA:
@@ -134,9 +185,10 @@ Formato JSON estricto: [ { "title":"", "summary":"", "typeLabel":"", "location":
         if (filter === 'manana') rango = `MAÑANA`;
         if (filter === 'finde')  rango = `ESTE FIN DE SEMANA (sábado y domingo)`;
 
-        const prompt = `Eres la agenda cultural familiar de GoHappy. La familia está en ${cityInfo.full} (coords: ${coords}).
+        const g2 = window.GoHappyAI._geoContext(cityInfo);
+        const prompt = `${window.GoHappyAI._geoGuard(cityInfo)}${g2.lang === 'en' ? 'You are the family cultural agenda of GoHappy.' : 'Eres la agenda cultural familiar de GoHappy.'} ${g2.lang === 'en' ? 'The family is in' : 'La familia está en'} ${cityInfo.full} (coords: ${coords}). Country: ${g2.countryName}.
 
-MISIÓN OBLIGATORIA: Usa Google Search para encontrar 6 EVENTOS REALES y VERIFICABLES para familias con niños en ${cityInfo.city} para ${rango}. Busca explícitamente en webs oficiales (ayuntamiento, museos, teatros, ticketmaster, atrapalo, festivales locales).
+${g2.lang === 'en' ? 'MANDATORY MISSION: Use Google Search to find 6 REAL and VERIFIABLE events for families with children in' : 'MISIÓN OBLIGATORIA: Usa Google Search para encontrar 6 EVENTOS REALES y VERIFICABLES para familias con niños en'} ${cityInfo.city} ${g2.lang === 'en' ? 'for' : 'para'} ${rango}. ${g2.lang === 'en' ? `Search explicitly on official UK sites (${g2.councilWord}, museums, theatres, Eventbrite UK, Ticketmaster.co.uk, local festivals).` : `Busca explícitamente en webs oficiales (${g2.councilWord}, museos, teatros, ticketmaster, atrapalo, festivales locales).`}
 
 Incluye una mezcla de:
 - Talleres infantiles (museos, bibliotecas, centros culturales)
@@ -196,58 +248,73 @@ Formato JSON estricto, sin markdown ni texto extra:
             prefsContext = `\nFamilia: ${preferences.adults} adultos + ${preferences.kids} niños (edades: ${preferences.ages}). Entorno preferido: ${preferences.environment}. Presupuesto: ${preferences.budget}. Distancia: ${preferences.distance}.`;
         }
 
-        const prompt = `Eres el planificador familiar de GoHappy. Diseña planes para los próximos 7 días en ${cityInfo.full}.${prefsContext}
+        const gw = window.GoHappyAI._geoContext(cityInfo);
+        const prompt = `${window.GoHappyAI._geoGuard(cityInfo)}${gw.lang === 'en'
+            ? `You are GoHappy's family planner. Design plans for the next 7 days in ${cityInfo.full} (${gw.countryName}).${prefsContext}
+
+For EACH day generate 1 main plan (the best) with premium data.
+Days: ${days.map(d => `${d.dayName} ${d.num}`).join(', ')}
+
+Per plan:
+- title, summary (1-2 sentences)
+- typeLabel: "🌳 Outdoor" | "🏠 Indoor" | "⛅ Mixed"
+- time, duration
+- location: REAL place in ${cityInfo.city} (${gw.countryName})
+- price: "Free" or cost in ${gw.currency}
+- ages, icon`
+            : `Eres el planificador familiar de GoHappy. Diseña planes para los próximos 7 días en ${cityInfo.full} (${gw.countryName}).${prefsContext}
 
 Para CADA día genera 1 plan principal (el mejor) con datos premium.
 Días: ${days.map(d => `${d.dayName} ${d.num}`).join(', ')}
 
-Para cada plan:
-- title: creativo
-- summary: 1-2 frases
+Por plan:
+- title, summary (1-2 frases)
 - typeLabel: "🌳 Al aire libre" | "🏠 A cubierto" | "⛅ Mixto"
-- time: hora sugerida
-- duration: ej "2 horas"
-- location: lugar real en ${cityInfo.city}
-- price: "Gratis" o coste
-- ages: rango edad
-- icon: 1 emoji representativo
-
-Formato JSON estricto:
-{ "d0":{"title":"","summary":"","typeLabel":"","time":"","duration":"","location":"","price":"","ages":"","icon":""}, "d1":{}, "d2":{}, "d3":{}, "d4":{}, "d5":{}, "d6":{} }`;
+- time, duration
+- location: lugar REAL en ${cityInfo.city} (${gw.countryName})
+- price: "Gratis" o coste en ${gw.currency}
+- ages, icon`}
+JSON: { "d0":{"title":"","summary":"","typeLabel":"","time":"","duration":"","location":"","price":"","ages":"","icon":""}, "d1":{}, "d2":{}, "d3":{}, "d4":{}, "d5":{}, "d6":{} }`;
 
         return await window.GoHappyAI._callGemini(prompt, true);
     },
 
     // Generador Dinámico de Mapa (Basado en Coordenadas)
     getDynamicLocations: async (coordinates = "41.6520, -4.7286") => {
-        const prompt = `Actúa como guía turístico local familiar. Genera 8 sitios reales increíbles para ir con niños (parques, museos, ludotecas, restaurantes kid-friendly) en un radio cercano de las coordenadas GPS: ${coordinates}.
-        Devuélvelos en formato JSON estricto para mapearlos directamente.
-        Asegúrate de incluir sus nombres reales locales, no te inventes nombres de comercios si no existen, dales coordenadas muy cercanas al usuario.
-        Formato esperado:
-        [ { "id": UID_NUMERICO_UNICO, "name": "Nombre Real", "type": "park"|"museum"|"school"|"theater"|"kidzone"|"food", "lat": NUMERO, "lng": NUMERO, "rating": NUMERO_4_A_5, "reviews": NUMERO } ]`;
-
+        const cityInfo = await window.GoHappyAI.getCityFromCoords(coordinates);
+        const g = window.GoHappyAI._geoContext(cityInfo);
+        const prompt = `${window.GoHappyAI._geoGuard(cityInfo)}${g.lang === 'en'
+            ? `Act as a local family tour guide for ${cityInfo.full} (${g.countryName}). Generate 8 REAL amazing places for families with children (parks, museums, soft-play, kid-friendly restaurants) within a short radius of GPS: ${coordinates}.
+ALL places MUST be in ${g.countryName}. Use real local UK names. Do not invent businesses. Coordinates very close to the user.`
+            : `Actúa como guía turístico local familiar para ${cityInfo.full} (${g.countryName}). Genera 8 sitios reales increíbles para ir con niños (parques, museos, ludotecas, restaurantes kid-friendly) en un radio cercano de las coordenadas GPS: ${coordinates}.
+TODOS los sitios DEBEN estar en ${g.countryName}. Usa nombres locales reales. No inventes comercios. Coordenadas muy cercanas al usuario.`}
+JSON estricto:
+[ { "id": UID, "name": "Real Name", "type": "park"|"museum"|"school"|"theater"|"kidzone"|"food", "lat": NUM, "lng": NUM, "rating": 4-5, "reviews": NUM } ]`;
         return await window.GoHappyAI._callGemini(prompt);
     },
 
     // Búsqueda Semántica Dinámica
     searchDynamicLocations: async (query, coordinates = "41.6520, -4.7286") => {
-        const prompt = `El usuario, ubicado en las coordenadas: ${coordinates}, ha buscado: "${query}".
-        Recomienda 4 o 5 lugares locales reales que resuelvan perfectamente esta necesidad.
-        Formato esperado JSON:
-        [ { "id": UID_NUMERICO_UNICO, "name": "Nombre Real", "type": "park"|"museum"|"school"|"theater"|"kidzone"|"food"|"generic", "lat": NUMERO, "lng": NUMERO, "rating": 4.8, "reviews": 120 } ]`;
-
+        const cityInfo = await window.GoHappyAI.getCityFromCoords(coordinates);
+        const g = window.GoHappyAI._geoContext(cityInfo);
+        const prompt = `${window.GoHappyAI._geoGuard(cityInfo)}${g.lang === 'en'
+            ? `User in ${cityInfo.full} (${g.countryName}, coords ${coordinates}) searched: "${query}". Recommend 4-5 REAL local places in ${g.countryName} that perfectly match. NEVER suggest places outside ${g.countryName}.`
+            : `Usuario en ${cityInfo.full} (${g.countryName}, coords ${coordinates}) ha buscado: "${query}". Recomienda 4-5 lugares locales REALES de ${g.countryName} que resuelvan esta necesidad. NUNCA sugieras sitios fuera de ${g.countryName}.`}
+JSON: [ { "id": UID, "name": "Real Name", "type": "park"|"museum"|"school"|"theater"|"kidzone"|"food"|"generic", "lat": NUM, "lng": NUM, "rating": 4.8, "reviews": 120 } ]`;
         return await window.GoHappyAI._callGemini(prompt);
     },
 
     // Generar Misiones Contextuales (IA)
     generateLocalQuests: async (coordinates = "41.6520, -4.7286") => {
-        const prompt = `Crea 2 'Misiones Familiares' (Quests) divertidas y muy específicas para jugar hoy basadas en lugares REALES cerca de estas coordenadas GPS: ${coordinates}.
-        IMPORTANTE: 
-        1. Las misiones deben tener niveles de dificultad diferentes. Elige entre: "fácil", "media", "difícil".
-        2. Los puntos otorgados DEBEN coincidir exactamente con la dificultad: fácil = 50 pts, media = 100 pts, difícil = 200 pts.
-        3. Ten en cuenta el clima actual típico de la zona (si llueve, busca interiores).
-        Formato JSON estricto: [ { "id": "q_ai_1", "title": "Nombre divertido", "description": "Breve descripción", "type": "EXPLORE"|"PHOTO"|"GASTRO"|"SOCIAL"|"TRIVIA"|"ADVENTURE", "category": "Misión", "difficulty": "fácil"|"media"|"difícil", "points": 100, "objectives": ["Paso 1", "Paso 2"], "totalSteps": 2, "status": "active" } ]`;
-
+        const cityInfo = await window.GoHappyAI.getCityFromCoords(coordinates);
+        const g = window.GoHappyAI._geoContext(cityInfo);
+        const prompt = `${window.GoHappyAI._geoGuard(cityInfo)}${g.lang === 'en'
+            ? `Create 2 fun 'Family Missions' (Quests) very specific to play TODAY based on REAL places near ${cityInfo.full} (${g.countryName}).`
+            : `Crea 2 'Misiones Familiares' (Quests) divertidas y muy específicas para jugar HOY basadas en lugares REALES cerca de ${cityInfo.full} (${g.countryName}).`}
+1. ${g.lang === 'en' ? 'Missions must have different difficulty: "easy", "medium", "hard"' : 'Las misiones deben tener dificultades distintas: "fácil", "media", "difícil"'}
+2. ${g.lang === 'en' ? 'Points exactly: easy=50, medium=100, hard=200' : 'Puntos exactos: fácil=50, media=100, difícil=200'}
+3. ${g.lang === 'en' ? 'Account for typical UK weather (rain → indoor)' : 'Ten en cuenta el clima típico de la zona (si llueve, busca interiores)'}
+JSON: [ { "id":"q_ai_1", "title":"", "description":"", "type":"EXPLORE"|"PHOTO"|"GASTRO"|"SOCIAL"|"TRIVIA"|"ADVENTURE", "category":"Misión", "difficulty":"${g.lang === 'en' ? 'easy|medium|hard' : 'fácil|media|difícil'}", "points":100, "objectives":["",""], "totalSteps":2, "status":"active" } ]`;
         return await window.GoHappyAI._callGemini(prompt);
     },
 
@@ -263,22 +330,40 @@ Formato JSON estricto:
         const dayNames = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
         const todayStr = dayNames[today.getDay()];
 
-        const prompt = `Eres asesor de seguridad familiar de GoHappy. Genera un consejo REAL y específico para HOY (${todayStr} ${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()}).
+        const g = window.GoHappyAI._geoContext(cityInfo);
+        const prompt = `${window.GoHappyAI._geoGuard(cityInfo)}${g.lang === 'en'
+            ? `You are GoHappy's family safety advisor. Generate REAL specific advice for TODAY (${todayStr} ${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()}).
 
-Ubicación: ${cityInfo.full} (coords ${coordinates}).
+Location: ${cityInfo.full} (coords ${coordinates}). Country: ${g.countryName}.
+
+${alertsContext}
+
+INSTRUCTIONS:
+1. Search REAL weather forecast TODAY in ${cityInfo.city} (Google Search).
+2. Check active official warnings from ${g.weatherAuth} or Meteoalarm for that area today.
+3. Combine weather + community alerts + season.
+4. Return 2-3 sentences with REAL, USEFUL advice for families with kids.
+5. Concrete info only, no empty phrases.
+
+Example: "Today in London: 14°C cloudy, light rain afternoon. Met Office no warnings. If you go to the park, take a light raincoat. Low grass pollen risk."
+
+Respond only the advice, no intro or closing.`
+            : `Eres asesor de seguridad familiar de GoHappy. Genera un consejo REAL y específico para HOY (${todayStr} ${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()}).
+
+Ubicación: ${cityInfo.full} (coords ${coordinates}). País: ${g.countryName}.
 
 ${alertsContext}
 
 INSTRUCCIONES:
 1. Busca el CLIMA REAL previsto hoy en ${cityInfo.city} (Google Search).
-2. Busca si hay AVISOS oficiales activos de AEMET, Meteoalarm, o protección civil en esa zona hoy.
+2. Busca si hay AVISOS oficiales activos de ${g.weatherAuth}, Meteoalarm, o protección civil en esa zona hoy.
 3. Combina clima + alertas comunitarias (si las hay) + estación del año.
 4. Devuelve 2-3 frases con consejo REAL, ÚTIL y específico para familias con niños.
 5. NO uses frases vacías tipo "Analizando..." o "Consulta a un profesional". Da info concreta.
 
 Ejemplo: "Hoy en Valladolid: 18°C nublado, lluvia ligera por la tarde. AEMET sin avisos. Si vais al parque, llevad chubasquero ligero. Riesgo polen gramíneas medio."
 
-Responde solo el consejo, sin introducción ni cierre.`;
+Responde solo el consejo, sin introducción ni cierre.`}`;
 
         // useSearch:true → activa Search Grounding para clima/avisos reales
         return await window.GoHappyAI._callGemini(prompt, false, true);
@@ -286,46 +371,69 @@ Responde solo el consejo, sin introducción ni cierre.`;
 
     // Generar Topic Diario para la Tribu
     getDailyTribuTopic: async (coordinates = "41.6520, -4.7286") => {
-        const prompt = `Genera un post para un foro de padres ('La Tribu') en la ciudad correspondiente a las coordenadas GPS: ${coordinates}.
-        Debe ser un debate o consejo interesante sobre crianza y la vida en esa ciudad específica.
-        Formato JSON estricto: { "authorKey": "GoHappy_IA", "title": "El Debate del Día 🤖", "content": "Contenido del debate..." }`;
+        const cityInfo = await window.GoHappyAI.getCityFromCoords(coordinates);
+        const g = window.GoHappyAI._geoContext(cityInfo);
+        const prompt = `${window.GoHappyAI._geoGuard(cityInfo)}${g.lang === 'en'
+            ? `Generate a post for a parents' forum ('The Tribe') for ${cityInfo.full} (${g.countryName}). Interesting parenting debate/advice relevant to life in that specific UK city.`
+            : `Genera un post para un foro de padres ('La Tribu') en ${cityInfo.full} (${g.countryName}). Debate/consejo de crianza relevante para la vida en esa ciudad española.`}
+JSON: { "authorKey": "GoHappy_IA", "title": "${g.lang === 'en' ? 'Debate of the Day 🤖' : 'El Debate del Día 🤖'}", "content": "..." }`;
         return await window.GoHappyAI._callGemini(prompt, true);
     },
 
     // Obtener Noticias Locales (IA)
     getNews: async (coordinates = "41.6520, -4.7286") => {
-        const prompt = `Actúa como redactor jefe de un diario local familiar. Ubicación GPS: ${coordinates}.
-        Busca y resume 3-4 NOTICIAS REALES Y RECIENTES de esa ciudad o provincia.
-        Temas: Educación, parques, sanidad infantil, avisos municipales o cultura para familias.
-        Para cada noticia necesito:
-        - Título: Conciso y real.
-        - Resumen: 2 frases informativas.
-        - Fuente: Nombre del medio (ej. El Norte de Castilla, Ayto Madrid).
-        - Link: URL real de la noticia si existe.
-        Formato JSON estricto: [ { "title": "", "summary": "", "sourceName": "", "link": "", "date": "Hoy" } ]`;
+        const cityInfo = await window.GoHappyAI.getCityFromCoords(coordinates);
+        const g = window.GoHappyAI._geoContext(cityInfo);
+        const prompt = `${window.GoHappyAI._geoGuard(cityInfo)}${g.lang === 'en'
+            ? `Act as editor of a local family newspaper. Location: ${cityInfo.full}, ${g.countryName}.
+Find and summarise 3-4 REAL RECENT news items from that ${g.countryName} city/county ONLY.
+Topics: Education, parks, child health, ${g.councilWord} notices or family culture.
+Sources: ${g.newspapers}.`
+            : `Actúa como redactor jefe de un diario local familiar. Ubicación: ${cityInfo.full}, ${g.countryName}.
+Busca y resume 3-4 NOTICIAS REALES Y RECIENTES de esa ciudad/provincia de ${g.countryName} EXCLUSIVAMENTE.
+Temas: Educación, parques, sanidad infantil, avisos del ${g.councilWord} o cultura para familias.
+Fuentes: ${g.newspapers}.`}
+JSON: [ { "title": "", "summary": "", "sourceName": "", "link": "", "date": "${g.lang === 'en' ? 'Today' : 'Hoy'}" } ]`;
         return await window.GoHappyAI._callGemini(prompt, true);
     },
 
     // Obtener Eventos Culturales (IA)
     getEvents: async (coordinates = "41.6520, -4.7286") => {
-        const prompt = `Actúa como agenda cultural infantil. Ubicación GPS: ${coordinates}.
-        Busca 3 eventos reales para familias en esa zona esta semana.
-        Formato JSON estricto: [ { "title": "", "date": "", "location": "", "price": "", "lat": NUM, "lng": NUM } ]`;
+        const cityInfo = await window.GoHappyAI.getCityFromCoords(coordinates);
+        const g = window.GoHappyAI._geoContext(cityInfo);
+        const prompt = `${window.GoHappyAI._geoGuard(cityInfo)}${g.lang === 'en'
+            ? `Act as a children's cultural agenda. Location: ${cityInfo.full}, ${g.countryName}.
+Find 3 REAL family events in that ${g.countryName} area THIS week. Prices in ${g.currency}.`
+            : `Actúa como agenda cultural infantil. Ubicación: ${cityInfo.full}, ${g.countryName}.
+Busca 3 eventos reales para familias en esa zona de ${g.countryName} esta semana. Precios en ${g.currency}.`}
+JSON: [ { "title": "", "date": "", "location": "", "price": "", "lat": NUM, "lng": NUM } ]`;
         return await window.GoHappyAI._callGemini(prompt, true);
     },
 
     // Obtener Becas y Ayudas (IA)
     getBecas: async (coordinates = "41.6520, -4.7286") => {
-        const prompt = `Actúa como asesor administrativo experto en familias. Ubicación GPS: ${coordinates}.
+        const cityInfo = await window.GoHappyAI.getCityFromCoords(coordinates);
+        const g = window.GoHappyAI._geoContext(cityInfo);
+        const enHeader = g.lang === 'en' ? `Act as an expert family benefits advisor for ${cityInfo.full}, ${g.countryName}. ONLY UK grants/benefits/family help schemes (e.g. Universal Credit, Child Benefit, Free Childcare hours, council schemes, school admissions). NEVER include Spanish or non-UK schemes.` : '';
+        const esHeader = g.lang === 'es' ? `Actúa como asesor administrativo experto en familias para ${cityInfo.full}, ${g.countryName}. SOLO ayudas/becas/programas familiares españoles (ej. Bono Familia, ayudas autonómicas, comedor escolar, plazas escuela infantil). NUNCA incluyas programas no españoles.` : '';
+        const prompt = `${window.GoHappyAI._geoGuard(cityInfo)}${enHeader}${esHeader}
         Identifica 3 AYUDAS O BECAS REALES (estatales de España, autonómicas o locales de esa provincia).
-        Necesito detalles específicos:
-        - title: Nombre de la ayuda.
-        - description: Para qué sirve.
-        - deadline: Plazo máximo (ej. 'Hasta el 30 de Mayo').
-        - requirements: Requisitos principales.
-        - howToApply: Pasos para solicitar (ej. 'Sede electrónica con Clave').
-        - status: 'PLAZO ABIERTO' o 'PRÓXIMAMENTE'.
-        Formato JSON estricto: [ { "title": "", "description": "", "deadline": "", "requirements": "", "howToApply": "", "status": "", "statusColor": "green"| "orange", "link": "" } ]`;
+${g.lang === 'en'
+    ? `Required details per scheme:
+- title: Name of the scheme
+- description: What it provides
+- deadline: Application deadline (e.g. 'By 30 May')
+- requirements: Main eligibility
+- howToApply: Steps (e.g. 'Apply on gov.uk with Government Gateway')
+- status: 'OPEN' or 'UPCOMING'`
+    : `Detalles requeridos por ayuda:
+- title: Nombre
+- description: Para qué sirve
+- deadline: Plazo (ej. 'Hasta el 30 de Mayo')
+- requirements: Requisitos principales
+- howToApply: Pasos (ej. 'Sede electrónica con Clave')
+- status: 'PLAZO ABIERTO' o 'PRÓXIMAMENTE'`}
+JSON: [ { "title": "", "description": "", "deadline": "", "requirements": "", "howToApply": "", "status": "", "statusColor": "green"|"orange", "link": "" } ]`;
         return await window.GoHappyAI._callGemini(prompt, true);
     },
 
