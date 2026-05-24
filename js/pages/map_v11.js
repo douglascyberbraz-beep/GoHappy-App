@@ -101,8 +101,35 @@ window.GoHappyMap = {
     init: async (container) => {
         if (window.GoHappyMap.isInitialized && window.GoHappyMap.instance) return;
 
+        // GUARD 1: ¿MapLibre cargó realmente?
+        if (typeof window.maplibregl === 'undefined') {
+            console.error('[Map] maplibregl no está cargado — script bloqueado o lento');
+            throw new Error('MapLibre no disponible. Recarga la página.');
+        }
+
+        // GUARD 2: ¿el navegador soporta WebGL?
+        try {
+            const testCanvas = document.createElement('canvas');
+            const gl = testCanvas.getContext('webgl2') || testCanvas.getContext('webgl');
+            if (!gl) throw new Error('WebGL no soportado');
+        } catch (e) {
+            console.error('[Map] WebGL no disponible:', e);
+            throw new Error('Tu navegador no soporta WebGL. Actualízalo para ver el mapa.');
+        }
+
         // Usar #map-canvas si existe (división dedicada), si no el container
         const mapDiv = document.getElementById('map-canvas') || container;
+
+        // GUARD 3: ¿el contenedor tiene dimensiones reales?
+        const rect = mapDiv.getBoundingClientRect();
+        if (rect.width < 10 || rect.height < 10) {
+            console.warn('[Map] container sin dimensiones', rect.width, 'x', rect.height,
+                         '→ forzando 100vw × 100vh');
+            mapDiv.style.cssText = 'position:absolute; inset:0; width:100vw; height:100vh; z-index:1;';
+        }
+
+        console.info('[Map] init OK · MapLibre', maplibregl.version || '?',
+                     '· canvas', rect.width + 'x' + rect.height);
 
         try {
             window.GoHappyMap.instance = new maplibregl.Map({

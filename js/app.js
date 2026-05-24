@@ -6,7 +6,7 @@
 // la próxima vez que abran la app: localStorage, SW caches, IndexedDB.
 // Sólo se preserva la sesión activa (Firebase Auth). Cero datos demo.
 // ═══════════════════════════════════════════════════════════════════
-const APP_STATE_VERSION = 'v7.0.0';
+const APP_STATE_VERSION = 'v7.1.0';
 
 (function purgeStaleClientState() {
     try {
