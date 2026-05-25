@@ -6,7 +6,55 @@
 // la próxima vez que abran la app: localStorage, SW caches, IndexedDB.
 // Sólo se preserva la sesión activa (Firebase Auth). Cero datos demo.
 // ═══════════════════════════════════════════════════════════════════
-const APP_STATE_VERSION = 'v7.5.0';
+const APP_STATE_VERSION = 'v7.7.1';
+const APP_VERSION = '7.7.1';
+
+// ═══════════════════════════════════════════════════════════════════
+// AUTO-UPDATE AGRESIVO — Detecta nueva versión y fuerza reload
+// Cada vez que el app arranca, hace fetch a version.json (no-cache) y
+// si la versión servidor > versión local → purga TODO + reload limpio.
+// Esto saca al usuario del SW viejo SIN que tenga que hacer nada.
+// ═══════════════════════════════════════════════════════════════════
+(async function autoUpdateCheck() {
+    try {
+        // Forzar update del Service Worker si está registrado
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(regs => {
+                regs.forEach(r => r.update().catch(() => {}));
+            }).catch(() => {});
+
+            // Auto-reload cuando un nuevo SW toma control
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                refreshing = true;
+                console.info('[GoHappy] Nuevo SW activo — recargando…');
+                window.location.reload();
+            });
+        }
+
+        // Fetch version.json con bust de cache (no-store)
+        const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' });
+        if (!r.ok) return;
+        const remote = await r.json();
+        const remoteV = String(remote.version || '0').trim();
+        if (remoteV && remoteV !== APP_VERSION) {
+            console.warn(`[GoHappy] Versión desactualizada (local=${APP_VERSION} vs server=${remoteV}) — auto-actualizando…`);
+            // Borrar todas las caches del SW
+            if ('caches' in self) {
+                const keys = await caches.keys();
+                await Promise.all(keys.map(k => caches.delete(k)));
+            }
+            // Desregistrar SW
+            if ('serviceWorker' in navigator) {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                await Promise.all(regs.map(reg => reg.unregister()));
+            }
+            // Reload con cache bypass
+            setTimeout(() => window.location.replace(window.location.pathname + '?_v=' + remoteV), 200);
+        }
+    } catch (e) { /* offline o version.json no accesible — seguir normal */ }
+})();
 
 (function purgeStaleClientState() {
     try {
