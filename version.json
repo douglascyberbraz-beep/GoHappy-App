@@ -1,5 +1,5 @@
 {
-  "version": "7.8.0",
-  "timestamp": "2026-05-25T23:30:00Z",
-  "note": "Rules relajadas · Avatar bulletproof con auto-heal en cliente"
+  "version": "7.9.0",
+  "timestamp": "2026-05-26T00:00:00Z",
+  "note": "REVERT seguridad estricta · Reglas simples · CSP abierto · sin tampering"
 }

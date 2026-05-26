@@ -138,17 +138,9 @@ window.GoHappySessionGuard = (() => {
         }
     }
 
-    // ─── Detección de tampering del DOM (extensiones maliciosas) ───
-    function detectDevToolsAccess() {
-        // No bloqueamos DevTools (sería hostil al usuario legítimo) pero
-        // monitoreamos cambios sospechosos en window.GoHappyAuth (suplantación)
-        const originalAuth = window.GoHappyAuth;
-        Object.defineProperty(window, 'GoHappyAuth', {
-            configurable: false,
-            writable: false,
-            value: originalAuth
-        });
-    }
+    // DESACTIVADO: la defineProperty estricta podía interferir con código
+    // legítimo que reasigna window.GoHappyAuth (ej. al recargar módulos)
+    function detectDevToolsAccess() { /* no-op */ }
 
     // ─── Inicialización ───
     async function init() {
