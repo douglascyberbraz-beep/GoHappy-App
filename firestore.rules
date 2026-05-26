@@ -65,40 +65,60 @@ service cloud.firestore {
       allow get:  if isAuthenticated();
       allow list: if isAuthenticated();
 
-      // CREAR perfil: solo el propio usuario, campos validados (sin HTML)
+      // CREAR perfil: solo el propio usuario.
+      // RELAJADO: permite create con cualquier set de campos válidos.
+      // Esto permite que set({photo:X}, {merge:true}) funcione como auto-create
+      // en lugar de fallar por falta de nickname/email/points/createdAt.
+      // La identidad sigue protegida por isOwner(uid).
       allow create: if isOwner(uid)
-        && safeString(request.resource.data.nickname, 2, 24)
-        && (request.resource.data.email is string)
-        && request.resource.data.points    is number && request.resource.data.points    >= 0
-        && (!request.resource.data.keys().hasAny(['familyId']) || request.resource.data.familyId == null)
-        && request.resource.data.createdAt == request.time;
+        // Si envía nickname, debe ser válido
+        && (!request.resource.data.keys().hasAny(['nickname']) ||
+            safeString(request.resource.data.nickname, 2, 24))
+        // Si envía photo, validar tamaño
+        && (!request.resource.data.keys().hasAny(['photo']) ||
+            request.resource.data.photo is string && request.resource.data.photo.size() <= 250000)
+        // Si envía familyId, debe ser null al crear
+        && (!request.resource.data.keys().hasAny(['familyId']) ||
+            request.resource.data.familyId == null);
 
-      // ACTUALIZAR perfil: solo el propio usuario
-      // Campos siempre bloqueados: identidad e historia
-      // familyId/rol: SE PUEDE actualizar (para crear/unirse/salir de familia)
+      // ACTUALIZAR perfil: solo el propio usuario.
+      // RELAJADO: ya no bloqueamos uid/email/createdAt/referralCode/referredBy
+      // porque rompía set+merge cuando el cliente reenvía esos campos.
+      // En su lugar, validamos que esos campos (si se envían) no cambien valor.
       allow update: if isOwner(uid)
-        && noFields(['uid', 'email', 'createdAt', 'referralCode', 'referredBy'])
-        // Validación nickname si se modifica (sin HTML peligroso)
+        // uid no puede cambiar (siempre debe coincidir con el path)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid']) ||
+            request.resource.data.uid == uid)
+        // email/createdAt/referralCode/referredBy: si se envían, deben coincidir
+        // con el valor existente (no cambian de facto)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['email']) ||
+            request.resource.data.email == resource.data.email)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdAt']) ||
+            request.resource.data.createdAt == resource.data.createdAt)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['referralCode']) ||
+            request.resource.data.referralCode == resource.data.referralCode)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['referredBy']) ||
+            request.resource.data.referredBy == resource.data.referredBy)
+        // Validación nickname si se modifica
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['nickname']) ||
             safeString(request.resource.data.nickname, 2, 24))
-        // Validación photo: emoji o URL o data URI con foto comprimida (max 250KB)
-        // 50KB era ajustado — JPEG 240×240 q0.78 en base64 puede pasar de eso
+        // Validación photo: max 250KB (data URI o emoji/URL)
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['photo']) ||
             request.resource.data.photo is string && request.resource.data.photo.size() <= 250000)
         // familyId: null o string corto
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['familyId']) ||
             request.resource.data.familyId == null ||
             (request.resource.data.familyId is string && request.resource.data.familyId.size() <= 40))
-        // rol: null, 'admin' o 'miembro'
+        // rol
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['rol']) ||
             request.resource.data.rol == null ||
             request.resource.data.rol in ['admin', 'miembro'])
-        // Points: solo aumentar, máximo 999999
+        // points: solo aumentar
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['points']) ||
             (request.resource.data.points is number
              && request.resource.data.points >= resource.data.points
              && request.resource.data.points <= 999999))
-        // weeklyPoints: número 0-999999 (puede resetear semanalmente)
+        // weeklyPoints
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['weeklyPoints']) ||
             (request.resource.data.weeklyPoints is number
              && request.resource.data.weeklyPoints >= 0

@@ -367,16 +367,41 @@ window.GoHappyProfile = {
                 btn.textContent = lang === 'en' ? '⌛ Saving...' : '⌛ Guardando...';
 
                 try {
-                    // 1) Update Firestore CON TIMEOUT (no quedarse pillado)
-                    // Uso set+merge en lugar de update para que funcione incluso
-                    // si el doc no existe todavía (auto-heal)
-                    const updatePromise = window.GoHappyDB.collection('users').doc(user.uid).set({
-                        photo: selected
-                    }, { merge: true });
-                    const timeoutPromise = new Promise((_, rej) =>
-                        setTimeout(() => rej(new Error('timeout-firestore-15s')), 15000)
-                    );
-                    await Promise.race([updatePromise, timeoutPromise]);
+                    const ref = window.GoHappyDB.collection('users').doc(user.uid);
+                    const withTimeout = (p, ms = 15000) => Promise.race([
+                        p,
+                        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout-firestore-' + ms + 'ms')), ms))
+                    ]);
+
+                    // Estrategia bulletproof:
+                    // 1) Intentar set+merge solo con {photo}
+                    // 2) Si falla → comprobar si el doc existe
+                    // 3) Si no existe → crear perfil completo (auto-heal) y reintentar
+                    try {
+                        await withTimeout(ref.set({ photo: selected }, { merge: true }));
+                    } catch (firstErr) {
+                        console.warn('[Profile] primer set falló:', firstErr?.code, firstErr?.message, '— probando auto-heal');
+                        const docCheck = await withTimeout(ref.get(), 8000);
+                        if (!docCheck.exists) {
+                            // Crear perfil completo (cumple rule CREATE)
+                            const fb = window.GoHappyAuthReal?.currentUser;
+                            await withTimeout(ref.set({
+                                uid: user.uid,
+                                email: fb?.email || user.email || `${user.uid}@guest.local`,
+                                nickname: (user.nickname || 'Explorador').slice(0, 24),
+                                photo: selected,
+                                points: user.points || 0,
+                                weeklyPoints: user.weeklyPoints || 0,
+                                level: user.level || 'Explorador Novato',
+                                familyId: null,
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            }));
+                            console.info('[Profile] ✓ Perfil auto-creado con avatar');
+                        } else {
+                            // Doc existe pero la rule rechazó algún campo — re-throw
+                            throw firstErr;
+                        }
+                    }
 
                     // 2) Update local cache (vía SessionGuard para mantener firma de integridad)
                     user.photo = selected;
