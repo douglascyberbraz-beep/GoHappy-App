@@ -58,6 +58,8 @@ function promptHash(prompt, expectJson) {
 
 // CORS — solo nuestros dominios
 const ALLOWED_ORIGINS = [
+    'https://kindr-8d660.web.app',
+    'https://kindr-8d660.firebaseapp.com',
     'https://gohappy-8d660.web.app',
     'https://gohappy-8d660.firebaseapp.com',
     'https://douglascyberbraz-beep.github.io',

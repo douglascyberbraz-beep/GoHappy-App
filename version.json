@@ -1,5 +1,5 @@
 {
-  "version": "8.1.0",
-  "timestamp": "2026-05-27T12:30:00Z",
-  "note": "Mapa MapLibre 4.7 3D premium (Google Maps 2026 style) + reseñas dblclick"
+  "version": "8.2.0",
+  "timestamp": "2026-05-27T13:00:00Z",
+  "note": "BUG FIX CRÍTICO: projectId gohappy-8d660 (inexistente) → kindr-8d660 (real)"
 }

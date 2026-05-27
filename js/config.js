@@ -6,11 +6,16 @@
 // NO en ocultar esta clave. Ver: https://firebase.google.com/docs/projects/api-keys
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ⚠ projectId DEBE coincidir con el proyecto real de Firebase.
+// El proyecto se llama 'kindr-8d660' (project number 552831875210)
+// — antes apuntaba a 'gohappy-8d660' que NO existía como projectId real,
+// por eso TODAS las escrituras Firestore se colgaban (URLs apuntando a
+// proyecto inexistente → timeout silencioso).
 const firebaseConfig = {
     apiKey:            "AIzaSyDppR0-A8bEKT1sjJDst1N6uZV-EsTLSYo",
-    authDomain:        "gohappy-8d660.firebaseapp.com",
-    projectId:         "gohappy-8d660",
-    storageBucket:     "gohappy-8d660.firebasestorage.app",
+    authDomain:        "kindr-8d660.firebaseapp.com",
+    projectId:         "kindr-8d660",
+    storageBucket:     "kindr-8d660.firebasestorage.app",
     messagingSenderId: "552831875210",
     appId:             "1:552831875210:web:1af5583c40e0d62bbf9573",
     measurementId:     "G-2F3HNE2L5P"
