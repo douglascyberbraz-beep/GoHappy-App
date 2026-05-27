@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gohappy-cache-v7.9.0';
+const CACHE_NAME = 'gohappy-cache-v7.9.1';
 const TILE_CACHE = 'gohappy-tiles-v1.3.0';
 
 const ASSETS = [
@@ -90,6 +90,14 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
+
+    // version.json: NUNCA cachear — debe ser fresh siempre para auto-update
+    if (url.pathname.endsWith('version.json')) {
+        event.respondWith(fetch(event.request, { cache: 'no-store' }).catch(() =>
+            new Response(JSON.stringify({ version: '0.0.0' }), { headers: { 'Content-Type': 'application/json' } })
+        ));
+        return;
+    }
 
     // HTML: NETWORK-FIRST (siempre intentar fresco para detectar updates rápido)
     if (event.request.destination === 'document' || url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname.endsWith('/')) {

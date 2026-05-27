@@ -1,5 +1,5 @@
 {
-  "version": "7.9.0",
-  "timestamp": "2026-05-26T00:00:00Z",
-  "note": "REVERT seguridad estricta · Reglas simples · CSP abierto · sin tampering"
+  "version": "7.9.1",
+  "timestamp": "2026-05-26T00:30:00Z",
+  "note": "FIX: SW ya no cachea version.json + botón Force Update visible"
 }
