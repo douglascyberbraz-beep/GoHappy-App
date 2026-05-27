@@ -1,5 +1,5 @@
 {
-  "version": "8.0.0",
-  "timestamp": "2026-05-27T12:00:00Z",
-  "note": "MAJOR: Mapa reescrito con Leaflet (sin WebGL) + rules TODAS abiertas"
+  "version": "8.1.0",
+  "timestamp": "2026-05-27T12:30:00Z",
+  "note": "Mapa MapLibre 4.7 3D premium (Google Maps 2026 style) + reseñas dblclick"
 }

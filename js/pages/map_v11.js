@@ -1,31 +1,38 @@
 // ════════════════════════════════════════════════════════════════
-// GoHappy Map — v3.0 (LEAFLET ENGINE)
-// Reescrito desde 0 con Leaflet: motor 2D sin WebGL ni workers,
-// funciona en TODO navegador. Misma estética premium (CartoDB Voyager
-// tiles), mismos marcadores, misma UI (search + filtros).
+// GoHappy Map — v4.0 (MAPLIBRE 4.7 · 3D NAVEGADOR PREMIUM)
+//
+// Estilo Google Maps 2026: pitch 60°, edificios 3D extruidos,
+// gradient cobalt por altura, agua turquesa, parques verde-cyan.
+//
+// Features:
+//  • Doble-click / long-press → modal de reseña en esa ubicación
+//  • Buscador IA con Gemini + fallback Photon
+//  • Marcadores premium para POI comunitarios + IA
+//  • User marker pulsante con dirección
+//  • Filtros chip (parks/museums/theaters/kidzones/food)
+//  • Self-hosted MapLibre, CSP wide-open, sin dependencias CDN
 // ════════════════════════════════════════════════════════════════
 window.GoHappyMap = {
-    instance:       null,
-    isInitialized:  false,
-    markers:        [],
-    currentFilter:  'all',
-    userMarker:     null,
-    lastKnownCoords:"41.6520, -4.7286",
-    _gpsWatchId:    null,
+    instance:        null,
+    isInitialized:   false,
+    markers:         [],
+    currentFilter:   'all',
+    userMarker:      null,
+    lastKnownCoords: "41.6520, -4.7286",
+    _gpsWatchId:     null,
     _chipSearchToken: 0,
 
-    // ─── RENDER ───
+    // ─── RENDER ───────────────────────────────────────────────────
     render: async (container) => {
-        console.log("[Map] Render v3.0 Leaflet");
+        console.log('[Map] Render v4.0 MapLibre 3D');
         container.style.display = 'block';
 
         if (!window.GoHappyMap.isInitialized) {
             const lang = window.GoHappyI18n?.lang || 'es';
-            const loaderMsg = lang === 'en' ? 'Loading map…' : 'Cargando mapa…';
-
+            const loaderMsg = lang === 'en' ? 'Loading 3D map…' : 'Invocando mapa 3D…';
             container.innerHTML = `
                 <div id="map-canvas" style="position:absolute; inset:0; z-index:1; background:#DFEEFF;"></div>
-                <div id="map-loader" style="position:absolute; inset:0; background:linear-gradient(180deg,#eaf2fd 0%,#d6e6f9 100%); z-index:10; overflow:hidden; pointer-events:none;">
+                <div id="map-loader" style="position:absolute; inset:0; background:linear-gradient(180deg,#eaf2fd 0%,#d6e6f9 100%); z-index:10; pointer-events:none;">
                     <div style="position:absolute; inset:0; background-image: linear-gradient(rgba(11,76,143,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(11,76,143,0.06) 1px, transparent 1px); background-size:60px 60px;"></div>
                     <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-60%); display:flex; flex-direction:column; align-items:center; gap:14px;">
                         <div style="width:54px; height:54px; border-radius:50% 50% 50% 0; background:var(--primary-cobalt,#0B4C8F); transform:rotate(-45deg); box-shadow:0 8px 22px rgba(11,76,143,0.35); animation:mapPinBounce 1.2s ease-in-out infinite;"></div>
@@ -35,7 +42,6 @@ window.GoHappyMap = {
                 </div>
             `;
             await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-
             try {
                 await window.GoHappyMap.init(container);
             } catch (e) {
@@ -45,17 +51,16 @@ window.GoHappyMap = {
                     loader.innerHTML = `
                         <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center;">
                             <div style="font-size:48px; margin-bottom:14px;">⚠️</div>
-                            <p style="color:var(--primary-cobalt,#0B4C8F); font-weight:700; margin:0 0 18px;">${lang === 'en' ? 'Could not load map' : 'No se pudo cargar el mapa'}</p>
-                            <p style="color:#64748b; font-size:12px; margin:0 0 16px;">${(e?.message || 'Unknown error').slice(0, 120)}</p>
+                            <p style="color:var(--primary-cobalt,#0B4C8F); font-weight:700; margin:0 0 12px;">${lang === 'en' ? 'Could not load map' : 'No se pudo cargar el mapa'}</p>
+                            <p style="color:#64748b; font-size:12px; margin:0 0 18px;">${(e?.message || 'Unknown error').slice(0, 120)}</p>
                             <button onclick="window.location.reload()" style="background:var(--primary-cobalt,#0B4C8F); color:white; border:none; padding:12px 24px; border-radius:999px; font-weight:800; cursor:pointer;">🔄 ${lang === 'en' ? 'Retry' : 'Reintentar'}</button>
                         </div>`;
                 }
             }
         } else {
-            // Ya inicializado — solo redimensionar (caso pestaña vuelve a estar activa)
             const loader = document.getElementById('map-loader');
             if (loader) loader.style.display = 'none';
-            try { window.GoHappyMap.instance.invalidateSize(); } catch (e) {}
+            try { window.GoHappyMap.instance.resize(); } catch (e) {}
             if (window._navContext) {
                 window.GoHappyMap.handleNavContext(window._navContext);
                 window._navContext = null;
@@ -63,139 +68,280 @@ window.GoHappyMap = {
         }
     },
 
-    // ─── INIT ───
+    // ─── INIT (3D PREMIUM) ────────────────────────────────────────
     init: async (container) => {
         if (window.GoHappyMap.isInitialized && window.GoHappyMap.instance) return;
 
-        // GUARD 1: ¿Leaflet cargado?
-        if (typeof window.L === 'undefined') {
-            throw new Error(window.L === undefined && typeof L === 'undefined'
-                ? 'Leaflet no disponible — recarga la página'
-                : 'Leaflet missing');
+        // GUARD 1: MapLibre disponible
+        if (typeof window.maplibregl === 'undefined') {
+            throw new Error('MapLibre no cargado — recarga la página');
+        }
+
+        // GUARD 2: WebGL
+        try {
+            const c = document.createElement('canvas');
+            const gl = c.getContext('webgl2') || c.getContext('webgl');
+            if (!gl) throw new Error('WebGL not supported');
+        } catch (e) {
+            throw new Error('Tu navegador no soporta WebGL');
         }
 
         const mapDiv = document.getElementById('map-canvas') || container;
-
-        // GUARD 2: dimensiones reales
         const rect = mapDiv.getBoundingClientRect();
         if (rect.width < 10 || rect.height < 10) {
-            console.warn('[Map] container sin dimensiones', rect.width, 'x', rect.height, '→ forzando');
             mapDiv.style.cssText = 'position:absolute; inset:0; width:100vw; height:100vh; z-index:1; background:#DFEEFF;';
         }
+        console.info('[Map] MapLibre', maplibregl.version || '?', '· canvas', rect.width + 'x' + rect.height);
 
-        console.info('[Map] Init Leaflet · canvas', rect.width + 'x' + rect.height);
-
-        // Crear mapa Leaflet
-        window.GoHappyMap.instance = L.map(mapDiv, {
-            center:   [41.6520, -4.7286],
-            zoom:     14,
-            zoomControl: false,
-            attributionControl: false,
-            preferCanvas: true   // mejor rendimiento mobile
+        // Crear mapa con estilo 3D premium
+        window.GoHappyMap.instance = new maplibregl.Map({
+            container: mapDiv,
+            style: 'https://tiles.openfreemap.org/styles/liberty',
+            center: [-4.7286, 41.6520],
+            zoom: 15,
+            pitch: 55,         // ángulo 3D estilo navegador
+            bearing: -10,
+            antialias: true,
+            attributionControl: false
         });
 
-        // Tile layer: CartoDB Voyager (premium look, gratis sin API key)
-        // Fallback: OpenStreetMap raster (siempre disponible)
-        const tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-        const tileFallback = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-
-        const tileLayer = L.tileLayer(tileUrl, {
-            maxZoom: 19,
-            minZoom: 3,
-            subdomains: 'abcd',
-            crossOrigin: true,
-            attribution: '© OpenStreetMap, © CartoDB'
-        });
-
-        let tileFallbackTriggered = false;
-        tileLayer.on('tileerror', (err) => {
-            if (tileFallbackTriggered) return;
-            tileFallbackTriggered = true;
-            console.warn('[Map] CartoDB tiles fallaron — fallback a OSM');
-            tileLayer.setUrl(tileFallback);
-        });
-
-        tileLayer.addTo(window.GoHappyMap.instance);
-
-        // Atribución pequeñita
-        L.control.attribution({ position: 'bottomright', prefix: false }).addAttribution('© OpenStreetMap').addTo(window.GoHappyMap.instance);
-
-        // Pedir ubicación + centrar
+        // Solicitar ubicación al instante
         window.GoHappyMap.locateUser(true);
 
-        // FAIL-SAFE: ocultar loader tras 6s si tiles tardan
-        const hideLoader = () => {
-            const loader = document.getElementById('map-loader');
-            if (loader && loader.style.display !== 'none') {
-                loader.style.transition = 'opacity 0.4s';
-                loader.style.opacity = '0';
-                setTimeout(() => { loader.style.display = 'none'; }, 400);
+        // ── Failsafe: ocultar loader a los 8s si tiles tardan
+        const failsafeHide = setTimeout(() => {
+            const ld = document.getElementById('map-loader');
+            if (ld && ld.style.display !== 'none') {
+                ld.style.transition = 'opacity 0.4s';
+                ld.style.opacity = '0';
+                setTimeout(() => ld.style.display = 'none', 400);
                 window.GoHappyMap.isInitialized = true;
             }
-        };
-        const failsafeTimeout = setTimeout(hideLoader, 6000);
+        }, 8000);
 
-        // Esconder loader cuando el primer tile cargue
-        tileLayer.on('load', () => { clearTimeout(failsafeTimeout); hideLoader(); });
-
-        // Click en mapa: long-press / dblclick → añadir reseña
-        let pressTimer = null;
-        let pressLatLng = null;
-        let didMove = false;
-
-        const cancelPress = () => { if (pressTimer) clearTimeout(pressTimer); pressTimer = null; pressLatLng = null; };
-
-        window.GoHappyMap.instance.on('dblclick', (e) => {
-            window.GoHappyMap.showAddSiteModal(e.latlng.lat, e.latlng.lng);
+        // ── Idle = primer render completo ─
+        window.GoHappyMap.instance.on('idle', () => {
+            const ld = document.getElementById('map-loader');
+            if (ld && ld.style.display !== 'none') {
+                ld.style.transition = 'opacity 0.4s';
+                ld.style.opacity = '0';
+                setTimeout(() => ld.style.display = 'none', 400);
+                window.GoHappyMap.isInitialized = true;
+                clearTimeout(failsafeHide);
+            }
         });
-        window.GoHappyMap.instance.doubleClickZoom.disable();
 
-        // Long-press móvil (mousedown / touchstart)
-        mapDiv.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 1) { cancelPress(); return; }
-            didMove = false;
-            const touch = e.touches[0];
-            const containerPoint = window.GoHappyMap.instance.mouseEventToContainerPoint({
-                clientX: touch.clientX, clientY: touch.clientY
+        // ── ERROR catcher
+        window.GoHappyMap.instance.on('error', (e) => {
+            console.warn('[Map] runtime error:', e?.error?.message || e);
+        });
+
+        // ── LOAD: estilo premium navegador
+        window.GoHappyMap.instance.on('load', async () => {
+            clearTimeout(failsafeHide);
+            window.GoHappyMap.isInitialized = true;
+            const ld = document.getElementById('map-loader');
+            if (ld) {
+                ld.style.opacity = '0';
+                ld.style.transition = 'opacity 0.4s';
+                setTimeout(() => ld.style.display = 'none', 400);
+            }
+
+            // ───── COLORES NAVEGADOR PREMIUM (estilo Waze/Google 2026) ─────
+            const layersColor = [
+                { id:'water',                color:'#7CC6EE', opacity:1 },
+                { id:'water-pattern',        color:'#7CC6EE', opacity:0.9 },
+                { id:'landuse-natural',      color:'#D8EAF6', opacity:1 },
+                { id:'landuse-park',         color:'#A6E8C9', opacity:1 },
+                { id:'land',                 color:'#E8F1FB', opacity:1 },
+                { id:'landuse-residential',  color:'#DCE7F4', opacity:1 },
+                { id:'landuse-commercial',   color:'#D8E0F0', opacity:1 },
+                { id:'landcover-grass',      color:'#B8E5D0', opacity:1 },
+                { id:'landcover-wood',       color:'#A8D8C0', opacity:1 },
+                { id:'landuse-industrial',   color:'#CFD9EA', opacity:1 },
+                { id:'landuse-cemetery',     color:'#C9E5D8', opacity:1 },
+                { id:'landuse-school',       color:'#DCE7F4', opacity:1 },
+                { id:'landuse-hospital',     color:'#E6DEEF', opacity:1 },
+                { id:'aeroway-area',         color:'#DCE7F4', opacity:1 }
+            ];
+            layersColor.forEach(l => {
+                try {
+                    if (window.GoHappyMap.instance.getLayer(l.id)) {
+                        window.GoHappyMap.instance.setPaintProperty(l.id, 'fill-color', l.color);
+                        window.GoHappyMap.instance.setPaintProperty(l.id, 'fill-opacity', l.opacity);
+                    }
+                } catch (e) {}
             });
-            pressLatLng = window.GoHappyMap.instance.containerPointToLatLng(containerPoint);
+
+            // ───── EDIFICIOS 3D EXTRUIDOS (gradient cobalt por altura) ─────
+            try {
+                const buildLayer = window.GoHappyMap.instance.getLayer('building');
+                if (buildLayer) {
+                    // Capa base 2D plana cobalto suave
+                    window.GoHappyMap.instance.setPaintProperty('building', 'fill-color', '#9FBEDD');
+                    window.GoHappyMap.instance.setPaintProperty('building', 'fill-opacity', 0.5);
+
+                    // Capa 3D extrusión con TRANSPARENCIA (estilo Google 2026)
+                    window.GoHappyMap.instance.addLayer({
+                        id: 'gohappy-3d-buildings',
+                        source: buildLayer.source,
+                        'source-layer': buildLayer.sourceLayer,
+                        type: 'fill-extrusion',
+                        minzoom: 12,
+                        paint: {
+                            'fill-extrusion-color': [
+                                'interpolate', ['linear'],
+                                ['coalesce', ['get', 'render_height'], 10],
+                                0,   '#B8E0FA',
+                                20,  '#7DC4F0',
+                                50,  '#3A9CE0',
+                                100, '#0B71FC',
+                                200, '#0B4C8F'
+                            ],
+                            'fill-extrusion-height': [
+                                'interpolate', ['linear'], ['zoom'],
+                                12, 0,
+                                13.5, ['*', ['coalesce', ['get', 'render_height'], 18], 0.4],
+                                15, ['coalesce', ['get', 'render_height'], 18]
+                            ],
+                            'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+                            'fill-extrusion-opacity': [
+                                'interpolate', ['linear'], ['zoom'],
+                                12, 0.35,
+                                14, 0.55,
+                                16, 0.65,
+                                18, 0.72
+                            ],
+                            'fill-extrusion-vertical-gradient': true
+                        }
+                    });
+                }
+            } catch (e) { console.warn('[Map] 3D buildings:', e?.message); }
+
+            // ───── TINT cobalto sutil global ─────
+            try {
+                window.GoHappyMap.instance.addLayer({
+                    id: 'gh-brand-tint',
+                    type: 'background',
+                    paint: {
+                        'background-color': '#7DA8D4',
+                        'background-opacity': [
+                            'interpolate', ['linear'], ['zoom'],
+                            0,  0.18, 6, 0.12, 10, 0.05, 14, 0.02, 18, 0
+                        ]
+                    }
+                }, 'water');
+            } catch (e) {}
+
+            // ───── CARRETERAS estilo Waze (blancas con casing) ─────
+            try {
+                const allLayers = window.GoHappyMap.instance.getStyle().layers;
+                const roadLayers = allLayers.filter(l => /road|street|way|bridge|tunnel|highway/i.test(l.id)).map(l => l.id);
+                roadLayers.forEach(layer => {
+                    try {
+                        const lyr = window.GoHappyMap.instance.getLayer(layer);
+                        if (!lyr || lyr.type !== 'line') return;
+                        const isCasing  = /casing|outline|border/i.test(layer);
+                        const isPrimary = /primary|motorway|trunk|main/i.test(layer);
+                        if (isCasing)        window.GoHappyMap.instance.setPaintProperty(layer, 'line-color', '#D8E4F0');
+                        else if (isPrimary)  window.GoHappyMap.instance.setPaintProperty(layer, 'line-color', '#FFFFFF');
+                        else                 window.GoHappyMap.instance.setPaintProperty(layer, 'line-color', '#F4F8FC');
+                        window.GoHappyMap.instance.setPaintProperty(layer, 'line-opacity', 1);
+                    } catch (e) {}
+                });
+            } catch (e) {}
+
+            // ───── ILUMINACIÓN ambiental sol Waze ─────
+            try {
+                window.GoHappyMap.instance.setLight({
+                    anchor: 'viewport',
+                    color: '#FFF5E6',
+                    intensity: 0.35,
+                    position: [1.5, 90, 80]
+                });
+            } catch (e) {}
+
+            // UI overlay (search + filtros + FABs)
+            window.GoHappyMap.injectUI(container);
+
+            // Cargar marcadores reales + GPS watch
+            try { await window.GoHappyMap.loadMarkers(); } catch (e) { console.warn('[Map] loadMarkers:', e?.message); }
+            window.GoHappyMap.startGPSWatch();
+
+            // SMART NAV (al volver a la pestaña con contexto)
+            if (window._navContext) {
+                window.GoHappyMap.handleNavContext(window._navContext);
+                window._navContext = null;
+            }
+        });
+
+        // ───── INTERACCIÓN: doble-click + long-press → reseña ─────
+        try { window.GoHappyMap.instance.doubleClickZoom.disable(); } catch (e) {}
+
+        // Doble-click (desktop): añadir reseña
+        window.GoHappyMap.instance.on('dblclick', (e) => {
+            if (e?.preventDefault) e.preventDefault();
+            if (e?.originalEvent?.preventDefault) e.originalEvent.preventDefault();
+            window.GoHappyMap.showAddSiteModal(e.lngLat.lat, e.lngLat.lng);
+        });
+
+        // Long-press 600ms (móvil): añadir reseña
+        let pressTimer = null;
+        let pressCoords = null;
+        let didMove = false;
+        const cancelPress = () => {
+            if (pressTimer) clearTimeout(pressTimer);
+            pressTimer = null;
+            pressCoords = null;
+        };
+        window.GoHappyMap.instance.on('touchstart', (e) => {
+            if (e?.originalEvent?.touches && e.originalEvent.touches.length > 1) {
+                cancelPress();
+                return;
+            }
+            pressCoords = e.lngLat;
+            didMove = false;
             pressTimer = setTimeout(() => {
-                if (!didMove && pressLatLng) {
+                if (!didMove && pressCoords) {
                     if (navigator.vibrate) navigator.vibrate(60);
-                    window.GoHappyMap.showAddSiteModal(pressLatLng.lat, pressLatLng.lng);
+                    try {
+                        if (window.Capacitor?.isNativePlatform?.()) {
+                            const { Haptics } = window.Capacitor.Plugins;
+                            if (Haptics) Haptics.impact({ style: 'MEDIUM' });
+                        }
+                    } catch (err) {}
+                    window.GoHappyMap.showAddSiteModal(pressCoords.lat, pressCoords.lng);
                 }
                 pressTimer = null;
             }, 600);
-        }, { passive: true });
-        mapDiv.addEventListener('touchmove', () => { didMove = true; cancelPress(); }, { passive: true });
-        mapDiv.addEventListener('touchend', cancelPress, { passive: true });
-        mapDiv.addEventListener('touchcancel', cancelPress, { passive: true });
-
-        // UI overlay (search + filtros + FABs)
-        window.GoHappyMap.injectUI(container);
-
-        // Cargar marcadores comunitarios + GPS
-        try { await window.GoHappyMap.loadMarkers(); } catch (e) { console.warn('[Map] loadMarkers:', e?.message); }
-        window.GoHappyMap.startGPSWatch();
+        });
+        window.GoHappyMap.instance.on('touchend', cancelPress);
+        window.GoHappyMap.instance.on('touchcancel', cancelPress);
+        window.GoHappyMap.instance.on('move', () => { if (pressTimer) didMove = true; });
     },
 
-    // ─── handleNavContext (compat con resto del app) ───
+    // ─── handleNavContext (deep-link desde otras pages) ──────────
     handleNavContext: (context) => {
         if (!window.GoHappyMap.instance) return;
         let target = null;
-        if (context.coords) target = [context.coords.lat, context.coords.lng];
+        if (context.coords) target = [context.coords.lng, context.coords.lat];
         else if (context.focus) {
             const m = window.GoHappyMap.markers.find(m => m.data && m.data.name === context.focus);
-            if (m) target = [m.data.lat, m.data.lng];
+            if (m) target = [m.data.lng, m.data.lat];
         }
         if (target) {
-            window.GoHappyMap.instance.flyTo(target, context.zoom || 17, { duration: 1.5 });
-            const marker = window.GoHappyMap.markers.find(m => m.data && (m.data.name === context.focus || (m.data.lat === target[0] && m.data.lng === target[1])));
-            if (marker?.instance) setTimeout(() => marker.instance.openPopup(), 1200);
+            window.GoHappyMap.instance.flyTo({
+                center: target, zoom: context.zoom || 17,
+                speed: 1.5, curve: 1.42, essential: true
+            });
+            const marker = window.GoHappyMap.markers.find(m =>
+                m.data && (m.data.name === context.focus || (m.data.lat === target[1] && m.data.lng === target[0]))
+            );
+            if (marker?.instance) setTimeout(() => marker.instance.togglePopup(), 1200);
         }
     },
 
-    // ─── injectUI ───
+    // ─── injectUI (búsqueda IA + filtros + FABs) ─────────────────
     injectUI: (container) => {
         if (document.querySelector('.map-search-container')) return;
         container.style.position = 'relative';
@@ -203,7 +349,7 @@ window.GoHappyMap = {
         const T = window.t || (k => k);
         const overlay = document.createElement('div');
         overlay.className = 'map-search-container';
-        overlay.style.zIndex = '500';
+        overlay.style.zIndex = '5';
         overlay.innerHTML = `
             <div class="map-search-bar" style="display:flex; align-items:center; background:rgba(255,255,255,0.7); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-radius:30px; padding:2px 20px; box-shadow:0 10px 30px rgba(0,210,211,0.1); flex:1; width:100%; border:1px solid rgba(255,255,255,0.5);">
                 <span class="gemini-sparkle" style="margin-right:8px; font-size:1.2rem;">✨</span>
@@ -220,12 +366,11 @@ window.GoHappyMap = {
         `;
         container.appendChild(overlay);
 
-        // FAB localizar
+        // FAB locate
         const locateBtn = document.createElement('button');
         locateBtn.id = 'locate-me-btn';
         locateBtn.className = 'fab-btn locate-fab';
         locateBtn.innerHTML = '🎯';
-        locateBtn.style.zIndex = '500';
         container.appendChild(locateBtn);
 
         // FAB añadir reseña
@@ -233,13 +378,13 @@ window.GoHappyMap = {
         addBtn.id = 'add-review-fab';
         addBtn.className = 'fab-btn add-review-fab';
         addBtn.innerHTML = '<span style="font-size:24px; line-height:1;">+</span>';
-        addBtn.style.zIndex = '500';
+        addBtn.title = window.GoHappyI18n ? window.GoHappyI18n.t('map.review') : 'Añadir reseña';
         container.appendChild(addBtn);
 
         addBtn.addEventListener('click', () => {
             let lat, lng;
             if (window.GoHappyMap.userMarker) {
-                const ll = window.GoHappyMap.userMarker.getLatLng();
+                const ll = window.GoHappyMap.userMarker.getLngLat();
                 lat = ll.lat; lng = ll.lng;
             } else if (window.GoHappyMap.instance) {
                 const c = window.GoHappyMap.instance.getCenter();
@@ -248,63 +393,76 @@ window.GoHappyMap = {
             window.GoHappyMap.showAddSiteModal(lat, lng);
         });
 
-        locateBtn.addEventListener('click', () => {
-            if (window.GoHappyMap.userMarker) {
-                const ll = window.GoHappyMap.userMarker.getLatLng();
-                window.GoHappyMap.instance.flyTo(ll, 17, { duration: 1.2 });
-            } else {
-                window.GoHappyMap.locateUser();
-            }
-        });
+        // Hint primera vez
+        if (!localStorage.getItem('GoHappy_map_hint_seen')) {
+            setTimeout(() => {
+                if (window.GoHappyToast) {
+                    const tip = window.GoHappyI18n?.lang === 'en'
+                        ? '💡 Double-tap or hold any place to add a review'
+                        : '💡 Doble toca o mantén pulsado un sitio para reseñarlo';
+                    window.GoHappyToast.info(tip, 4500);
+                }
+                localStorage.setItem('GoHappy_map_hint_seen', '1');
+            }, 2500);
+        }
 
+        // Buscador IA
         const input = document.getElementById('map-search-input');
         input.addEventListener('keypress', e => {
             if (e.key === 'Enter') window.GoHappyMap.handleSearch(input.value);
         });
 
-        document.querySelectorAll('.filter-chip').forEach(chip => {
+        locateBtn.addEventListener('click', () => {
+            if (window.GoHappyMap.userMarker) {
+                const ll = window.GoHappyMap.userMarker.getLngLat();
+                window.GoHappyMap.instance.easeTo({ center: ll, zoom: 17, pitch: 55, speed: 1.2 });
+            } else {
+                window.GoHappyMap.locateUser();
+            }
+        });
+
+        // Filtros chip
+        const chips = document.querySelectorAll('.filter-chip');
+        chips.forEach(chip => {
             chip.addEventListener('click', async () => {
-                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active', 'loading'));
+                chips.forEach(c => c.classList.remove('active', 'loading'));
                 chip.classList.add('active');
                 const type = chip.dataset.type;
+                const label = chip.innerText.trim();
                 window.GoHappyMap.currentFilter = type;
+                const T2 = window.t || (k => k);
 
-                if (type === 'all') {
-                    window.GoHappyMap.filterMarkers('all');
-                    return;
-                }
+                if (type === 'all') { window.GoHappyMap.filterMarkers('all'); return; }
+
                 window.GoHappyMap.filterMarkers(type);
                 const localOfType = window.GoHappyMap.markers.filter(m => m.type === type);
-                if (localOfType.length >= 6) return;
+                if (localOfType.length >= 6) {
+                    window.GoHappyToast && window.GoHappyToast.info(T2('map.community.found', { n: localOfType.length, label: label.toLowerCase() }), 2500);
+                    return;
+                }
 
                 const myToken = ++window.GoHappyMap._chipSearchToken;
                 chip.classList.add('loading');
                 const before = window.GoHappyMap.markers.length;
                 try {
                     await Promise.race([
-                        window.GoHappyMap.handleSearch(`${chip.innerText.trim()} para niños`),
+                        window.GoHappyMap.handleSearch(`mejores ${label} para ir con niños`),
                         new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 12000))
                     ]);
                 } catch (e) {}
                 if (myToken !== window.GoHappyMap._chipSearchToken) return;
                 chip.classList.remove('loading');
-                window.GoHappyMap.filterMarkers(type);
+                const after = window.GoHappyMap.markers.length;
+                if (after > before) {
+                    window.GoHappyMap.filterMarkers(type);
+                    const newCount = window.GoHappyMap.markers.filter(m => m.type === type).length;
+                    window.GoHappyToast && window.GoHappyToast.success(T2('map.community.found', { n: newCount, label: label.toLowerCase() }), 2500);
+                }
             });
         });
-
-        // Hint primera vez
-        if (!localStorage.getItem('GoHappy_map_hint_seen')) {
-            setTimeout(() => {
-                const tip = window.GoHappyI18n?.lang === 'en'
-                    ? '💡 Tap "+" or hold any place to add a review'
-                    : '💡 Toca el "+" o mantén pulsado un sitio para reseñarlo';
-                window.GoHappyToast && window.GoHappyToast.info(tip, 4500);
-                localStorage.setItem('GoHappy_map_hint_seen', '1');
-            }, 2500);
-        }
     },
 
-    // ─── loadMarkers (reseñas comunidad + IA fallback) ───
+    // ─── loadMarkers ─────────────────────────────────────────────
     loadMarkers: async () => {
         const coords = window.lastKnownCoords || "41.6520, -4.7286";
         let locations = [];
@@ -317,9 +475,10 @@ window.GoHappyMap = {
         (locations || []).forEach(loc => window.GoHappyMap.createMarker(loc));
     },
 
-    // ─── createMarker ───
+    // ─── createMarker (pin premium con icono) ─────────────────────
     createMarker: (loc) => {
         if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') return;
+
         const hasReview = loc.isCommunity || (loc.rating || 0) >= 4.7;
 
         let icon = '📍';
@@ -329,66 +488,63 @@ window.GoHappyMap = {
         else if (loc.type === 'theater') icon = '🎭';
         else if (loc.type === 'kidzone') icon = '🏰';
 
-        // Marcador HTML personalizado (estética premium)
-        const markerEl = document.createElement('div');
-        markerEl.className = 'gohappy-marker-leaflet';
-        markerEl.innerHTML = `
-            <div style="
+        const el = document.createElement('div');
+        el.className = `gohappy-marker-wrap ${hasReview ? 'has-badge' : ''}`;
+        el.innerHTML = `
+            <div class="marker-pin-premium" style="
                 background:white; width:40px; height:40px;
-                border-radius:50% 50% 50% 0; transform:rotate(-45deg);
+                border-radius:50% 50% 50% 0;
+                transform:rotate(-45deg);
                 display:flex; align-items:center; justify-content:center;
                 box-shadow:0 4px 10px rgba(0,0,0,0.2);
                 border:3px solid var(--primary-cobalt,#0B4C8F);
                 position:relative;
             ">
                 <div style="transform:rotate(45deg); font-size:20px;">${icon}</div>
-                ${hasReview ? `<div style="position:absolute; top:-10px; right:-10px; background:#F39C12; color:white; font-size:9px; padding:2px 6px; border-radius:10px; font-weight:900; border:2px solid white; transform:rotate(45deg); white-space:nowrap;">⭐</div>` : ''}
+                ${hasReview ? `<div class="tribe-insignia" style="position:absolute; top:-10px; right:-10px; background:#F39C12; color:white; font-size:9px; padding:2px 6px; border-radius:10px; font-weight:900; border:2px solid white; transform:rotate(45deg); white-space:nowrap;">⭐</div>` : ''}
             </div>
         `;
-        const divIcon = L.divIcon({
-            html: markerEl.innerHTML,
-            className: 'gh-marker-wrapper',
-            iconSize: [40, 40],
-            iconAnchor: [20, 40]
-        });
 
-        // Sanitizar
         const sec = window.GoHappySecurity;
-        const safeName = sec ? sec.safe(loc.name || 'Sitio') : String(loc.name || 'Sitio').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+        const safeName = sec ? sec.safe(loc.name) : String(loc.name || 'Sitio').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
         const safeType = sec ? sec.safe(loc.type || '') : String(loc.type || '');
         const safeImage = (loc.image && /^https?:\/\//.test(loc.image)) ? loc.image : '';
 
         const tRoute  = window.GoHappyI18n ? window.GoHappyI18n.t('map.route')  : '🗺️ Cómo llegar';
         const tReview = window.GoHappyI18n ? window.GoHappyI18n.t('map.review') : '📝 Escribir reseña';
 
-        const popupHtml = `
-            <div class="popup-premium" style="min-width:230px; border-radius:20px; overflow:hidden; margin:-12px;">
-                <div style="height:100px; background:${safeImage ? `url('${safeImage}') center/cover` : 'linear-gradient(135deg,#0B71FC,#17C8D4)'}; display:flex; align-items:center; justify-content:center; color:white; font-size:2rem;">${safeImage ? '' : '🌟'}</div>
-                <div style="padding:12px; background:white;">
-                    <h3 style="margin:0 0 4px; font-size:1rem; font-weight:800; color:var(--cobalt,#0B4C8F);">${safeName}</h3>
+        const popupHTML = `
+            <div class="popup-premium" style="min-width:230px; border-radius:20px; overflow:hidden;">
+                <div class="popup-img-container" style="position:relative; height:100px; background:#eee;">
+                    ${safeImage ? `<img src="${safeImage}" style="width:100%; height:100%; object-fit:cover;">` : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0B71FC,#17C8D4); color:white; font-size:2rem;">🌟</div>`}
+                </div>
+                <div class="popup-body" style="padding:12px; background:white;">
+                    <h3 style="margin:0 0 4px 0; font-size:1rem; font-weight:800; color:var(--cobalt,#0B4C8F);">${safeName}</h3>
                     <div style="font-size:0.78rem; color:#666; margin-bottom:10px;">⭐ ${parseFloat(loc.rating) || 4.5} · ${safeType}</div>
                     <button class="popup-route-btn" data-lat="${loc.lat}" data-lng="${loc.lng}" style="padding:10px; border-radius:12px; font-size:12px; font-weight:800; width:100%; border:none; color:white; cursor:pointer; background:linear-gradient(135deg,#0B71FC,#17C8D4); margin-bottom:8px; box-shadow:0 6px 16px rgba(11,113,252,0.28);">${tRoute}</button>
-                    <button class="popup-review-btn" data-lat="${loc.lat}" data-lng="${loc.lng}" data-name="${safeName}" style="padding:9px; border-radius:12px; font-size:12px; font-weight:700; width:100%; border:0.5px solid rgba(11,76,143,0.15); color:var(--cobalt,#0B4C8F); cursor:pointer; background:rgba(11,76,143,0.06);">${tReview}</button>
+                    <button class="popup-review-btn" data-lat="${loc.lat}" data-lng="${loc.lng}" style="padding:9px; border-radius:12px; font-size:12px; font-weight:700; width:100%; border:0.5px solid rgba(11,76,143,0.15); color:var(--cobalt,#0B4C8F); cursor:pointer; background:rgba(11,76,143,0.06);">${tReview}</button>
                 </div>
             </div>
         `;
 
-        const marker = L.marker([loc.lat, loc.lng], { icon: divIcon })
-            .addTo(window.GoHappyMap.instance)
-            .bindPopup(popupHtml, { closeButton: true, maxWidth: 280, className: 'gh-popup' });
-
-        marker.on('popupopen', () => {
+        const popup = new maplibregl.Popup({ offset: 40, className: 'premium-popup-3d' }).setHTML(popupHTML);
+        popup.on('open', () => {
             setTimeout(() => {
-                const routeBtn = document.querySelector('.leaflet-popup-content .popup-route-btn');
-                const revBtn   = document.querySelector('.leaflet-popup-content .popup-review-btn');
+                const routeBtn = document.querySelector('.maplibregl-popup-content .popup-route-btn');
+                const revBtn   = document.querySelector('.maplibregl-popup-content .popup-review-btn');
+                if (revBtn) {
+                    revBtn.onclick = () => window.GoHappyMap.showAddSiteModal(parseFloat(revBtn.dataset.lat), parseFloat(revBtn.dataset.lng), loc.name);
+                }
                 if (routeBtn && window.GoHappyNav) {
                     routeBtn.onclick = () => window.GoHappyNav.openRoute(parseFloat(routeBtn.dataset.lat), parseFloat(routeBtn.dataset.lng), loc.name);
                 }
-                if (revBtn) {
-                    revBtn.onclick = () => window.GoHappyMap.showAddSiteModal(parseFloat(revBtn.dataset.lat), parseFloat(revBtn.dataset.lng), revBtn.dataset.name);
-                }
             }, 50);
         });
+
+        const marker = new maplibregl.Marker({ element: el, anchor: 'bottom', offset: [0, -10] })
+            .setLngLat([loc.lng, loc.lat])
+            .setPopup(popup)
+            .addTo(window.GoHappyMap.instance);
 
         window.GoHappyMap.markers.push({ instance: marker, type: loc.type, data: loc });
     },
@@ -399,24 +555,29 @@ window.GoHappyMap = {
     },
 
     filterMarkers: (type) => {
-        const bounds = L.latLngBounds([]);
         let hasVisible = false;
+        const bounds = new maplibregl.LngLatBounds();
         window.GoHappyMap.markers.forEach(m => {
             if (type === 'all' || m.type === type) {
                 m.instance.addTo(window.GoHappyMap.instance);
-                bounds.extend(m.instance.getLatLng());
+                bounds.extend(m.instance.getLngLat());
                 hasVisible = true;
             } else {
                 m.instance.remove();
             }
         });
-        if (hasVisible) {
-            if (window.GoHappyMap.userMarker) bounds.extend(window.GoHappyMap.userMarker.getLatLng());
-            try { window.GoHappyMap.instance.fitBounds(bounds, { padding: [60, 40], maxZoom: 15 }); } catch (e) {}
+        if (hasVisible && window.GoHappyMap.instance) {
+            if (window.GoHappyMap.userMarker) bounds.extend(window.GoHappyMap.userMarker.getLngLat());
+            try {
+                window.GoHappyMap.instance.fitBounds(bounds, {
+                    padding: { top:100, bottom:100, left:50, right:50 },
+                    maxZoom: 15, pitch: 0, speed: 1.0
+                });
+            } catch (e) {}
         }
     },
 
-    // ─── handleSearch (IA + geocoding fallback) ───
+    // ─── handleSearch (IA Gemini + fallback Photon) ──────────────
     handleSearch: async (query) => {
         if (!query) return;
         const input = document.getElementById('map-search-input');
@@ -424,30 +585,37 @@ window.GoHappyMap = {
 
         try {
             const coords = window.lastKnownCoords || window.GoHappyMap.lastKnownCoords;
-            const results = (window.GoHappyData?.searchLocations) ? await window.GoHappyData.searchLocations(query, coords) : null;
+            const results = window.GoHappyData?.searchLocations
+                ? await window.GoHappyData.searchLocations(query, coords)
+                : null;
 
             if (results && results.length > 0) {
                 const existingNames = new Set(window.GoHappyMap.markers.map(m => m.data?.name));
-                const bounds = L.latLngBounds([]);
+                const bounds = new maplibregl.LngLatBounds();
                 let added = 0;
                 results.forEach(loc => {
                     if (!loc.lat || !loc.lng || existingNames.has(loc.name)) return;
                     window.GoHappyMap.createMarker(loc);
-                    bounds.extend([loc.lat, loc.lng]);
+                    bounds.extend([loc.lng, loc.lat]);
                     added++;
                 });
                 if (added > 0) {
-                    if (window.GoHappyMap.userMarker) bounds.extend(window.GoHappyMap.userMarker.getLatLng());
-                    try { window.GoHappyMap.instance.fitBounds(bounds, { padding: [60, 40], maxZoom: 15 }); } catch (e) {}
+                    if (window.GoHappyMap.userMarker) bounds.extend(window.GoHappyMap.userMarker.getLngLat());
+                    try {
+                        window.GoHappyMap.instance.fitBounds(bounds, {
+                            padding: { top:100, bottom:140, left:40, right:40 },
+                            maxZoom: 15, pitch: 0, speed: 1.2
+                        });
+                    } catch (e) {}
                 }
             } else {
-                // Fallback Photon
+                // Fallback geocoding Photon
                 try {
-                    const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1`);
-                    const data = await r.json();
-                    if (data?.features?.length) {
+                    const resp = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1`);
+                    const data = await resp.json();
+                    if (data?.features?.length > 0) {
                         const c = data.features[0].geometry.coordinates;
-                        window.GoHappyMap.instance.flyTo([c[1], c[0]], 17, { duration: 1.5 });
+                        window.GoHappyMap.instance.flyTo({ center: c, zoom: 17, pitch: 55, speed: 1.5 });
                     } else {
                         window.GoHappyToast && window.GoHappyToast.info(`Sin resultados para "${query}"`, 3000);
                     }
@@ -460,12 +628,13 @@ window.GoHappyMap = {
         if (input) { input.placeholder = 'Pregunta a Gemini…'; input.disabled = false; input.value = ''; }
     },
 
-    // ─── GPS ───
+    // ─── GPS watch (track user + sync coords) ────────────────────
     startGPSWatch: () => {
         if (!navigator.geolocation) return;
         if (window.GoHappyMap._gpsWatchId != null) {
             navigator.geolocation.clearWatch(window.GoHappyMap._gpsWatchId);
         }
+        let lastLat = null, lastLng = null;
         window.GoHappyMap._gpsWatchId = navigator.geolocation.watchPosition((pos) => {
             const lat = pos.coords.latitude, lng = pos.coords.longitude;
             const newCoords = `${lat}, ${lng}`;
@@ -473,27 +642,53 @@ window.GoHappyMap = {
                 window.lastKnownCoords = newCoords;
                 window.dispatchEvent(new CustomEvent('GoHappy-location-sync', { detail: newCoords }));
             }
-            window.GoHappyMap.updateUserIcon(lat, lng);
+            let heading = pos.coords.heading;
+            if (heading === null && lastLat !== null && lastLng !== null) {
+                if (Math.abs(lat - lastLat) > 0.00001 || Math.abs(lng - lastLng) > 0.00001) {
+                    const deltaLng = (lng - lastLng) * Math.cos(lastLat * Math.PI / 180);
+                    const deltaLat = lat - lastLat;
+                    heading = (Math.atan2(deltaLng, deltaLat) * 180 / Math.PI + 360) % 360;
+                }
+            }
+            lastLat = lat; lastLng = lng;
+            window.GoHappyMap.updateUserIcon(lat, lng, heading);
         }, null, { enableHighAccuracy: true });
     },
 
-    updateUserIcon: (lat, lng) => {
+    updateUserIcon: (lat, lng, heading = 0) => {
         if (!window.GoHappyMap.userMarker) {
-            const userIcon = L.divIcon({
-                html: `
-                    <div style="position:relative; width:30px; height:30px;">
-                        <div style="position:absolute; inset:-15px; background:radial-gradient(circle, rgba(11,76,143,0.4) 0%, transparent 70%); animation:pulse 2s infinite;"></div>
-                        <div style="position:absolute; inset:0; background:white; border:4px solid var(--primary-cobalt,#0B4C8F); border-radius:50%; box-shadow:0 0 15px rgba(11,76,143,0.5);"></div>
-                    </div>
-                    <style>@keyframes pulse {0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.3);opacity:0.4}}</style>
-                `,
-                className: 'gh-user-marker',
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            });
-            window.GoHappyMap.userMarker = L.marker([lat, lng], { icon: userIcon, zIndexOffset: 1000 }).addTo(window.GoHappyMap.instance);
+            const el = document.createElement('div');
+            el.innerHTML = `
+                <div class="user-orb-container" style="position:relative; width:60px; height:60px; display:flex; align-items:center; justify-content:center;">
+                    <div class="user-orb-glow" style="position:absolute; width:100%; height:100%; background:radial-gradient(circle, rgba(11,76,143,0.4) 0%, transparent 70%); animation:pulse 2s infinite;"></div>
+                    <div class="user-orb-core" style="
+                        width:24px; height:24px;
+                        background:white;
+                        border:4px solid var(--primary-cobalt,#0B4C8F);
+                        border-radius:50%;
+                        box-shadow:0 0 15px rgba(11,76,143,0.5);
+                        z-index:2;
+                    "></div>
+                    <div class="user-direction-cone" style="
+                        position:absolute;
+                        width:0; height:0;
+                        border-left:10px solid transparent;
+                        border-right:10px solid transparent;
+                        border-bottom:25px solid var(--primary-cobalt,#0B4C8F);
+                        top:-15px; opacity:0.8;
+                        transform-origin:center 45px;
+                        transform:rotate(${heading}deg);
+                    "></div>
+                </div>
+                <style>@keyframes pulse {0%,100%{transform:scale(1); opacity:1} 50%{transform:scale(1.3); opacity:0.4}}</style>
+            `;
+            window.GoHappyMap.userMarker = new maplibregl.Marker({ element: el, pitchAlignment: 'map', rotationAlignment: 'map' })
+                .setLngLat([lng, lat])
+                .addTo(window.GoHappyMap.instance);
         } else {
-            window.GoHappyMap.userMarker.setLatLng([lat, lng]);
+            window.GoHappyMap.userMarker.setLngLat([lng, lat]);
+            const cone = window.GoHappyMap.userMarker.getElement().querySelector('.user-direction-cone');
+            if (cone) cone.style.transform = `rotate(${heading}deg)`;
         }
     },
 
@@ -501,22 +696,22 @@ window.GoHappyMap = {
         if (!navigator.geolocation) return;
         navigator.geolocation.getCurrentPosition((pos) => {
             const lat = pos.coords.latitude, lng = pos.coords.longitude;
-            if (animate) {
-                window.GoHappyMap.instance.flyTo([lat, lng], 16, { duration: 2.5 });
-            } else {
-                window.GoHappyMap.instance.setView([lat, lng], 14);
-            }
+            const opts = animate
+                ? { center: [lng, lat], zoom: 17, pitch: 55, duration: 2500 }
+                : { center: [lng, lat] };
+            if (animate) window.GoHappyMap.instance.flyTo(opts);
+            else window.GoHappyMap.instance.setCenter([lng, lat]);
             window.GoHappyMap.updateUserIcon(lat, lng);
         }, (err) => {
-            console.warn('[Map] geolocation denied:', err?.message);
+            console.warn('[Map] geo denied:', err?.message);
             if (!window.GoHappyMap.isInitialized) {
-                const loader = document.getElementById('map-loader');
-                if (loader) loader.style.display = 'none';
+                const ld = document.getElementById('map-loader');
+                if (ld) ld.style.display = 'none';
             }
         }, { enableHighAccuracy: true, timeout: 5000 });
     },
 
-    // ─── Modal añadir reseña (reutiliza estética premium) ───
+    // ─── Modal añadir reseña ──────────────────────────────────────
     showAddSiteModal: (lat, lng, name = '') => {
         const user = window.GoHappyAuth.checkAuth();
         if (!user) {
@@ -566,7 +761,7 @@ window.GoHappyMap = {
             const finalName = name || document.getElementById('new-site-name').value;
             const reviewText = document.getElementById('review-text').value;
             if (!finalName || rating === 0) {
-                window.GoHappyToast && window.GoHappyToast.warning(lang === 'en' ? 'Pick a name and rating ⭐' : 'Completa el nombre y la nota ⭐');
+                window.GoHappyToast && window.GoHappyToast.warning(lang === 'en' ? 'Pick a name and rating ⭐' : 'Completa nombre y nota ⭐');
                 return;
             }
             try {
@@ -585,7 +780,7 @@ window.GoHappyMap = {
                 }
                 window.GoHappyMap.createMarker({ name: finalName, lat, lng, rating: parseInt(rating), type: 'new', isCommunity: true });
                 window.GoHappySound && window.GoHappySound.play('success');
-                window.GoHappyToast && window.GoHappyToast.points(lang === 'en' ? `¡Reseña publicada! +30 pts ✨` : `¡Reseña publicada! +30 pts ✨`);
+                window.GoHappyToast && window.GoHappyToast.points(lang === 'en' ? '¡Review posted! +30 pts ✨' : '¡Reseña publicada! +30 pts ✨');
                 modal.remove();
             } catch (e) {
                 console.error('[Map] review save:', e);
