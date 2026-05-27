@@ -2,184 +2,24 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ═══════════════════════════════════════════════════════════════
-    // HELPERS (mínimos)
-    // ═══════════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
+    // MODO BETA — TODO ABIERTO PARA USUARIOS AUTENTICADOS
+    // (cualquier user logueado puede leer/escribir cualquier doc)
+    //
+    // ⚠ Restablecer reglas de producción ANTES de release oficial.
+    // Las reglas estrictas están en backups/firestore.rules.strict (commit history).
+    // ════════════════════════════════════════════════════════════════
 
-    function isAuth() {
-      return request.auth != null && request.auth.uid != null;
-    }
-
-    function isOwner(uid) {
-      return isAuth() && request.auth.uid == uid;
-    }
-
-    function isFamilyMember(familyId) {
-      return isAuth() &&
-             exists(/databases/$(database)/documents/families/$(familyId)) &&
-             request.auth.uid in get(/databases/$(database)/documents/families/$(familyId)).data.miembros;
-    }
-
-
-    // ═══════════════════════════════════════════════════════════════
-    // USUARIOS — el dueño hace lo que quiera con su propio doc
-    // ═══════════════════════════════════════════════════════════════
-    match /users/{uid} {
-      allow read:   if isAuth();
-      allow create: if isOwner(uid);
-      allow update: if isOwner(uid);
-      allow delete: if false;
-
-      // Family Context privado
-      match /private/{docId} {
-        allow read, write: if isOwner(uid);
-      }
-    }
-
-
-    // ═══════════════════════════════════════════════════════════════
-    // FAMILIAS
-    // ═══════════════════════════════════════════════════════════════
-    match /families/{familyId} {
-      allow read:   if isAuth();
-      allow create: if isAuth() && request.auth.uid == request.resource.data.creadoPor;
-      // Cualquier miembro puede actualizar (suma puntos, join, leave, etc)
-      allow update: if isAuth();
-      allow delete: if isAuth() && request.auth.uid == resource.data.creadoPor;
-
-      // Subcoll aventuras (legacy)
-      match /adventures/{advId} {
-        allow read, write: if isFamilyMember(familyId);
-      }
-    }
-
-
-    // ═══════════════════════════════════════════════════════════════
-    // ADVENTURES (top-level)
-    // ═══════════════════════════════════════════════════════════════
-    match /adventures/{advId} {
-      allow read:   if isAuth();
-      allow create: if isAuth() && request.auth.uid == request.resource.data.creadoPor;
-      allow update: if isAuth();
-      allow delete: if isAuth() && request.auth.uid == resource.data.creadoPor;
-    }
-
-
-    // ═══════════════════════════════════════════════════════════════
-    // QUESTS + COMPLETADAS
-    // ═══════════════════════════════════════════════════════════════
-    match /quests/{questId} {
-      allow read:   if isAuth();
-      allow create: if isAuth();
-      allow update: if isAuth();
-      allow delete: if false;
-    }
-
-    match /completadas/{familyId} {
-      allow read, write: if isAuth();
-      match /registros/{registroId} {
-        allow read:   if isAuth();
-        allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
-        allow update, delete: if false;
-      }
-    }
-
-
-    // ═══════════════════════════════════════════════════════════════
-    // ACTIVITY (historial de Memories) — solo el dueño
-    // ═══════════════════════════════════════════════════════════════
-    match /activity/{actId} {
-      allow read:   if isAuth() && request.auth.uid == resource.data.userId;
-      allow list:   if isAuth();
-      allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
-      allow update, delete: if false;
-    }
-
-
-    // ═══════════════════════════════════════════════════════════════
-    // ALERTAS (Safe)
-    // ═══════════════════════════════════════════════════════════════
-    match /alerts/{alertId} {
-      allow read:   if isAuth();
-      allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
-      allow update: if isAuth();
-      allow delete: if isAuth() && request.auth.uid == resource.data.userId;
-    }
-
-
-    // ═══════════════════════════════════════════════════════════════
-    // POSTS (Tribu)
-    // ═══════════════════════════════════════════════════════════════
-    match /posts/{postId} {
-      allow read:   if isAuth();
-      allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
-      allow update: if isAuth();
-      allow delete: if isAuth() && request.auth.uid == resource.data.userId;
-    }
-
-
-    // ═══════════════════════════════════════════════════════════════
-    // MOMENTS (fotos privadas + comunidad)
-    // ═══════════════════════════════════════════════════════════════
-    match /moments/{momentId} {
-      allow read:   if isAuth();
-      allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
-      allow update: if isAuth();
-      allow delete: if isAuth() && request.auth.uid == resource.data.userId;
-
-      match /comments/{commentId} {
-        allow read:   if isAuth();
-        allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
-        allow update, delete: if isAuth() && request.auth.uid == resource.data.userId;
-      }
-    }
-
-
-    // ═══════════════════════════════════════════════════════════════
-    // REVIEWS (mapa)
-    // ═══════════════════════════════════════════════════════════════
-    match /reviews/{reviewId} {
-      allow read:   if isAuth();
-      allow create: if isAuth() && request.auth.uid == request.resource.data.userId;
-      allow update: if isAuth() && request.auth.uid == resource.data.userId;
-      allow delete: if isAuth() && request.auth.uid == resource.data.userId;
-    }
-
-
-    // ═══════════════════════════════════════════════════════════════
-    // INVITATIONS
-    // ═══════════════════════════════════════════════════════════════
-    match /invitations/{code} {
-      allow read:   if isAuth();
-      allow create: if isAuth() && request.auth.uid == request.resource.data.createdBy;
-      allow update, delete: if false;
-    }
-
-
-    // ═══════════════════════════════════════════════════════════════
-    // CONTENIDO PÚBLICO (read-only)
-    // ═══════════════════════════════════════════════════════════════
-    match /locations/{locId} { allow read: if isAuth(); allow write: if false; }
-    match /news/{docId}      { allow read: if isAuth(); allow write: if false; }
-    match /events/{docId}    { allow read: if isAuth(); allow write: if false; }
-
-
-    // ═══════════════════════════════════════════════════════════════
-    // INTERNAS (solo Cloud Functions con admin SDK)
-    // ═══════════════════════════════════════════════════════════════
-    match /_ratelimits/{uid}  { allow read, write: if false; }
-    match /_ailogs/{docId}    { allow read, write: if false; }
-    match /_referrals/{docId} { allow read, write: if false; }
-    match /_aicache/{docId}   { allow read, write: if false; }
-    match /_audit/{docId}     { allow read, write: if false; }
-    match /_security/{docId}  { allow read, write: if false; }
-
-
-    // ═══════════════════════════════════════════════════════════════
-    // DENY ALL — bloque final de seguridad
-    // ═══════════════════════════════════════════════════════════════
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if request.auth != null;
     }
+
+    // Internas — solo admin SDK
+    match /_audit/{docId}     { allow read, write: if false; }
+    match /_ailogs/{docId}    { allow read, write: if false; }
+    match /_aicache/{docId}   { allow read, write: if false; }
+    match /_ratelimits/{uid}  { allow read, write: if false; }
+    match /_referrals/{docId} { allow read, write: if false; }
+    match /_security/{docId}  { allow read, write: if false; }
   }
 }

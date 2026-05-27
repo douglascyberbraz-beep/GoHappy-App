@@ -1,5 +1,5 @@
 {
-  "version": "7.9.1",
-  "timestamp": "2026-05-26T00:30:00Z",
-  "note": "FIX: SW ya no cachea version.json + botón Force Update visible"
+  "version": "8.0.0",
+  "timestamp": "2026-05-27T12:00:00Z",
+  "note": "MAJOR: Mapa reescrito con Leaflet (sin WebGL) + rules TODAS abiertas"
 }
