@@ -17,6 +17,10 @@ window.GoHappyMap = {
     isInitialized:   false,
     markers:         [],
     currentFilter:   'all',
+    _activeFilters:  new Set(['all']),   // multi-select
+    _routeLayer:     null,                // walking polyline activa
+    _familyMarkers:  new Map(),           // miembros familia → marker
+    _familyUnsub:    null,                // listener Firestore
     userMarker:      null,
     lastKnownCoords: "41.6520, -4.7286",
     _gpsWatchId:     null,
@@ -765,6 +769,26 @@ window.GoHappyMap = {
             return b;
         };
 
+        // 🌡️ Heatmap toggle
+        const heatBtn = makeFab('gh-fab-heat', '🌡️', lang === 'en' ? 'Heatmap' : 'Mapa de calor');
+        heatBtn.addEventListener('click', async () => {
+            const on = await window.GoHappyMap.toggleHeatmap();
+            heatBtn.style.background = on ? 'linear-gradient(135deg,#F59E0B,#EF4444)' : 'rgba(255,255,255,0.95)';
+            heatBtn.style.color = on ? 'white' : 'var(--cobalt,#0B4C8F)';
+        });
+
+        // 👨‍👩‍👧 Familia activa toggle
+        const familyBtn = makeFab('gh-fab-family', '👨‍👩‍👧', lang === 'en' ? 'Family live' : 'Familia activa');
+        familyBtn.addEventListener('click', async () => {
+            const on = await window.GoHappyMap.toggleFamilyMode();
+            familyBtn.style.background = on ? 'linear-gradient(135deg,#F59E0B,#FFD700)' : 'rgba(255,255,255,0.95)';
+            familyBtn.style.color = on ? 'white' : 'var(--cobalt,#0B4C8F)';
+            window.GoHappyToast && window.GoHappyToast.info(
+                on ? (lang === 'en' ? '👨‍👩‍👧 Family live ON' : '👨‍👩‍👧 Familia activa') : (lang === 'en' ? 'Family live OFF' : 'Familia desactivada'),
+                2200
+            );
+        });
+
         // 🧭 Compass (resetea bearing a 0)
         const compassBtn = makeFab('gh-fab-compass', '🧭', lang === 'en' ? 'Reset orientation' : 'Resetear orientación');
         compassBtn.id = 'gh-fab-compass';
@@ -819,6 +843,8 @@ window.GoHappyMap = {
         addBtn.style.boxShadow = '0 10px 28px rgba(11,113,252,0.4), inset 0 1px 0 rgba(255,255,255,0.4)';
 
         // Apilar en orden visual (de arriba a abajo)
+        fabStack.appendChild(heatBtn);
+        fabStack.appendChild(familyBtn);
         fabStack.appendChild(compassBtn);
         fabStack.appendChild(toggle3D);
         fabStack.appendChild(followBtn);
@@ -912,20 +938,39 @@ window.GoHappyMap = {
             }
         });
 
-        // Filtros chip
+        // ── Filtros chip MULTI-SELECT ──
         const chips = document.querySelectorAll('.filter-chip');
+        const refreshChipsUI = () => {
+            chips.forEach(c => {
+                if (window.GoHappyMap._activeFilters.has(c.dataset.type)) c.classList.add('active');
+                else c.classList.remove('active');
+            });
+        };
         chips.forEach(chip => {
             chip.addEventListener('click', async () => {
-                chips.forEach(c => c.classList.remove('active', 'loading'));
-                chip.classList.add('active');
                 const type = chip.dataset.type;
-                const label = chip.innerText.trim();
-                window.GoHappyMap.currentFilter = type;
                 const T2 = window.t || (k => k);
+                const filters = window.GoHappyMap._activeFilters;
 
-                if (type === 'all' || type === 'fav') {
-                    window.GoHappyMap.filterMarkers(type);
-                    if (type === 'fav') {
+                // 'all' es exclusivo (deselecciona los demás)
+                if (type === 'all') {
+                    filters.clear();
+                    filters.add('all');
+                } else {
+                    // Toggle individual + quitar 'all' si activo
+                    filters.delete('all');
+                    if (filters.has(type)) filters.delete(type);
+                    else filters.add(type);
+                    // Si no queda ninguno → volver a 'all'
+                    if (filters.size === 0) filters.add('all');
+                }
+                refreshChipsUI();
+                window.GoHappyMap.currentFilter = [...filters].join(',');
+
+                // Filtros locales SIN llamar IA si solo es all/fav o tenemos suficientes locales
+                if (filters.has('all') || (filters.size === 1 && filters.has('fav'))) {
+                    window.GoHappyMap.filterMarkers();
+                    if (filters.has('fav')) {
                         const favCount = window.GoHappyMap.markers.filter(m => m.data && window.GoHappyMap.isFavorite(m.data)).length;
                         window.GoHappyToast && window.GoHappyToast.info(
                             favCount > 0
@@ -937,8 +982,12 @@ window.GoHappyMap = {
                     return;
                 }
 
-                window.GoHappyMap.filterMarkers(type);
-                const localOfType = window.GoHappyMap.markers.filter(m => m.type === type);
+                window.GoHappyMap.filterMarkers();
+                // Si algún tipo seleccionado tiene <5 markers locales → IA expand
+                const typesToExpand = [...filters].filter(t => t !== 'all' && t !== 'fav');
+                const needsAI = typesToExpand.find(t => window.GoHappyMap.markers.filter(m => m.type === t).length < 5);
+                if (!needsAI) return;
+                const label = chip.innerText.trim();
                 if (localOfType.length >= 6) {
                     window.GoHappyToast && window.GoHappyToast.info(T2('map.community.found', { n: localOfType.length, label: label.toLowerCase() }), 2500);
                     return;
@@ -1261,11 +1310,9 @@ window.GoHappyMap = {
 
         // Acciones
         document.getElementById('gh-sheet-route').onclick = () => {
-            if (window.GoHappyNav?.openRoute) {
-                window.GoHappyNav.openRoute(loc.lat, loc.lng, loc.name);
-            } else {
-                window.open(`https://www.google.com/maps/dir/?api=1&destination=${loc.lat},${loc.lng}&travelmode=walking`, '_blank');
-            }
+            closeSheet();
+            // Dibujar ruta walking en el mapa con polyline
+            window.GoHappyMap.showWalkingRoute(loc.lat, loc.lng, loc.name);
         };
         document.getElementById('gh-sheet-review').onclick = () => {
             closeSheet();
@@ -1334,15 +1381,20 @@ window.GoHappyMap = {
         window.GoHappyMap._syncClusterSource();
     },
 
-    filterMarkers: (type) => {
+    filterMarkers: (typeOrNull) => {
+        // Modo multi-select: usa _activeFilters Set
+        // Si pasa un type concreto, se sigue soportando para compat
+        const filters = window.GoHappyMap._activeFilters;
+        const matchesFilters = (m) => {
+            if (filters.has('all')) return true;
+            if (filters.has('fav') && m.data && window.GoHappyMap.isFavorite(m.data)) return true;
+            return filters.has(m.type);
+        };
+
         let hasVisible = false;
         const bounds = new maplibregl.LngLatBounds();
         window.GoHappyMap.markers.forEach(m => {
-            const isFav = m.data ? window.GoHappyMap.isFavorite(m.data) : false;
-            const match = type === 'all'
-                || (type === 'fav' && isFav)
-                || m.type === type;
-            if (match) {
+            if (matchesFilters(m)) {
                 m.instance.addTo(window.GoHappyMap.instance);
                 bounds.extend(m.instance.getLngLat());
                 hasVisible = true;
@@ -1547,6 +1599,8 @@ window.GoHappyMap = {
             requestIdleCallback
                 ? requestIdleCallback(() => window.GoHappyMap.loadNearbyPOIs(lat, lng), { timeout: 2000 })
                 : setTimeout(() => window.GoHappyMap.loadNearbyPOIs(lat, lng), 500);
+            // 🤖 Sugerencia contextual (clima + hora + favoritos)
+            setTimeout(() => window.GoHappyMap.showContextualSuggestion(), 3500);
         };
 
         // 1) Llamada rápida con caché de 60s (resultado instantáneo si hay caché)
@@ -1572,6 +1626,344 @@ window.GoHappyMap = {
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         }, 500);
+    },
+
+    // ═══════════════════════════════════════════════════════════
+    // WALKING TURN-BY-TURN — polyline ruta a pie en el mapa
+    // OSRM público (free, sin key) — https://router.project-osrm.org
+    // ═══════════════════════════════════════════════════════════
+    showWalkingRoute: async (destLat, destLng, destName = '') => {
+        const userPos = window.GoHappyMap.userMarker?.getLngLat();
+        if (!userPos) {
+            window.GoHappyToast && window.GoHappyToast.warning(
+                window.L ? window.L('Activa la ubicación primero', 'Enable location first') : 'No GPS'
+            );
+            return;
+        }
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const url = `https://router.project-osrm.org/route/v1/foot/${userPos.lng},${userPos.lat};${destLng},${destLat}?overview=full&geometries=geojson&steps=true`;
+        try {
+            const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+            const data = await r.json();
+            const route = data?.routes?.[0];
+            if (!route?.geometry) {
+                window.GoHappyToast && window.GoHappyToast.warning(lang === 'en' ? 'No walking route found' : 'Sin ruta a pie disponible');
+                return;
+            }
+            window.GoHappyMap.clearRoute();
+            window.GoHappyMap._addRouteLayer(route.geometry);
+            // Stats
+            const minutes = Math.round(route.duration / 60);
+            const meters  = Math.round(route.distance);
+            const distTxt = meters < 1000 ? `${meters} m` : `${(meters/1000).toFixed(1)} km`;
+            window.GoHappyMap._showRouteStatsBar(destName, minutes, distTxt);
+            // Fit bounds suavemente
+            try {
+                const bounds = new maplibregl.LngLatBounds();
+                route.geometry.coordinates.forEach(c => bounds.extend(c));
+                window.GoHappyMap.instance.fitBounds(bounds, { padding: { top: 120, bottom: 280, left: 40, right: 40 }, maxZoom: 17, duration: 1500 });
+            } catch (e) {}
+        } catch (e) {
+            console.warn('[Map] route error:', e?.message);
+            window.GoHappyToast && window.GoHappyToast.warning(lang === 'en' ? 'Route service unavailable' : 'Servicio de rutas no disponible');
+        }
+    },
+    _addRouteLayer: (geojson) => {
+        const m = window.GoHappyMap.instance;
+        if (m.getLayer('gh-route-glow'))   m.removeLayer('gh-route-glow');
+        if (m.getLayer('gh-route-line'))   m.removeLayer('gh-route-line');
+        if (m.getLayer('gh-route-arrows')) m.removeLayer('gh-route-arrows');
+        if (m.getSource('gh-route'))       m.removeSource('gh-route');
+
+        m.addSource('gh-route', { type: 'geojson', data: { type: 'Feature', geometry: geojson, properties: {} } });
+        // Glow exterior
+        m.addLayer({
+            id: 'gh-route-glow', type: 'line', source: 'gh-route',
+            paint: {
+                'line-color': '#17C8D4',
+                'line-width': ['interpolate', ['linear'], ['zoom'], 12, 10, 18, 24],
+                'line-opacity': 0.35,
+                'line-blur': 6
+            },
+            layout: { 'line-cap': 'round', 'line-join': 'round' }
+        });
+        // Línea principal
+        m.addLayer({
+            id: 'gh-route-line', type: 'line', source: 'gh-route',
+            paint: {
+                'line-color': '#0B71FC',
+                'line-width': ['interpolate', ['linear'], ['zoom'], 12, 5, 18, 11],
+                'line-opacity': 1
+            },
+            layout: { 'line-cap': 'round', 'line-join': 'round' }
+        });
+        window.GoHappyMap._routeLayer = true;
+    },
+    clearRoute: () => {
+        const m = window.GoHappyMap.instance;
+        try {
+            ['gh-route-glow', 'gh-route-line'].forEach(id => { if (m.getLayer(id)) m.removeLayer(id); });
+            if (m.getSource('gh-route')) m.removeSource('gh-route');
+        } catch (e) {}
+        const bar = document.getElementById('gh-route-bar');
+        if (bar) bar.remove();
+        window.GoHappyMap._routeLayer = null;
+    },
+    _showRouteStatsBar: (destName, minutes, distTxt) => {
+        const old = document.getElementById('gh-route-bar');
+        if (old) old.remove();
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const bar = document.createElement('div');
+        bar.id = 'gh-route-bar';
+        bar.style.cssText = `
+            position:absolute; left:14px; right:14px; bottom:14px; z-index:8;
+            background:rgba(255,255,255,0.96); backdrop-filter:blur(24px) saturate(180%);
+            border-radius:22px; padding:14px 16px; box-shadow:0 16px 40px rgba(11,76,143,0.22);
+            display:flex; align-items:center; gap:12px; max-width:520px; margin:0 auto;
+            animation:gh-route-bar-in 0.45s cubic-bezier(0.34,1.56,0.64,1);
+        `;
+        if (!document.getElementById('gh-route-bar-style')) {
+            const s = document.createElement('style');
+            s.id = 'gh-route-bar-style';
+            s.textContent = '@keyframes gh-route-bar-in {0%{transform:translateY(40px); opacity:0} 100%{transform:translateY(0); opacity:1}}';
+            document.head.appendChild(s);
+        }
+        bar.innerHTML = `
+            <div style="font-size:30px;">🚶</div>
+            <div style="flex:1; min-width:0;">
+                <div style="font-weight:900; font-size:14px; color:var(--cobalt,#0B4C8F); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${destName || (lang === 'en' ? 'Destination' : 'Destino')}</div>
+                <div style="font-size:12px; color:#64748b; margin-top:2px;">⏱️ ${minutes} min · 📏 ${distTxt}</div>
+            </div>
+            <button id="gh-route-close" style="background:rgba(11,76,143,0.08); color:var(--cobalt,#0B4C8F); border:none; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:16px; font-weight:800;">✕</button>
+        `;
+        document.querySelector('#map-viewport-v11')?.appendChild(bar) || document.body.appendChild(bar);
+        document.getElementById('gh-route-close').onclick = () => window.GoHappyMap.clearRoute();
+    },
+
+    // ═══════════════════════════════════════════════════════════
+    // HEATMAP — zonas calientes según reseñas comunidad (Firestore)
+    // ═══════════════════════════════════════════════════════════
+    _heatmapVisible: false,
+    toggleHeatmap: async () => {
+        const m = window.GoHappyMap.instance;
+        const exists = m.getSource('gh-heat');
+        if (window.GoHappyMap._heatmapVisible && exists) {
+            // Toggle off
+            ['gh-heat-layer'].forEach(id => { if (m.getLayer(id)) m.removeLayer(id); });
+            m.removeSource('gh-heat');
+            window.GoHappyMap._heatmapVisible = false;
+            return false;
+        }
+        // Cargar reviews comunidad
+        let features = [];
+        try {
+            const snap = await window.GoHappyDB.collection('reviews').limit(500).get();
+            features = snap.docs.map(d => {
+                const r = d.data();
+                if (typeof r.lat !== 'number' || typeof r.lng !== 'number') return null;
+                return {
+                    type: 'Feature',
+                    geometry: { type: 'Point', coordinates: [r.lng, r.lat] },
+                    properties: { weight: (r.rating || 4) / 5 }
+                };
+            }).filter(Boolean);
+        } catch (e) { console.warn('[Heatmap] firestore error:', e?.message); }
+
+        m.addSource('gh-heat', { type: 'geojson', data: { type: 'FeatureCollection', features } });
+        m.addLayer({
+            id: 'gh-heat-layer', type: 'heatmap', source: 'gh-heat',
+            maxzoom: 17,
+            paint: {
+                'heatmap-weight': ['get', 'weight'],
+                'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 8, 0.6, 17, 2.5],
+                'heatmap-color': [
+                    'interpolate', ['linear'], ['heatmap-density'],
+                    0, 'rgba(11,113,252,0)',
+                    0.2, 'rgba(23,200,212,0.35)',
+                    0.4, 'rgba(11,113,252,0.55)',
+                    0.6, 'rgba(245,158,11,0.7)',
+                    0.85, 'rgba(239,68,68,0.85)',
+                    1, 'rgba(217,70,239,0.9)'
+                ],
+                'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 8, 12, 17, 60],
+                'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 14, 0.85, 17, 0]
+            }
+        }, m.getLayer('gh-clusters') ? 'gh-clusters' : undefined);
+        window.GoHappyMap._heatmapVisible = true;
+        return true;
+    },
+
+    // ═══════════════════════════════════════════════════════════
+    // MODO FAMILIA ACTIVA — posiciones live de miembros via Firestore
+    // ═══════════════════════════════════════════════════════════
+    _familyActive: false,
+    _familyPublishTimer: null,
+    toggleFamilyMode: async () => {
+        const user = window.GoHappyAuth?.checkAuth?.();
+        if (!user?.familyId) {
+            const lang = window.GoHappyI18n?.lang || 'es';
+            window.GoHappyToast && window.GoHappyToast.warning(lang === 'en' ? 'Join a family first' : 'Únete a una familia primero');
+            return false;
+        }
+        if (window.GoHappyMap._familyActive) {
+            // OFF
+            window.GoHappyMap._familyActive = false;
+            if (window.GoHappyMap._familyUnsub) { try { window.GoHappyMap._familyUnsub(); } catch (e) {} }
+            if (window.GoHappyMap._familyPublishTimer) clearInterval(window.GoHappyMap._familyPublishTimer);
+            window.GoHappyMap._familyMarkers.forEach(m => { try { m.remove(); } catch (e) {} });
+            window.GoHappyMap._familyMarkers.clear();
+            return false;
+        }
+        // ON
+        window.GoHappyMap._familyActive = true;
+        // Publicar mi ubicación cada 30s
+        const publishMyLoc = async () => {
+            if (!window.GoHappyMap.userMarker) return;
+            const ll = window.GoHappyMap.userMarker.getLngLat();
+            try {
+                await window.GoHappyDB.collection('families').doc(user.familyId)
+                    .collection('positions').doc(user.uid).set({
+                        lat: ll.lat, lng: ll.lng,
+                        nickname: user.nickname || 'Familia',
+                        photo: (user.photo && !user.photo.startsWith('data:')) ? user.photo : '👤',
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+            } catch (e) { console.warn('[Family] publish:', e?.message); }
+        };
+        publishMyLoc();
+        window.GoHappyMap._familyPublishTimer = setInterval(publishMyLoc, 30000);
+
+        // Escuchar posiciones de la familia
+        window.GoHappyMap._familyUnsub = window.GoHappyDB.collection('families').doc(user.familyId)
+            .collection('positions').onSnapshot(snap => {
+                snap.docs.forEach(d => {
+                    if (d.id === user.uid) return; // skip self
+                    const p = d.data();
+                    if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
+                    let marker = window.GoHappyMap._familyMarkers.get(d.id);
+                    if (!marker) {
+                        const el = document.createElement('div');
+                        el.style.cssText = 'width:42px; height:42px; position:relative;';
+                        el.innerHTML = `
+                            <div style="position:absolute; inset:0; background:radial-gradient(circle, rgba(245,158,11,0.45) 0%, transparent 70%); animation:pulse 2s infinite;"></div>
+                            <div style="position:absolute; inset:4px; background:white; border:3px solid #F59E0B; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 12px rgba(245,158,11,0.5);">${p.photo && p.photo.startsWith('http') ? `<img src="${p.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : (p.photo || '👤')}</div>
+                            <div style="position:absolute; top:-22px; left:50%; transform:translateX(-50%); background:#F59E0B; color:white; padding:2px 8px; border-radius:999px; font-size:10px; font-weight:800; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.18);">${(p.nickname || 'Tribu').slice(0,12)}</div>
+                        `;
+                        marker = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([p.lng, p.lat]).addTo(window.GoHappyMap.instance);
+                        window.GoHappyMap._familyMarkers.set(d.id, marker);
+                    } else {
+                        marker.setLngLat([p.lng, p.lat]);
+                    }
+                });
+                // Limpiar miembros que ya no están
+                const presentIds = new Set(snap.docs.map(d => d.id));
+                window.GoHappyMap._familyMarkers.forEach((mk, uid) => {
+                    if (!presentIds.has(uid)) {
+                        try { mk.remove(); } catch (e) {}
+                        window.GoHappyMap._familyMarkers.delete(uid);
+                    }
+                });
+            });
+        return true;
+    },
+
+    // ═══════════════════════════════════════════════════════════
+    // SUGERENCIAS CONTEXTUALES — banner inteligente arriba del mapa
+    // según hora, día, clima (Open-Meteo) y favoritos cercanos
+    // ═══════════════════════════════════════════════════════════
+    _suggestionShown: false,
+    showContextualSuggestion: async () => {
+        if (window.GoHappyMap._suggestionShown) return;
+        if (document.getElementById('gh-context-banner')) return;
+        const userPos = window.GoHappyMap.userMarker?.getLngLat();
+        if (!userPos) return;
+
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const now = new Date();
+        const hour = now.getHours();
+        const dow = now.getDay();
+        const isWeekend = (dow === 0 || dow === 6);
+
+        // Fetch clima Open-Meteo (gratis sin key)
+        let weather = null;
+        try {
+            const u = `https://api.open-meteo.com/v1/forecast?latitude=${userPos.lat}&longitude=${userPos.lng}&current=temperature_2m,precipitation,weather_code&hourly=precipitation_probability&forecast_days=1`;
+            const r = await fetch(u, { signal: AbortSignal.timeout(5000) });
+            weather = await r.json();
+        } catch (e) {}
+
+        const temp = weather?.current?.temperature_2m;
+        const wcode = weather?.current?.weather_code;
+        const rainProb = weather?.hourly?.precipitation_probability?.slice(hour, hour+3)?.reduce((a,b) => Math.max(a,b), 0);
+        const willRain = rainProb > 50 || (wcode >= 51 && wcode <= 67) || (wcode >= 80 && wcode <= 99);
+
+        let icon, title, body, suggestedFilter;
+        if (willRain) {
+            icon = '☔'; suggestedFilter = ['museum', 'theater', 'kidzone'];
+            title = lang === 'en' ? 'Rain expected — head indoors' : 'Lluvia prevista — mejor a cubierto';
+            body  = lang === 'en' ? `${rainProb}% chance · museums and play centres nearby` : `${rainProb}% prob · museos y kid zones cerca`;
+        } else if (isWeekend && hour < 12) {
+            icon = '🌳'; suggestedFilter = ['park', 'kidzone'];
+            title = lang === 'en' ? 'Weekend morning — perfect for parks' : 'Mañana de finde — perfecto para parques';
+            body  = lang === 'en' ? `${temp ? Math.round(temp)+'°C' : ''} · outdoor plans nearby` : `${temp ? Math.round(temp)+'°C' : ''} · planes al aire libre cerca`;
+        } else if (hour >= 13 && hour <= 16) {
+            icon = '🍽️'; suggestedFilter = ['food'];
+            title = lang === 'en' ? 'Lunchtime — family-friendly nearby' : 'Hora de comer — sitios familiares cerca';
+            body  = lang === 'en' ? 'Cafés, ice cream and restaurants' : 'Cafés, helados y restaurantes';
+        } else if (hour >= 18 && hour < 21) {
+            icon = '🎭'; suggestedFilter = ['theater', 'kidzone'];
+            title = lang === 'en' ? 'Evening plans' : 'Planes de tarde';
+            body  = lang === 'en' ? 'Theatre, cinema or play centre' : 'Teatro, cine o ludoteca';
+        } else {
+            return; // sin sugerencia
+        }
+
+        const banner = document.createElement('div');
+        banner.id = 'gh-context-banner';
+        banner.style.cssText = `
+            position:absolute; top:120px; left:14px; right:14px; z-index:7;
+            background:linear-gradient(135deg, rgba(11,113,252,0.96), rgba(23,200,212,0.96));
+            color:white;
+            border-radius:18px; padding:12px 14px;
+            box-shadow:0 14px 32px rgba(11,76,143,0.28);
+            display:flex; align-items:center; gap:12px;
+            max-width:520px; margin:0 auto;
+            animation:gh-context-in 0.5s cubic-bezier(0.34,1.56,0.64,1);
+        `;
+        if (!document.getElementById('gh-context-style')) {
+            const s = document.createElement('style');
+            s.id = 'gh-context-style';
+            s.textContent = '@keyframes gh-context-in {0%{transform:translateY(-30px); opacity:0} 100%{transform:translateY(0); opacity:1}}';
+            document.head.appendChild(s);
+        }
+        banner.innerHTML = `
+            <div style="font-size:28px;">${icon}</div>
+            <div style="flex:1; min-width:0;">
+                <div style="font-weight:900; font-size:13px; line-height:1.2;">${title}</div>
+                <div style="font-size:11.5px; opacity:0.92; margin-top:2px;">${body}</div>
+            </div>
+            <button id="gh-ctx-apply" style="background:white; color:var(--cobalt,#0B4C8F); border:none; padding:8px 13px; border-radius:999px; font-weight:800; font-size:11.5px; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,0.12); flex-shrink:0;">${lang === 'en' ? 'Show' : 'Ver'}</button>
+            <button id="gh-ctx-close" style="background:transparent; color:white; border:none; padding:0 4px; font-size:20px; cursor:pointer; opacity:0.85; flex-shrink:0;">×</button>
+        `;
+        const viewport = document.querySelector('#map-viewport-v11') || document.body;
+        viewport.appendChild(banner);
+        document.getElementById('gh-ctx-apply').onclick = () => {
+            window.GoHappyMap._activeFilters.clear();
+            suggestedFilter.forEach(t => window.GoHappyMap._activeFilters.add(t));
+            // Refresh chips UI
+            document.querySelectorAll('.filter-chip').forEach(c => {
+                c.classList.toggle('active', window.GoHappyMap._activeFilters.has(c.dataset.type));
+            });
+            window.GoHappyMap.filterMarkers();
+            banner.remove();
+            window.GoHappyMap._suggestionShown = true;
+        };
+        document.getElementById('gh-ctx-close').onclick = () => {
+            banner.remove();
+            window.GoHappyMap._suggestionShown = true;
+        };
+        // Auto-close 12s
+        setTimeout(() => { if (banner.parentNode) banner.remove(); }, 12000);
     },
 
     // ─── Modal añadir reseña ──────────────────────────────────────

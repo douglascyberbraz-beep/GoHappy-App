@@ -63,12 +63,38 @@ window.GoHappyToday = {
             }
         } catch (e) { /* ignore */ }
 
+        // Saludo personalizado por hora
+        const hour = new Date().getHours();
+        const lang0 = window.GoHappyI18n?.lang || 'es';
+        const greeting = hour < 12
+            ? (lang0 === 'en' ? 'Good morning' : 'Buenos días')
+            : (hour < 19
+                ? (lang0 === 'en' ? 'Good afternoon' : 'Buenas tardes')
+                : (lang0 === 'en' ? 'Good evening' : 'Buenas noches'));
+        const userName = window.GoHappyAuth?.checkAuth?.()?.nickname || (lang0 === 'en' ? 'Family' : 'Familia');
+
         container.innerHTML = `
             <div class="today-page">
+                <!-- Pull-to-refresh indicator -->
+                <div id="today-ptr" style="position:absolute; top:0; left:0; right:0; height:60px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px; transform:translateY(-60px); transition:transform 0.3s; z-index:3; pointer-events:none;">
+                    <div style="background:rgba(255,255,255,0.95); backdrop-filter:blur(20px); border-radius:999px; padding:8px 18px; box-shadow:0 8px 22px rgba(11,76,143,0.15); display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--primary-cobalt,#0B4C8F);">
+                        <span id="today-ptr-icon" style="font-size:16px; transition:transform 0.3s;">⬇️</span>
+                        <span id="today-ptr-text">${lang0 === 'en' ? 'Pull to refresh' : 'Tira para refrescar'}</span>
+                    </div>
+                </div>
+
                 <div class="today-hero-premium">
-                    <div style="position:relative; z-index:2;">
-                        <h2 class="today-welcome-title">${T('today.title')}</h2>
-                        <p class="today-welcome-subtitle" id="today-city-sub">${T('today.detecting')}</p>
+                    <div style="position:relative; z-index:2; display:flex; align-items:flex-start; gap:16px;">
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-size:13px; font-weight:700; color:var(--text-secondary); margin-bottom:2px; opacity:0.85;">${greeting}, <span style="color:var(--primary-cobalt,#0B4C8F);">${userName}</span> ✨</div>
+                            <h2 class="today-welcome-title" style="margin-top:2px;">${T('today.title')}</h2>
+                            <p class="today-welcome-subtitle" id="today-city-sub">${T('today.detecting')}</p>
+                        </div>
+                        <!-- Weather widget -->
+                        <div id="today-weather" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:62px; padding:8px 6px; background:rgba(255,255,255,0.6); backdrop-filter:blur(14px); border-radius:14px; border:0.5px solid rgba(255,255,255,0.6); box-shadow:0 4px 14px rgba(11,76,143,0.08); flex-shrink:0;">
+                            <span id="today-weather-icon" style="font-size:22px; line-height:1;">⛅</span>
+                            <span id="today-weather-temp" style="font-size:13px; font-weight:900; color:var(--primary-cobalt,#0B4C8F); margin-top:2px;">--°</span>
+                        </div>
                     </div>
                 </div>
                 ${contextBanner}
@@ -645,12 +671,83 @@ window.GoHappyToday = {
             document.head.appendChild(style);
         }
 
-        // Detectar ciudad en paralelo
+        // Detectar ciudad en paralelo + clima Open-Meteo
         window.GoHappyAI.getCityFromCoords(window.GoHappyToday._coords).then(info => {
             window.GoHappyToday._city = info;
             const sub = document.getElementById('today-city-sub');
             if (sub) sub.textContent = `📍 ${info.full}`;
         });
+
+        // ── WEATHER WIDGET (Open-Meteo gratis) ──
+        (async () => {
+            try {
+                const [lat, lng] = window.GoHappyToday._coords.split(',').map(s => parseFloat(s.trim()));
+                const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code&forecast_days=1`, { signal: AbortSignal.timeout(5000) });
+                const data = await r.json();
+                const t = data?.current?.temperature_2m;
+                const code = data?.current?.weather_code;
+                if (typeof t === 'number') {
+                    const wIcon = code === 0 ? '☀️'
+                        : code <= 3 ? '⛅'
+                        : code <= 49 ? '🌫️'
+                        : code <= 67 ? '🌧️'
+                        : code <= 77 ? '🌨️'
+                        : code <= 99 ? '⛈️' : '⛅';
+                    const ic = document.getElementById('today-weather-icon');
+                    const tp = document.getElementById('today-weather-temp');
+                    if (ic) ic.textContent = wIcon;
+                    if (tp) tp.textContent = Math.round(t) + '°';
+                }
+            } catch (e) { /* silent */ }
+        })();
+
+        // ── PULL-TO-REFRESH ──
+        (() => {
+            let startY = 0, pulling = false, currentDistance = 0;
+            const ptr = document.getElementById('today-ptr');
+            const icon = document.getElementById('today-ptr-icon');
+            const txt  = document.getElementById('today-ptr-text');
+            const THRESHOLD = 80;
+            const onTouchStart = (e) => {
+                if (container.scrollTop > 5) { pulling = false; return; }
+                startY = e.touches[0].clientY;
+                pulling = true;
+            };
+            const onTouchMove = (e) => {
+                if (!pulling) return;
+                const dy = e.touches[0].clientY - startY;
+                if (dy <= 0) return;
+                currentDistance = Math.min(dy * 0.45, 100);
+                ptr.style.transform = `translateY(${currentDistance - 60}px)`;
+                if (icon) icon.style.transform = currentDistance >= THRESHOLD ? 'rotate(180deg)' : 'rotate(0deg)';
+                if (txt && window.GoHappyI18n) {
+                    txt.textContent = currentDistance >= THRESHOLD
+                        ? (window.GoHappyI18n.lang === 'en' ? 'Release to refresh' : 'Suelta para refrescar')
+                        : (window.GoHappyI18n.lang === 'en' ? 'Pull to refresh' : 'Tira para refrescar');
+                }
+            };
+            const onTouchEnd = () => {
+                if (!pulling) return;
+                pulling = false;
+                if (currentDistance >= THRESHOLD) {
+                    if (icon) icon.textContent = '🔄';
+                    if (txt) txt.textContent = window.GoHappyI18n?.lang === 'en' ? 'Refreshing…' : 'Refrescando…';
+                    ptr.style.transform = 'translateY(0px)';
+                    // Re-render página
+                    setTimeout(() => {
+                        if (window.GoHappySound) window.GoHappySound.play('click');
+                        window.GoHappyToday.render(container);
+                    }, 400);
+                } else {
+                    ptr.style.transform = 'translateY(-60px)';
+                }
+                currentDistance = 0;
+            };
+            container.addEventListener('touchstart', onTouchStart, { passive: true });
+            container.addEventListener('touchmove',  onTouchMove,  { passive: true });
+            container.addEventListener('touchend',   onTouchEnd,   { passive: true });
+            container.addEventListener('touchcancel', () => { pulling = false; ptr.style.transform = 'translateY(-60px)'; currentDistance = 0; }, { passive: true });
+        })();
 
         // Bind toggle
         container.querySelectorAll('.t-view-btn').forEach(btn => {
