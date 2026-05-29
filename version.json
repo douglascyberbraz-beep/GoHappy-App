@@ -1,5 +1,5 @@
 {
-  "version": "8.8.1",
-  "timestamp": "2026-05-28T18:30:00Z",
-  "note": "Reflexión IA movida de Memories → Perfil (más visible)"
+  "version": "8.8.2",
+  "timestamp": "2026-05-28T22:00:00Z",
+  "note": "Fix: lang undefined en injectUI rompía toda la UI del mapa"
 }

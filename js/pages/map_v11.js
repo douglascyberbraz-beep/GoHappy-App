@@ -717,6 +717,7 @@ window.GoHappyMap = {
         container.style.position = 'relative';
 
         const T = window.t || (k => k);
+        const lang = window.GoHappyI18n?.lang || 'es';
         const overlay = document.createElement('div');
         overlay.className = 'map-search-container';
         overlay.style.zIndex = '5';
