@@ -56,6 +56,62 @@ window.GoHappyMap = {
         return `${query.toLowerCase().trim()}|${roundedLat},${roundedLng}`;
     },
 
+    // ─── FAVORITOS persistidos en localStorage ────────────────────
+    _FAVKEY: 'GoHappy_map_favorites_v1',
+    _favorites: new Set(),
+    _loadFavorites: () => {
+        try {
+            const raw = localStorage.getItem(window.GoHappyMap._FAVKEY) || '[]';
+            window.GoHappyMap._favorites = new Set(JSON.parse(raw));
+        } catch (e) { window.GoHappyMap._favorites = new Set(); }
+    },
+    _saveFavorites: () => {
+        try {
+            localStorage.setItem(window.GoHappyMap._FAVKEY,
+                JSON.stringify([...window.GoHappyMap._favorites]));
+        } catch (e) {}
+    },
+    _favKey: (loc) => `${(loc.name || '').toLowerCase()}|${loc.lat?.toFixed(4)},${loc.lng?.toFixed(4)}`,
+    toggleFavorite: (loc) => {
+        const k = window.GoHappyMap._favKey(loc);
+        if (window.GoHappyMap._favorites.has(k)) {
+            window.GoHappyMap._favorites.delete(k);
+        } else {
+            window.GoHappyMap._favorites.add(k);
+        }
+        window.GoHappyMap._saveFavorites();
+        return window.GoHappyMap._favorites.has(k);
+    },
+    isFavorite: (loc) => window.GoHappyMap._favorites.has(window.GoHappyMap._favKey(loc)),
+
+    // ─── DISTANCIA Haversine entre 2 puntos lat/lng ───────────────
+    _distanceTo: (lat, lng) => {
+        const u = window.GoHappyMap.userMarker?.getLngLat();
+        if (!u) return null;
+        const R = 6371; // km
+        const dLat = (lat - u.lat) * Math.PI / 180;
+        const dLng = (lng - u.lng) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(u.lat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * Math.sin(dLng/2)**2;
+        const km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        if (km < 1) return Math.round(km * 1000) + ' m';
+        return km.toFixed(1) + ' km';
+    },
+
+    // ─── MODO NOCTURNO automático según hora local ───────────────
+    _isNightMode: () => {
+        const h = new Date().getHours();
+        return h >= 21 || h < 7;
+    },
+    _applyNightMode: () => {
+        const mapDiv = document.getElementById('map-canvas');
+        if (!mapDiv) return;
+        if (window.GoHappyMap._isNightMode()) {
+            mapDiv.style.filter = 'brightness(0.78) contrast(1.05) hue-rotate(-12deg) saturate(1.1)';
+        } else {
+            mapDiv.style.filter = '';
+        }
+    },
+
     // ─── RENDER ───────────────────────────────────────────────────
     render: async (container) => {
         console.log('[Map] Render v4.0 MapLibre 3D');
@@ -483,17 +539,19 @@ window.GoHappyMap = {
         overlay.className = 'map-search-container';
         overlay.style.zIndex = '5';
         overlay.innerHTML = `
-            <div class="map-search-bar" style="display:flex; align-items:center; background:rgba(255,255,255,0.7); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-radius:30px; padding:2px 20px; box-shadow:0 10px 30px rgba(0,210,211,0.1); flex:1; width:100%; border:1px solid rgba(255,255,255,0.5);">
+            <div class="map-search-bar" style="display:flex; align-items:center; background:rgba(255,255,255,0.7); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-radius:30px; padding:2px 8px 2px 20px; box-shadow:0 10px 30px rgba(0,210,211,0.1); flex:1; width:100%; border:1px solid rgba(255,255,255,0.5);">
                 <span class="gemini-sparkle" style="margin-right:8px; font-size:1.2rem;">✨</span>
                 <input type="text" id="map-search-input" class="map-search-input" placeholder="${T('map.search.placeholder')}" style="background:transparent; border:none; color:var(--text-dark); flex:1; outline:none; padding:12px 0; font-size:0.95rem;">
+                <button id="gh-voice-search" title="${lang === 'en' ? 'Voice search' : 'Búsqueda por voz'}" style="background:rgba(11,113,252,0.10); border:none; width:38px; height:38px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; color:var(--cobalt,#0B4C8F); flex-shrink:0; transition:all 0.2s;">🎤</button>
             </div>
             <div class="map-filters">
-                <div class="filter-chip active" data-type="all">${T('map.filter.all')}</div>
-                <div class="filter-chip" data-type="park">${T('map.filter.parks')}</div>
-                <div class="filter-chip" data-type="school">${T('map.filter.schools')}</div>
-                <div class="filter-chip" data-type="theater">${T('map.filter.theaters')}</div>
-                <div class="filter-chip" data-type="kidzone">${T('map.filter.kidzones')}</div>
-                <div class="filter-chip" data-type="food">${T('map.filter.food')}</div>
+                <div class="filter-chip active" data-type="all"><span style="margin-right:5px;">🌐</span>${T('map.filter.all')}</div>
+                <div class="filter-chip" data-type="park"><span style="margin-right:5px;">🌳</span>${T('map.filter.parks')}</div>
+                <div class="filter-chip" data-type="school"><span style="margin-right:5px;">🎓</span>${T('map.filter.schools')}</div>
+                <div class="filter-chip" data-type="theater"><span style="margin-right:5px;">🎭</span>${T('map.filter.theaters')}</div>
+                <div class="filter-chip" data-type="kidzone"><span style="margin-right:5px;">🏰</span>${T('map.filter.kidzones')}</div>
+                <div class="filter-chip" data-type="food"><span style="margin-right:5px;">🍎</span>${T('map.filter.food')}</div>
+                <div class="filter-chip" data-type="fav"><span style="margin-right:5px;">★</span>${lang === 'en' ? 'Favourites' : 'Favoritos'}</div>
             </div>
         `;
         container.appendChild(overlay);
@@ -620,6 +678,53 @@ window.GoHappyMap = {
             if (e.key === 'Enter') window.GoHappyMap.handleSearch(input.value);
         });
 
+        // ── VOICE SEARCH (Web Speech API)
+        const voiceBtn = document.getElementById('gh-voice-search');
+        if (voiceBtn) {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SR) {
+                voiceBtn.addEventListener('click', () => {
+                    const rec = new SR();
+                    rec.lang = lang === 'en' ? 'en-GB' : 'es-ES';
+                    rec.interimResults = false;
+                    rec.maxAlternatives = 1;
+                    voiceBtn.style.background = 'linear-gradient(135deg,#0B71FC,#17C8D4)';
+                    voiceBtn.style.color = 'white';
+                    voiceBtn.innerText = '●';
+                    voiceBtn.style.animation = 'gh-voice-pulse 1s infinite';
+                    if (!document.getElementById('gh-voice-style')) {
+                        const s = document.createElement('style');
+                        s.id = 'gh-voice-style';
+                        s.textContent = '@keyframes gh-voice-pulse {0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.15);opacity:0.7}}';
+                        document.head.appendChild(s);
+                    }
+                    const restore = () => {
+                        voiceBtn.style.background = 'rgba(11,113,252,0.10)';
+                        voiceBtn.style.color = 'var(--cobalt,#0B4C8F)';
+                        voiceBtn.innerText = '🎤';
+                        voiceBtn.style.animation = '';
+                    };
+                    rec.onresult = (e) => {
+                        const text = e.results[0][0].transcript;
+                        input.value = text;
+                        restore();
+                        window.GoHappyMap.handleSearch(text);
+                    };
+                    rec.onerror = (e) => { console.warn('[Voice]', e.error); restore(); };
+                    rec.onend = restore;
+                    try { rec.start(); } catch (e) { restore(); }
+                });
+            } else {
+                voiceBtn.style.display = 'none';
+            }
+        }
+
+        // ── Cargar favoritos + aplicar modo nocturno
+        window.GoHappyMap._loadFavorites();
+        window.GoHappyMap._applyNightMode();
+        // Re-check night mode cada hora
+        setInterval(() => window.GoHappyMap._applyNightMode(), 60 * 60 * 1000);
+
         locateBtn.addEventListener('click', () => {
             if (window.GoHappyMap.userMarker) {
                 const ll = window.GoHappyMap.userMarker.getLngLat();
@@ -640,7 +745,19 @@ window.GoHappyMap = {
                 window.GoHappyMap.currentFilter = type;
                 const T2 = window.t || (k => k);
 
-                if (type === 'all') { window.GoHappyMap.filterMarkers('all'); return; }
+                if (type === 'all' || type === 'fav') {
+                    window.GoHappyMap.filterMarkers(type);
+                    if (type === 'fav') {
+                        const favCount = window.GoHappyMap.markers.filter(m => m.data && window.GoHappyMap.isFavorite(m.data)).length;
+                        window.GoHappyToast && window.GoHappyToast.info(
+                            favCount > 0
+                                ? (lang === 'en' ? `★ ${favCount} favourites` : `★ ${favCount} favoritos`)
+                                : (lang === 'en' ? 'No favourites yet — tap ☆ on any place' : 'Sin favoritos aún — toca ☆ en cualquier sitio'),
+                            2500
+                        );
+                    }
+                    return;
+                }
 
                 window.GoHappyMap.filterMarkers(type);
                 const localOfType = window.GoHappyMap.markers.filter(m => m.type === type);
@@ -696,8 +813,27 @@ window.GoHappyMap = {
         else if (loc.type === 'theater') icon = '🎭';
         else if (loc.type === 'kidzone') icon = '🏰';
 
+        const isFav = window.GoHappyMap.isFavorite(loc);
         const el = document.createElement('div');
         el.className = `gohappy-marker-wrap ${hasReview ? 'has-badge' : ''}`;
+        el.style.animation = 'gh-marker-spawn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        if (!document.getElementById('gh-marker-style')) {
+            const s = document.createElement('style');
+            s.id = 'gh-marker-style';
+            s.textContent = `
+                @keyframes gh-marker-spawn {
+                    0% { transform: scale(0) translateY(-30px); opacity: 0; }
+                    60% { transform: scale(1.15) translateY(2px); opacity: 1; }
+                    100% { transform: scale(1) translateY(0); opacity: 1; }
+                }
+                .gohappy-marker-wrap:hover .marker-pin-premium {
+                    transform: rotate(-45deg) scale(1.12) translateY(-3px);
+                    box-shadow: 0 8px 22px rgba(11,76,143,0.35) !important;
+                }
+                .marker-pin-premium { transition: transform 0.2s, box-shadow 0.2s; }
+            `;
+            document.head.appendChild(s);
+        }
         el.innerHTML = `
             <div class="marker-pin-premium" style="
                 background:white; width:40px; height:40px;
@@ -705,10 +841,11 @@ window.GoHappyMap = {
                 transform:rotate(-45deg);
                 display:flex; align-items:center; justify-content:center;
                 box-shadow:0 4px 10px rgba(0,0,0,0.2);
-                border:3px solid var(--primary-cobalt,#0B4C8F);
+                border:3px solid ${isFav ? '#F59E0B' : 'var(--primary-cobalt,#0B4C8F)'};
                 position:relative;
             ">
                 <div style="transform:rotate(45deg); font-size:20px;">${icon}</div>
+                ${isFav ? `<div style="position:absolute; top:-8px; left:-8px; background:#F59E0B; color:white; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; transform:rotate(45deg); font-size:11px; border:2px solid white;">★</div>` : ''}
                 ${hasReview ? `<div class="tribe-insignia" style="position:absolute; top:-10px; right:-10px; background:#F39C12; color:white; font-size:9px; padding:2px 6px; border-radius:10px; font-weight:900; border:2px solid white; transform:rotate(45deg); white-space:nowrap;">⭐</div>` : ''}
             </div>
         `;
@@ -721,16 +858,32 @@ window.GoHappyMap = {
         const tRoute  = window.GoHappyI18n ? window.GoHappyI18n.t('map.route')  : '🗺️ Cómo llegar';
         const tReview = window.GoHappyI18n ? window.GoHappyI18n.t('map.review') : '📝 Escribir reseña';
 
+        const distance = window.GoHappyMap._distanceTo(loc.lat, loc.lng);
+        const distBadge = distance
+            ? `<span style="background:rgba(11,113,252,0.10); color:var(--cobalt,#0B4C8F); padding:2px 8px; border-radius:999px; font-size:10.5px; font-weight:800; margin-left:6px;">📍 ${distance}</span>`
+            : '';
+        const tFav   = lang === 'en' ? (isFav ? 'Saved'    : 'Save')      : (isFav ? 'Guardado' : 'Guardar');
+        const tShare = lang === 'en' ? 'Share' : 'Compartir';
+
         const popupHTML = `
-            <div class="popup-premium" style="min-width:230px; border-radius:20px; overflow:hidden;">
-                <div class="popup-img-container" style="position:relative; height:100px; background:#eee;">
-                    ${safeImage ? `<img src="${safeImage}" style="width:100%; height:100%; object-fit:cover;">` : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0B71FC,#17C8D4); color:white; font-size:2rem;">🌟</div>`}
+            <div class="popup-premium" style="min-width:240px; max-width:280px; border-radius:20px; overflow:hidden;">
+                <div class="popup-img-container" style="position:relative; height:110px; background:#eee;">
+                    ${safeImage ? `<img src="${safeImage}" style="width:100%; height:100%; object-fit:cover;">` : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0B71FC,#17C8D4); color:white; font-size:2.2rem;">🌟</div>`}
+                    <button class="popup-fav-btn" data-name="${safeName}" data-lat="${loc.lat}" data-lng="${loc.lng}" title="${tFav}" style="position:absolute; top:8px; right:8px; width:36px; height:36px; border-radius:50%; border:none; background:rgba(255,255,255,0.92); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; font-size:18px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.15); color:${isFav ? '#F59E0B' : '#666'};">${isFav ? '★' : '☆'}</button>
                 </div>
-                <div class="popup-body" style="padding:12px; background:white;">
-                    <h3 style="margin:0 0 4px 0; font-size:1rem; font-weight:800; color:var(--cobalt,#0B4C8F);">${safeName}</h3>
-                    <div style="font-size:0.78rem; color:#666; margin-bottom:10px;">⭐ ${parseFloat(loc.rating) || 4.5} · ${safeType}</div>
-                    <button class="popup-route-btn" data-lat="${loc.lat}" data-lng="${loc.lng}" style="padding:10px; border-radius:12px; font-size:12px; font-weight:800; width:100%; border:none; color:white; cursor:pointer; background:linear-gradient(135deg,#0B71FC,#17C8D4); margin-bottom:8px; box-shadow:0 6px 16px rgba(11,113,252,0.28);">${tRoute}</button>
-                    <button class="popup-review-btn" data-lat="${loc.lat}" data-lng="${loc.lng}" style="padding:9px; border-radius:12px; font-size:12px; font-weight:700; width:100%; border:0.5px solid rgba(11,76,143,0.15); color:var(--cobalt,#0B4C8F); cursor:pointer; background:rgba(11,76,143,0.06);">${tReview}</button>
+                <div class="popup-body" style="padding:12px 14px; background:white;">
+                    <h3 style="margin:0 0 4px 0; font-size:1rem; font-weight:800; color:var(--cobalt,#0B4C8F); line-height:1.25;">${safeName}</h3>
+                    <div style="font-size:11.5px; color:#666; margin-bottom:12px; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">
+                        <span>⭐ ${parseFloat(loc.rating) || 4.5}</span>
+                        <span style="margin:0 6px; opacity:0.5;">·</span>
+                        <span>${safeType}</span>
+                        ${distBadge}
+                    </div>
+                    <button class="popup-route-btn" data-lat="${loc.lat}" data-lng="${loc.lng}" style="padding:11px; border-radius:12px; font-size:12px; font-weight:800; width:100%; border:none; color:white; cursor:pointer; background:linear-gradient(135deg,#0B71FC,#17C8D4); margin-bottom:8px; box-shadow:0 6px 16px rgba(11,113,252,0.28);">${tRoute}</button>
+                    <div style="display:flex; gap:6px;">
+                        <button class="popup-review-btn" data-lat="${loc.lat}" data-lng="${loc.lng}" style="flex:1; padding:9px; border-radius:12px; font-size:11.5px; font-weight:700; border:0.5px solid rgba(11,76,143,0.15); color:var(--cobalt,#0B4C8F); cursor:pointer; background:rgba(11,76,143,0.06);">${tReview}</button>
+                        <button class="popup-share-btn" data-name="${safeName}" data-lat="${loc.lat}" data-lng="${loc.lng}" style="flex:1; padding:9px; border-radius:12px; font-size:11.5px; font-weight:700; border:0.5px solid rgba(11,76,143,0.15); color:var(--cobalt,#0B4C8F); cursor:pointer; background:rgba(11,76,143,0.06);">📤 ${tShare}</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -740,11 +893,62 @@ window.GoHappyMap = {
             setTimeout(() => {
                 const routeBtn = document.querySelector('.maplibregl-popup-content .popup-route-btn');
                 const revBtn   = document.querySelector('.maplibregl-popup-content .popup-review-btn');
+                const favBtn   = document.querySelector('.maplibregl-popup-content .popup-fav-btn');
+                const shareBtn = document.querySelector('.maplibregl-popup-content .popup-share-btn');
                 if (revBtn) {
                     revBtn.onclick = () => window.GoHappyMap.showAddSiteModal(parseFloat(revBtn.dataset.lat), parseFloat(revBtn.dataset.lng), loc.name);
                 }
-                if (routeBtn && window.GoHappyNav) {
-                    routeBtn.onclick = () => window.GoHappyNav.openRoute(parseFloat(routeBtn.dataset.lat), parseFloat(routeBtn.dataset.lng), loc.name);
+                if (routeBtn) {
+                    routeBtn.onclick = () => {
+                        const la = parseFloat(routeBtn.dataset.lat);
+                        const ln = parseFloat(routeBtn.dataset.lng);
+                        if (window.GoHappyNav?.openRoute) {
+                            window.GoHappyNav.openRoute(la, ln, loc.name);
+                        } else {
+                            // Fallback universal: Google Maps directions
+                            window.open(`https://www.google.com/maps/dir/?api=1&destination=${la},${ln}&destination_place_id=&travelmode=walking`, '_blank');
+                        }
+                    };
+                }
+                if (favBtn) {
+                    favBtn.onclick = () => {
+                        const nowFav = window.GoHappyMap.toggleFavorite(loc);
+                        favBtn.innerText = nowFav ? '★' : '☆';
+                        favBtn.style.color = nowFav ? '#F59E0B' : '#666';
+                        window.GoHappyToast && window.GoHappyToast.success(
+                            nowFav
+                                ? (lang === 'en' ? '★ Saved to favourites' : '★ Guardado en favoritos')
+                                : (lang === 'en' ? 'Removed from favourites' : 'Quitado de favoritos'),
+                            1800
+                        );
+                        // Re-render para que el marker refleje el cambio
+                        setTimeout(() => {
+                            const idx = window.GoHappyMap.markers.findIndex(m => m.data === loc);
+                            if (idx >= 0) {
+                                window.GoHappyMap.markers[idx].instance.remove();
+                                window.GoHappyMap.markers.splice(idx, 1);
+                                window.GoHappyMap.createMarker(loc);
+                            }
+                        }, 400);
+                    };
+                }
+                if (shareBtn) {
+                    shareBtn.onclick = async () => {
+                        const la = parseFloat(shareBtn.dataset.lat);
+                        const ln = parseFloat(shareBtn.dataset.lng);
+                        const url = `https://www.google.com/maps?q=${la},${ln}`;
+                        const txt = lang === 'en'
+                            ? `Check out ${loc.name} on GoHappy! ${url}`
+                            : `¡Mira ${loc.name} en GoHappy! ${url}`;
+                        try {
+                            if (navigator.share) {
+                                await navigator.share({ title: loc.name, text: txt, url });
+                            } else {
+                                await navigator.clipboard.writeText(txt);
+                                window.GoHappyToast && window.GoHappyToast.success(lang === 'en' ? 'Copied to clipboard' : 'Copiado al portapapeles', 2000);
+                            }
+                        } catch (e) {}
+                    };
                 }
             }, 50);
         });
@@ -785,7 +989,11 @@ window.GoHappyMap = {
         let hasVisible = false;
         const bounds = new maplibregl.LngLatBounds();
         window.GoHappyMap.markers.forEach(m => {
-            if (type === 'all' || m.type === type) {
+            const isFav = m.data ? window.GoHappyMap.isFavorite(m.data) : false;
+            const match = type === 'all'
+                || (type === 'fav' && isFav)
+                || m.type === type;
+            if (match) {
                 m.instance.addTo(window.GoHappyMap.instance);
                 bounds.extend(m.instance.getLngLat());
                 hasVisible = true;
