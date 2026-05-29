@@ -214,15 +214,15 @@ window.GoHappyMap = {
             const key = `${name.toLowerCase()}|${elLat.toFixed(3)},${elLng.toFixed(3)}`;
             if (seen.has(key)) return;
             seen.add(key);
-            // Identificar type
-            let typeMeta = { type: 'generic', icon: '📍' };
-            for (const tagKey of tags) {
-                const [k, v] = tagKey.split('=');
-                if (el.tags?.[k] === v) {
-                    typeMeta = window.GoHappyMap._OSM_TAGS[tagKey];
-                    break;
+            // Identificar type por tags OSM (lookup directo, sin loop)
+            let typeMeta = null;
+            if (el.tags) {
+                for (const k in el.tags) {
+                    const candidate = window.GoHappyMap._OSM_TAGS[`${k}=${el.tags[k]}`];
+                    if (candidate) { typeMeta = candidate; break; }
                 }
             }
+            if (!typeMeta) typeMeta = { type: 'generic', icon: '📍' };
             pois.push({
                 id: 'osm-' + (el.id || Math.random().toString(36).slice(2, 8)),
                 name,
@@ -367,6 +367,18 @@ window.GoHappyMap = {
             renderWorldCopies: false,  // evita renderizar el mundo en bucle
             fadeDuration: 100          // transiciones más rápidas
         });
+
+        // ── FIX blank map: forzar resize tras crear el mapa.
+        // Sin esto, en muchos navegadores la primera carga renderiza tiles
+        // con dimensiones 0×0 hasta que el usuario navega fuera y vuelve.
+        // El ResizeObserver además cubre cambios de orientación / split-screen.
+        setTimeout(() => { try { window.GoHappyMap.instance.resize(); } catch (e) {} }, 250);
+        if (window.ResizeObserver && !window.GoHappyMap._resizeObs) {
+            window.GoHappyMap._resizeObs = new ResizeObserver(() => {
+                try { window.GoHappyMap.instance && window.GoHappyMap.instance.resize(); } catch (e) {}
+            });
+            window.GoHappyMap._resizeObs.observe(mapDiv);
+        }
 
         // Solicitar ubicación al instante (GPS preciso → centra mapa al user)
         window.GoHappyMap.locateUser(true);
@@ -883,45 +895,67 @@ window.GoHappyMap = {
             if (e.key === 'Enter') window.GoHappyMap.handleSearch(input.value);
         });
 
-        // ── VOICE SEARCH (Web Speech API)
+        // ── VOICE SEARCH (Web Speech API) ──
         const voiceBtn = document.getElementById('gh-voice-search');
-        if (voiceBtn) {
-            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (SR) {
-                voiceBtn.addEventListener('click', () => {
-                    const rec = new SR();
-                    rec.lang = lang === 'en' ? 'en-GB' : 'es-ES';
-                    rec.interimResults = false;
-                    rec.maxAlternatives = 1;
-                    voiceBtn.style.background = 'linear-gradient(135deg,#0B71FC,#17C8D4)';
-                    voiceBtn.style.color = 'white';
-                    voiceBtn.innerText = '●';
-                    voiceBtn.style.animation = 'gh-voice-pulse 1s infinite';
-                    if (!document.getElementById('gh-voice-style')) {
-                        const s = document.createElement('style');
-                        s.id = 'gh-voice-style';
-                        s.textContent = '@keyframes gh-voice-pulse {0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.15);opacity:0.7}}';
-                        document.head.appendChild(s);
-                    }
-                    const restore = () => {
-                        voiceBtn.style.background = 'rgba(11,113,252,0.10)';
-                        voiceBtn.style.color = 'var(--cobalt,#0B4C8F)';
-                        voiceBtn.innerText = '🎤';
-                        voiceBtn.style.animation = '';
-                    };
-                    rec.onresult = (e) => {
-                        const text = e.results[0][0].transcript;
-                        input.value = text;
-                        restore();
-                        window.GoHappyMap.handleSearch(text);
-                    };
-                    rec.onerror = (e) => { console.warn('[Voice]', e.error); restore(); };
-                    rec.onend = restore;
-                    try { rec.start(); } catch (e) { restore(); }
-                });
-            } else {
-                voiceBtn.style.display = 'none';
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (voiceBtn && !SR) {
+            voiceBtn.title = window.L('Voz no disponible en este navegador', 'Voice not supported on this browser');
+            voiceBtn.style.opacity = '0.4';
+            voiceBtn.style.cursor = 'not-allowed';
+            voiceBtn.addEventListener('click', () => {
+                window.GoHappyToast && window.GoHappyToast.warning(
+                    window.L('Tu navegador no soporta búsqueda por voz', 'Voice search not supported on this browser'), 3000
+                );
+            });
+        } else if (voiceBtn && SR) {
+            // Inyectar keyframe una sola vez
+            if (!document.getElementById('gh-voice-style')) {
+                const s = document.createElement('style');
+                s.id = 'gh-voice-style';
+                s.textContent = '@keyframes gh-voice-pulse {0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.15);opacity:0.7}}';
+                document.head.appendChild(s);
             }
+            const restoreVoice = () => {
+                voiceBtn.style.background = 'rgba(11,113,252,0.10)';
+                voiceBtn.style.color = 'var(--cobalt,#0B4C8F)';
+                voiceBtn.innerText = '🎤';
+                voiceBtn.style.animation = '';
+            };
+            voiceBtn.addEventListener('click', () => {
+                const rec = new SR();
+                rec.lang = lang === 'en' ? 'en-GB' : 'es-ES';
+                rec.interimResults = false;
+                rec.maxAlternatives = 1;
+                voiceBtn.style.background = 'linear-gradient(135deg,#0B71FC,#17C8D4)';
+                voiceBtn.style.color = 'white';
+                voiceBtn.innerText = '●';
+                voiceBtn.style.animation = 'gh-voice-pulse 1s infinite';
+                rec.onresult = (e) => {
+                    const text = e.results[0][0].transcript;
+                    input.value = text;
+                    restoreVoice();
+                    window.GoHappyMap.handleSearch(text);
+                };
+                rec.onerror = (e) => {
+                    console.warn('[Voice] error:', e.error);
+                    restoreVoice();
+                    if (!window.GoHappyToast) return;
+                    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+                        window.GoHappyToast.warning(
+                            window.L('Permiso de micrófono denegado. Habilítalo en ajustes del navegador.', 'Microphone permission denied. Enable it in browser settings.'), 4000
+                        );
+                    } else if (e.error === 'no-speech') {
+                        window.GoHappyToast.info(window.L('No oí nada — intenta de nuevo', 'I didn\'t hear anything — try again'), 2500);
+                    } else if (e.error === 'network') {
+                        window.GoHappyToast.error(window.L('Sin conexión para reconocimiento de voz', 'No connection for voice recognition'), 3000);
+                    }
+                };
+                rec.onend = restoreVoice;
+                try { rec.start(); } catch (e) {
+                    console.warn('[Voice] start failed:', e?.message);
+                    restoreVoice();
+                }
+            });
         }
 
         // ── Cargar favoritos + aplicar modo nocturno
@@ -947,10 +981,12 @@ window.GoHappyMap = {
                 else c.classList.remove('active');
             });
         };
+        // Label sin emoji para los queries a IA: '🎭 Teatros' → 'Teatros'
+        const cleanLabel = (chip) => chip.innerText.replace(/[^\p{L}\s]/gu, '').trim();
+
         chips.forEach(chip => {
             chip.addEventListener('click', async () => {
                 const type = chip.dataset.type;
-                const T2 = window.t || (k => k);
                 const filters = window.GoHappyMap._activeFilters;
 
                 // 'all' es exclusivo (deselecciona los demás)
@@ -958,45 +994,37 @@ window.GoHappyMap = {
                     filters.clear();
                     filters.add('all');
                 } else {
-                    // Toggle individual + quitar 'all' si activo
                     filters.delete('all');
                     if (filters.has(type)) filters.delete(type);
                     else filters.add(type);
-                    // Si no queda ninguno → volver a 'all'
                     if (filters.size === 0) filters.add('all');
                 }
                 refreshChipsUI();
                 window.GoHappyMap.currentFilter = [...filters].join(',');
 
-                // Filtros locales SIN llamar IA si solo es all/fav o tenemos suficientes locales
+                // Filtros locales SIN IA: 'all' o solo 'fav'
                 if (filters.has('all') || (filters.size === 1 && filters.has('fav'))) {
                     window.GoHappyMap.filterMarkers();
-                    if (filters.has('fav')) {
+                    if (filters.has('fav') && window.GoHappyToast) {
                         const favCount = window.GoHappyMap.markers.filter(m => m.data && window.GoHappyMap.isFavorite(m.data)).length;
-                        window.GoHappyToast && window.GoHappyToast.info(
-                            favCount > 0
-                                ? (lang === 'en' ? `★ ${favCount} favourites` : `★ ${favCount} favoritos`)
-                                : (lang === 'en' ? 'No favourites yet — tap ☆ on any place' : 'Sin favoritos aún — toca ☆ en cualquier sitio'),
-                            2500
-                        );
+                        window.GoHappyToast.info(window.L(
+                            favCount > 0 ? `★ ${favCount} favoritos` : 'Sin favoritos aún — toca ☆ en cualquier sitio',
+                            favCount > 0 ? `★ ${favCount} favourites` : 'No favourites yet — tap ☆ on any place'
+                        ), 2500);
                     }
                     return;
                 }
 
                 window.GoHappyMap.filterMarkers();
-                // Si algún tipo seleccionado tiene <5 markers locales → IA expand
+                // ¿Algún tipo seleccionado tiene <5 markers? → expandir con IA
                 const typesToExpand = [...filters].filter(t => t !== 'all' && t !== 'fav');
                 const needsAI = typesToExpand.find(t => window.GoHappyMap.markers.filter(m => m.type === t).length < 5);
                 if (!needsAI) return;
-                const label = chip.innerText.trim();
-                if (localOfType.length >= 6) {
-                    window.GoHappyToast && window.GoHappyToast.info(T2('map.community.found', { n: localOfType.length, label: label.toLowerCase() }), 2500);
-                    return;
-                }
 
+                const label = cleanLabel(chip);
                 const myToken = ++window.GoHappyMap._chipSearchToken;
                 chip.classList.add('loading');
-                const before = window.GoHappyMap.markers.length;
+                const beforeIds = new Set(window.GoHappyMap.markers.map(m => m.data?.id));
                 try {
                     await Promise.race([
                         window.GoHappyMap.handleSearch(`mejores ${label} para ir con niños`),
@@ -1005,11 +1033,22 @@ window.GoHappyMap = {
                 } catch (e) {}
                 if (myToken !== window.GoHappyMap._chipSearchToken) return;
                 chip.classList.remove('loading');
-                const after = window.GoHappyMap.markers.length;
-                if (after > before) {
-                    window.GoHappyMap.filterMarkers(type);
-                    const newCount = window.GoHappyMap.markers.filter(m => m.type === type).length;
-                    window.GoHappyToast && window.GoHappyToast.success(T2('map.community.found', { n: newCount, label: label.toLowerCase() }), 2500);
+
+                // Fuerza el type esperado a los markers nuevos que la IA devolvió
+                // como 'generic' u otro — así el filtro los muestra correctamente.
+                let forced = 0;
+                window.GoHappyMap.markers.forEach(m => {
+                    if (!beforeIds.has(m.data?.id) && m.type !== needsAI) {
+                        m.type = needsAI;
+                        if (m.data) m.data.type = needsAI;
+                        forced++;
+                    }
+                });
+                if (forced > 0) window.GoHappyMap.filterMarkers();
+
+                const newCount = window.GoHappyMap.markers.filter(m => m.type === needsAI).length;
+                if (newCount > 0 && window.GoHappyToast) {
+                    window.GoHappyToast.success(T('map.community.found', { n: newCount, label: label.toLowerCase() }), 2500);
                 }
             });
         });
