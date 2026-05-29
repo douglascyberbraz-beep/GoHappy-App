@@ -93,19 +93,23 @@ window.GoHappyMap = {
         }
         console.info('[Map] MapLibre', maplibregl.version || '?', '· canvas', rect.width + 'x' + rect.height);
 
-        // Crear mapa con estilo 3D premium
+        // Crear mapa — pitch 0 inicial (tiles cargan ~2x más rápido)
+        // Después animamos a 55° cuando los tiles están listos
         window.GoHappyMap.instance = new maplibregl.Map({
             container: mapDiv,
             style: 'https://tiles.openfreemap.org/styles/liberty',
             center: [-4.7286, 41.6520],
-            zoom: 15,
-            pitch: 55,         // ángulo 3D estilo navegador
-            bearing: -10,
-            antialias: true,
-            attributionControl: false
+            zoom: 14,
+            pitch: 0,           // arranque rápido en 2D
+            bearing: 0,
+            antialias: false,   // off al inicio, render más rápido
+            attributionControl: false,
+            maxPitch: 60,
+            renderWorldCopies: false,  // evita renderizar el mundo en bucle
+            fadeDuration: 100          // transiciones más rápidas
         });
 
-        // Solicitar ubicación al instante
+        // Solicitar ubicación al instante (GPS preciso → centra mapa al user)
         window.GoHappyMap.locateUser(true);
 
         // ── Failsafe: ocultar loader a los 8s si tiles tardan
@@ -146,6 +150,15 @@ window.GoHappyMap = {
                 ld.style.transition = 'opacity 0.4s';
                 setTimeout(() => ld.style.display = 'none', 400);
             }
+
+            // ANIMAR a pitch 3D 55° después de cargar (suave, no bloquea)
+            setTimeout(() => {
+                try {
+                    window.GoHappyMap.instance.easeTo({
+                        pitch: 55, bearing: -10, duration: 1500, easing: t => t * (2 - t)
+                    });
+                } catch (e) {}
+            }, 300);
 
             // ───── COLORES NAVEGADOR PREMIUM (estilo Waze/Google 2026) ─────
             const layersColor = [
@@ -581,20 +594,29 @@ window.GoHappyMap = {
     handleSearch: async (query) => {
         if (!query) return;
         const input = document.getElementById('map-search-input');
-        if (input) { input.placeholder = '✨ IA buscando…'; input.disabled = true; }
+        const lang = window.GoHappyI18n?.lang || 'es';
+        if (input) {
+            input.placeholder = lang === 'en' ? '✨ AI searching…' : '✨ IA buscando…';
+            input.disabled = true;
+        }
 
+        let added = 0;
         try {
             const coords = window.lastKnownCoords || window.GoHappyMap.lastKnownCoords;
             const results = window.GoHappyData?.searchLocations
                 ? await window.GoHappyData.searchLocations(query, coords)
                 : null;
 
+            console.info(`[Map] search "${query}" → ${results?.length || 0} results`);
+
             if (results && results.length > 0) {
-                const existingNames = new Set(window.GoHappyMap.markers.map(m => m.data?.name));
+                const existingNames = new Set(window.GoHappyMap.markers.map(m => (m.data?.name || '').toLowerCase()));
                 const bounds = new maplibregl.LngLatBounds();
-                let added = 0;
                 results.forEach(loc => {
-                    if (!loc.lat || !loc.lng || existingNames.has(loc.name)) return;
+                    if (!loc.lat || !loc.lng) return;
+                    const nameLower = (loc.name || '').toLowerCase();
+                    if (existingNames.has(nameLower)) return;
+                    existingNames.add(nameLower);
                     window.GoHappyMap.createMarker(loc);
                     bounds.extend([loc.lng, loc.lat]);
                     added++;
@@ -603,29 +625,51 @@ window.GoHappyMap = {
                     if (window.GoHappyMap.userMarker) bounds.extend(window.GoHappyMap.userMarker.getLngLat());
                     try {
                         window.GoHappyMap.instance.fitBounds(bounds, {
-                            padding: { top:100, bottom:140, left:40, right:40 },
-                            maxZoom: 15, pitch: 0, speed: 1.2
+                            padding: { top: 140, bottom: 180, left: 50, right: 50 },
+                            maxZoom: 16, pitch: 30, speed: 1.2, essential: true
                         });
                     } catch (e) {}
+                    window.GoHappyToast && window.GoHappyToast.success(
+                        lang === 'en' ? `Found ${added} places ✨` : `Encontrados ${added} sitios ✨`,
+                        2500
+                    );
                 }
             } else {
-                // Fallback geocoding Photon
+                // Fallback geocoding Photon (un solo punto)
+                const coordsArr = String(coords || '').split(',').map(s => parseFloat(s.trim()));
+                const u = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1&lat=${coordsArr[0]}&lon=${coordsArr[1]}`;
                 try {
-                    const resp = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1`);
+                    const resp = await fetch(u, { signal: AbortSignal.timeout(5000) });
                     const data = await resp.json();
                     if (data?.features?.length > 0) {
                         const c = data.features[0].geometry.coordinates;
-                        window.GoHappyMap.instance.flyTo({ center: c, zoom: 17, pitch: 55, speed: 1.5 });
+                        window.GoHappyMap.instance.flyTo({ center: c, zoom: 16, pitch: 30, speed: 1.5 });
                     } else {
-                        window.GoHappyToast && window.GoHappyToast.info(`Sin resultados para "${query}"`, 3000);
+                        window.GoHappyToast && window.GoHappyToast.info(
+                            lang === 'en' ? `No results for "${query}"` : `Sin resultados para "${query}"`,
+                            3000
+                        );
                     }
-                } catch (e) {}
+                } catch (e) {
+                    window.GoHappyToast && window.GoHappyToast.warning(
+                        lang === 'en' ? 'Search timeout — try again' : 'Búsqueda lenta — reintenta',
+                        2500
+                    );
+                }
             }
         } catch (e) {
-            console.warn('[Map] search:', e?.message);
+            console.warn('[Map] search error:', e?.message);
+            window.GoHappyToast && window.GoHappyToast.error(
+                lang === 'en' ? 'Search failed' : 'Búsqueda falló', 2500
+            );
         }
 
-        if (input) { input.placeholder = 'Pregunta a Gemini…'; input.disabled = false; input.value = ''; }
+        if (input) {
+            input.placeholder = lang === 'en' ? 'Ask Gemini…' : 'Pregunta a Gemini…';
+            input.disabled = false;
+            input.value = '';
+        }
+        return added;
     },
 
     // ─── GPS watch (track user + sync coords) ────────────────────
@@ -694,21 +738,43 @@ window.GoHappyMap = {
 
     locateUser: (animate = false) => {
         if (!navigator.geolocation) return;
-        navigator.geolocation.getCurrentPosition((pos) => {
+        // Primera llamada RÁPIDA con caché (resultado en <1s)
+        // Después una SEGUNDA llamada de alta precisión que mejora si la primera era imprecisa
+        const onPos = (pos, isPrecise = false) => {
             const lat = pos.coords.latitude, lng = pos.coords.longitude;
+            const acc = pos.coords.accuracy;
+            console.info('[Map] GPS', isPrecise ? '(precise)' : '(quick)', lat.toFixed(5), lng.toFixed(5), '±' + Math.round(acc) + 'm');
             const opts = animate
-                ? { center: [lng, lat], zoom: 17, pitch: 55, duration: 2500 }
+                ? { center: [lng, lat], zoom: 16, pitch: 0, duration: 1800 }
                 : { center: [lng, lat] };
             if (animate) window.GoHappyMap.instance.flyTo(opts);
             else window.GoHappyMap.instance.setCenter([lng, lat]);
             window.GoHappyMap.updateUserIcon(lat, lng);
-        }, (err) => {
-            console.warn('[Map] geo denied:', err?.message);
-            if (!window.GoHappyMap.isInitialized) {
-                const ld = document.getElementById('map-loader');
-                if (ld) ld.style.display = 'none';
-            }
-        }, { enableHighAccuracy: true, timeout: 5000 });
+        };
+
+        // 1) Llamada rápida con caché de 60s (resultado instantáneo si hay caché)
+        navigator.geolocation.getCurrentPosition(
+            (pos) => onPos(pos, false),
+            (err) => console.warn('[Map] geo quick denied:', err?.message),
+            { enableHighAccuracy: false, timeout: 3000, maximumAge: 60000 }
+        );
+
+        // 2) Llamada precisa en background (GPS real, sin caché)
+        setTimeout(() => {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    if (pos.coords.accuracy < 100) onPos(pos, true);
+                },
+                (err) => {
+                    console.warn('[Map] geo precise denied:', err?.message);
+                    if (!window.GoHappyMap.isInitialized) {
+                        const ld = document.getElementById('map-loader');
+                        if (ld) ld.style.display = 'none';
+                    }
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }, 500);
     },
 
     // ─── Modal añadir reseña ──────────────────────────────────────

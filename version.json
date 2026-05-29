@@ -1,5 +1,5 @@
 {
-  "version": "8.2.0",
-  "timestamp": "2026-05-27T13:00:00Z",
-  "note": "BUG FIX CRÍTICO: projectId gohappy-8d660 (inexistente) → kindr-8d660 (real)"
+  "version": "8.3.0",
+  "timestamp": "2026-05-28T10:00:00Z",
+  "note": "Mapa más rápido + GPS preciso 2-stage + búsqueda IA con Photon re-geocoding"
 }

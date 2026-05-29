@@ -294,14 +294,52 @@ JSON estricto:
     },
 
     // Búsqueda Semántica Dinámica
+    // IMPORTANTE: Gemini ALUCINA coordenadas. Por eso re-geocodificamos
+    // cada resultado con Photon (real coords reales del Open Street Map).
     searchDynamicLocations: async (query, coordinates = "41.6520, -4.7286") => {
         const cityInfo = await window.GoHappyAI.getCityFromCoords(coordinates);
         const g = window.GoHappyAI._geoContext(cityInfo);
         const prompt = `${window.GoHappyAI._geoGuard(cityInfo)}${g.lang === 'en'
-            ? `User in ${cityInfo.full} (${g.countryName}, coords ${coordinates}) searched: "${query}". Recommend 4-5 REAL local places in ${g.countryName} that perfectly match. NEVER suggest places outside ${g.countryName}.`
-            : `Usuario en ${cityInfo.full} (${g.countryName}, coords ${coordinates}) ha buscado: "${query}". Recomienda 4-5 lugares locales REALES de ${g.countryName} que resuelvan esta necesidad. NUNCA sugieras sitios fuera de ${g.countryName}.`}
-JSON: [ { "id": UID, "name": "Real Name", "type": "park"|"museum"|"school"|"theater"|"kidzone"|"food"|"generic", "lat": NUM, "lng": NUM, "rating": 4.8, "reviews": 120 } ]`;
-        return await window.GoHappyAI._callGemini(prompt);
+            ? `User in ${cityInfo.full} (${g.countryName}, coords ${coordinates}) searched: "${query}". Recommend 4-5 REAL local places in ${g.countryName} that perfectly match. ONLY return real well-known places verifiable on Google Maps. Include the FULL ADDRESS in the name (e.g. "Hyde Park, London W2 2UH").`
+            : `Usuario en ${cityInfo.full} (${g.countryName}, coords ${coordinates}) ha buscado: "${query}". Recomienda 4-5 lugares locales REALES de ${g.countryName}. SOLO devuelve sitios reales verificables en Google Maps. Incluye la DIRECCIÓN COMPLETA en el nombre (ej. "Parque del Retiro, Madrid 28009").`}
+JSON: [ { "id": UID, "name": "Real Name with Address", "type": "park"|"museum"|"school"|"theater"|"kidzone"|"food"|"generic", "lat": NUM, "lng": NUM, "rating": 4.8, "reviews": 120 } ]`;
+
+        const aiResults = await window.GoHappyAI._callGemini(prompt);
+        if (!Array.isArray(aiResults) || aiResults.length === 0) return [];
+
+        // Re-geocodificar cada resultado con Photon para coords PRECISAS
+        // (las lat/lng de Gemini son inventadas — esto las corrige al sitio real)
+        const [userLat, userLng] = coordinates.split(',').map(s => parseFloat(s.trim()));
+        const geocoded = await Promise.all(aiResults.map(async (loc) => {
+            try {
+                // Bias la búsqueda a coordenadas del usuario (lat/lon = priorizar cercanos)
+                const u = `https://photon.komoot.io/api/?q=${encodeURIComponent(loc.name)}&limit=1&lat=${userLat}&lon=${userLng}&zoom=14`;
+                const r = await fetch(u, { signal: AbortSignal.timeout(5000) });
+                const data = await r.json();
+                const feat = data?.features?.[0];
+                if (feat?.geometry?.coordinates) {
+                    const [lng, lat] = feat.geometry.coordinates;
+                    // Solo aceptar si está a < 100km del usuario (filtra resultados de otra ciudad)
+                    const dKm = Math.sqrt(Math.pow((lat - userLat) * 111, 2) + Math.pow((lng - userLng) * 111 * Math.cos(userLat * Math.PI / 180), 2));
+                    if (dKm < 100) {
+                        // Limpiar nombre: quitar la dirección si Photon ya nos da uno mejor
+                        const cleanName = feat.properties?.name || loc.name.split(',')[0].trim();
+                        return { ...loc, lat, lng, name: cleanName, _verified: true };
+                    }
+                }
+            } catch (e) { /* fallback Gemini coords */ }
+            return loc; // sin verificar: usar lo que dijo Gemini
+        }));
+
+        // Filtrar duplicados por coordenadas (a 50m de distancia)
+        const seen = new Set();
+        return geocoded.filter(loc => {
+            if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') return false;
+            const key = `${loc.lat.toFixed(4)},${loc.lng.toFixed(4)}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
     },
 
     // Generar Misiones Contextuales (IA)
