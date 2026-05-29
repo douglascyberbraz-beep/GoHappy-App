@@ -894,6 +894,75 @@
         @media (max-width: 720px) { .problem-stats { grid-template-columns: 1fr; } }
 
         /* ═══════════════════════════════════════════════════════════════
+           WHAT'S NEW GRID — premium v8.8 upgrades
+           ═══════════════════════════════════════════════════════════════ */
+        .whats-new-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 18px;
+            margin-top: 38px;
+        }
+        .wn-card {
+            background: rgba(255,255,255,0.86);
+            backdrop-filter: blur(28px) saturate(180%);
+            -webkit-backdrop-filter: blur(28px) saturate(180%);
+            border: 0.5px solid rgba(255,255,255,0.85);
+            border-radius: 22px;
+            padding: 22px 20px 20px;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.95),
+                0 10px 28px rgba(11,76,143,0.10);
+            transition:
+                transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .wn-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -120%;
+            width: 100%; height: 100%;
+            background: linear-gradient(110deg,
+                transparent 30%,
+                rgba(255,255,255,0.45) 50%,
+                transparent 70%);
+            transition: left 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+        .wn-card:hover {
+            transform: translateY(-6px) scale(1.015);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.95),
+                0 22px 50px rgba(11,76,143,0.18);
+        }
+        .wn-card:hover::before { left: 120%; }
+        .wn-icon {
+            width: 48px; height: 48px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+            margin-bottom: 14px;
+            box-shadow: 0 6px 18px rgba(11,113,252,0.20);
+            color: white;
+        }
+        .wn-card h4 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            letter-spacing: -0.015em;
+            line-height: 1.25;
+        }
+        .wn-card p {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
            FEATURES GRID (8 funciones)
            ═══════════════════════════════════════════════════════════════ */
         .features-grid {
@@ -1281,6 +1350,7 @@
         </a>
         <ul class="nav-links">
             <li><a href="#features" data-en="Features">Funciones</a></li>
+            <li><a href="#whatsnew" data-en="What's new">Novedades</a></li>
             <li><a href="#adventures" data-en="Adventures">Aventuras</a></li>
             <li><a href="#privacy" data-en="Privacy">Privacidad</a></li>
             <li><a href="#pricing" data-en="Pricing">Precios</a></li>
@@ -1480,10 +1550,10 @@
                     </div>
                     <span class="feature-icon">✨</span>
                     <h3 class="feature-title" data-en="Today — AI Concierge">Today — IA Concierge</h3>
-                    <p class="feature-desc" data-en="Daily personalised plans + REAL events in your city. Adapted to weather, kids' age and your preferences.">Planes personalizados diarios + eventos REALES de tu ciudad. Adaptados al clima, edad de los niños y tus preferencias.</p>
+                    <p class="feature-desc" data-en="Personalised greeting, live weather and pull-to-refresh. Daily AI plans + REAL events in your city, adapted to kids' age, preferences and forecast.">Saludo personalizado, clima en directo y pull-to-refresh. Planes IA + eventos REALES de tu ciudad, adaptados a la edad de los niños, tus gustos y el pronóstico.</p>
                 </div>
 
-                <!-- MAP -->
+                <!-- MAP — Premium 3D con voz, heatmap, ruta, familia live -->
                 <div class="feature-card fade-up" data-delay="3">
                     <div class="feature-mockup">
                         <div class="iphone-17">
@@ -1491,12 +1561,35 @@
                             <div class="iphone-17-screen">
                                 <div class="m-screen m-map">
                                     <div class="m-map-tiles"></div>
+                                    <!-- Heatmap glow -->
+                                    <div style="position:absolute; top:32%; left:28%; width:55%; height:38%; background:radial-gradient(ellipse, rgba(245,158,11,0.45) 0%, rgba(239,68,68,0.32) 35%, transparent 70%); filter:blur(6px); pointer-events:none;"></div>
+                                    <!-- Polyline ruta walking -->
+                                    <svg style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none;" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                        <path d="M 25 58 Q 40 45 55 50 T 78 38" stroke="#0B71FC" stroke-width="2.6" fill="none" stroke-linecap="round" opacity="0.92"/>
+                                        <path d="M 25 58 Q 40 45 55 50 T 78 38" stroke="#17C8D4" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.32"/>
+                                    </svg>
                                     <div class="m-sb"><span style="color:#0F172A;">9:41</span><span class="m-sb-r" style="color:#0F172A;">🔋</span></div>
-                                    <div class="m-search">🔍 <span data-en="What to do today?">¿Qué buscas hoy?</span></div>
-                                    <div class="m-chips"><span class="m-chip active" data-en="All">Todo</span><span class="m-chip">🌳 <span data-en="Parks">Parques</span></span><span class="m-chip">🎓 <span data-en="Museums">Museos</span></span></div>
+                                    <div class="m-search">✨ <span data-en="Parks with playground" style="flex:1;">Parques con columpios</span>
+                                        <span style="background:rgba(11,113,252,0.18); color:#0B4C8F; width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:8px; margin-left:auto;">🎤</span>
+                                    </div>
+                                    <div class="m-chips">
+                                        <span class="m-chip active">🌳 <span data-en="Parks">Parques</span></span>
+                                        <span class="m-chip active">🎓 <span data-en="Museums">Museos</span></span>
+                                        <span class="m-chip">🍎 <span data-en="Food">Comida</span></span>
+                                    </div>
                                     <div class="m-pin m-pin-1">📍</div>
                                     <div class="m-pin m-pin-2">🌳</div>
                                     <div class="m-pin m-pin-3">🎯</div>
+                                    <!-- Familia live avatar -->
+                                    <div style="position:absolute; top:42%; right:18%; width:18px; height:18px; background:white; border:2.5px solid #F59E0B; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:8px; box-shadow:0 3px 10px rgba(245,158,11,0.5);">👨</div>
+                                    <!-- Cluster cobalt -->
+                                    <div style="position:absolute; bottom:40%; left:22%; width:22px; height:22px; background:#0B71FC; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:900; border:2px solid white; box-shadow:0 4px 12px rgba(11,113,252,0.4);">12</div>
+                                    <!-- FAB stack derecha -->
+                                    <div style="position:absolute; right:6px; bottom:48px; display:flex; flex-direction:column; gap:3px; align-items:center;">
+                                        <div style="width:16px; height:16px; background:rgba(255,255,255,0.92); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:8px; box-shadow:0 2px 5px rgba(0,0,0,0.12);">🌡️</div>
+                                        <div style="width:16px; height:16px; background:rgba(255,255,255,0.92); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:7px; box-shadow:0 2px 5px rgba(0,0,0,0.12);">👨‍👩‍👧</div>
+                                        <div style="width:16px; height:16px; background:rgba(255,255,255,0.92); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:8px; box-shadow:0 2px 5px rgba(0,0,0,0.12);">🚶</div>
+                                    </div>
                                     <div class="m-fab">+</div>
                                     <div class="m-nav"><span>🗺️</span><span>🧡</span><span>✨</span><span class="orb active">📍</span><span>🏆</span><span>💝</span><span>👤</span></div>
                                 </div>
@@ -1504,8 +1597,8 @@
                         </div>
                     </div>
                     <span class="feature-icon">📍</span>
-                    <h3 class="feature-title" data-en="3D Map">Mapa 3D</h3>
-                    <p class="feature-desc" data-en="Gaming-style 3D map. Real reviews from parents like you. Find the perfect place every time.">Mapa 3D estilo gaming. Reseñas reales de padres como tú. Encuentra el sitio perfecto siempre.</p>
+                    <h3 class="feature-title" data-en="3D Map · Premium">Mapa 3D · Premium</h3>
+                    <p class="feature-desc" data-en="3D map with real POIs from OpenStreetMap, voice search, walking routes, family live tracking, heatmap of community reviews and AI suggestions by weather and time.">Mapa 3D con POIs reales de OpenStreetMap, búsqueda por voz, rutas a pie, familia en directo, heatmap de reseñas y sugerencias IA según clima y hora.</p>
                 </div>
 
                 <!-- TOP -->
@@ -1628,6 +1721,73 @@
                     <p class="feature-desc" data-en="AI learns your family's interests and adapts every plan. The more you use, the better it knows you.">La IA aprende los intereses de tu familia y adapta cada plan. Cuanto más usas, mejor te conoce.</p>
                 </div>
 
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════════ PREMIUM UPGRADES v8.8 — recently added ════════════════ -->
+    <section id="whatsnew" style="background: linear-gradient(180deg, rgba(11,113,252,0.04) 0%, rgba(23,200,212,0.05) 100%); position:relative; overflow:hidden;">
+        <div style="position:absolute; top:-100px; right:-100px; width:500px; height:500px; background:radial-gradient(circle, rgba(23,200,212,0.18), transparent 70%); pointer-events:none;"></div>
+        <div style="position:absolute; bottom:-100px; left:-100px; width:400px; height:400px; background:radial-gradient(circle, rgba(11,113,252,0.14), transparent 70%); pointer-events:none;"></div>
+        <div class="container" style="position:relative;">
+            <div class="section-header fade-up">
+                <span class="section-eyebrow" data-en="Premium upgrades">Mejoras premium</span>
+                <h2 class="section-title" data-en='10 new superpowers <span class="gradient">since last release.</span>'>10 superpoderes nuevos <span class="gradient">desde la última versión.</span></h2>
+                <p class="section-subtitle" data-en="Every detail polished. Every interaction premium. Built like a native app.">Cada detalle pulido. Cada interacción premium. Hecho como una app nativa.</p>
+            </div>
+
+            <!-- Grid de 10 mejoras premium -->
+            <div class="whats-new-grid">
+                <div class="wn-card fade-up">
+                    <div class="wn-icon" style="background:linear-gradient(135deg,#0B71FC,#17C8D4);">🎤</div>
+                    <h4 data-en="Voice search">Búsqueda por voz</h4>
+                    <p data-en="Tap mic and say what you're looking for. Recognises Spanish (ES) and British English (UK).">Pulsa el micro y dile lo que buscas. Reconoce español de España e inglés británico.</p>
+                </div>
+                <div class="wn-card fade-up" data-delay="1">
+                    <div class="wn-icon" style="background:linear-gradient(135deg,#0B71FC,#17C8D4);">🚶</div>
+                    <h4 data-en="Walking routes turn-by-turn">Rutas a pie en directo</h4>
+                    <p data-en="Polyline drawn on the map with ⏱️ time and 📏 distance bar — no need to switch to another app.">Ruta dibujada en el mapa con barra ⏱️ tiempo + 📏 distancia. Sin salir de la app.</p>
+                </div>
+                <div class="wn-card fade-up" data-delay="2">
+                    <div class="wn-icon" style="background:linear-gradient(135deg,#F59E0B,#EF4444);">🌡️</div>
+                    <h4 data-en="Community heatmap">Heatmap comunidad</h4>
+                    <p data-en="Cyan → cobalt → red gradient by review density. See the city's family hotspots at a glance.">Gradient cyan→cobalt→rojo por densidad de reseñas. Las zonas calientes para familias de un vistazo.</p>
+                </div>
+                <div class="wn-card fade-up" data-delay="3">
+                    <div class="wn-icon" style="background:linear-gradient(135deg,#F59E0B,#FFD700);">👨‍👩‍👧</div>
+                    <h4 data-en="Family live">Familia en directo</h4>
+                    <p data-en="See where each family member is in real-time on the map. Private to your family.">Mira en tiempo real dónde está cada miembro de la familia. Privado y solo para los vuestros.</p>
+                </div>
+                <div class="wn-card fade-up">
+                    <div class="wn-icon" style="background:linear-gradient(135deg,#0B71FC,#17C8D4);">🤖</div>
+                    <h4 data-en="Personal AI reflection">Reflexión IA personal</h4>
+                    <p data-en="Profile starts with a warm AI reflection — personalised by your level, points, family and interests.">El Perfil arranca con una reflexión IA cálida — personalizada con tu nivel, puntos, familia e intereses.</p>
+                </div>
+                <div class="wn-card fade-up" data-delay="1">
+                    <div class="wn-icon" style="background:linear-gradient(135deg,#7DA8D4,#0B4C8F);">⛅</div>
+                    <h4 data-en="Live weather widget">Clima en directo</h4>
+                    <p data-en="Open-Meteo widget in Today's hero. Plans adapt to forecast automatically.">Widget Open-Meteo en el hero de Today. Los planes se adaptan al pronóstico solos.</p>
+                </div>
+                <div class="wn-card fade-up" data-delay="2">
+                    <div class="wn-icon" style="background:linear-gradient(135deg,#0B71FC,#17C8D4);">📍</div>
+                    <h4 data-en="Contextual AI suggestions">Sugerencias contextuales IA</h4>
+                    <p data-en="Rain forecast? Indoor museums. Weekend morning? Parks nearby. The map suggests by time + weather.">¿Lluvia? Museos cubiertos. ¿Sábado mañana? Parques cerca. El mapa sugiere por hora + clima.</p>
+                </div>
+                <div class="wn-card fade-up" data-delay="3">
+                    <div class="wn-icon" style="background:linear-gradient(135deg,#0F172A,#334155);">🌙</div>
+                    <h4 data-en="Auto night mode">Modo nocturno auto</h4>
+                    <p data-en="Map shifts to a cool tinted night palette from 21:00 to 07:00. No manual toggle needed.">El mapa cambia a paleta nocturna fría de 21:00 a 07:00. Sin tocar nada.</p>
+                </div>
+                <div class="wn-card fade-up">
+                    <div class="wn-icon" style="background:linear-gradient(135deg,#0B71FC,#17C8D4);">📥</div>
+                    <h4 data-en="Pull-to-refresh">Pull-to-refresh nativo</h4>
+                    <p data-en="Tug down anywhere to refresh. Glass indicator with rotating icon — feels like iOS.">Tira hacia abajo en cualquier pestaña para refrescar. Indicador glass con icono rotando — sabor iOS.</p>
+                </div>
+                <div class="wn-card fade-up" data-delay="1">
+                    <div class="wn-icon" style="background:linear-gradient(135deg,#F59E0B,#FFD700);">⭐</div>
+                    <h4 data-en="Favourites + proximity alerts">Favoritos + alertas de cercanía</h4>
+                    <p data-en="Save places with ★. When you're &lt;500m from a favourite, the app discreetly lets you know.">Guarda sitios con ★. Cuando estés a &lt;500m de un favorito, la app te avisa con cariño.</p>
+                </div>
             </div>
         </div>
     </section>
@@ -1912,11 +2072,24 @@
             document.body.appendChild(sw);
         })();
 
-        // Nav scroll
+        // Nav scroll + subtle parallax del hero mockup (premium fluid)
         const nav = document.getElementById('nav');
+        const heroMockup = document.querySelector('.hero-mockup');
+        let ticking = false;
         window.addEventListener('scroll', () => {
-            nav.classList.toggle('scrolled', window.scrollY > 30);
-        });
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => {
+                const y = window.scrollY;
+                nav.classList.toggle('scrolled', y > 30);
+                // Parallax: el mockup sube ligeramente y se desvanece
+                if (heroMockup && y < 700) {
+                    heroMockup.style.transform = `translateY(${y * -0.08}px)`;
+                    heroMockup.style.opacity = String(1 - Math.min(y / 600, 0.4));
+                }
+                ticking = false;
+            });
+        }, { passive: true });
 
         // Fade-up animations
         const io = new IntersectionObserver((entries) => {
