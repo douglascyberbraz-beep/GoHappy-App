@@ -112,6 +112,171 @@ window.GoHappyMap = {
         }
     },
 
+    // ─── AUTO-CARGA de POIs alrededor del usuario (Overpass API) ──
+    // Overpass = API gratuita de OpenStreetMap, sin key, real-time.
+    // Devuelve sitios REALES con coords reales (sin alucinación).
+    _OVERPASS_ENDPOINTS: [
+        'https://overpass-api.de/api/interpreter',
+        'https://overpass.kumi.systems/api/interpreter',
+        'https://overpass.openstreetmap.fr/api/interpreter'
+    ],
+    _nearbyLoadedAt: null,   // {lat,lng} de la última carga
+    _nearbyLoading:  false,
+    _nearbyRadiusM:  1500,   // metros radio de búsqueda
+
+    // Tags OSM → type interno de GoHappy
+    _OSM_TAGS: {
+        'leisure=park':          { type: 'park',    icon: '🌳' },
+        'leisure=playground':    { type: 'kidzone', icon: '🏰' },
+        'leisure=garden':        { type: 'park',    icon: '🌿' },
+        'tourism=museum':        { type: 'museum',  icon: '🎓' },
+        'tourism=zoo':           { type: 'kidzone', icon: '🦁' },
+        'tourism=theme_park':    { type: 'kidzone', icon: '🎢' },
+        'tourism=aquarium':      { type: 'kidzone', icon: '🐠' },
+        'tourism=attraction':    { type: 'museum',  icon: '🏛️' },
+        'amenity=theatre':       { type: 'theater', icon: '🎭' },
+        'amenity=cinema':        { type: 'theater', icon: '🎬' },
+        'amenity=cafe':          { type: 'food',    icon: '☕' },
+        'amenity=ice_cream':     { type: 'food',    icon: '🍦' },
+        'amenity=restaurant':    { type: 'food',    icon: '🍽️' },
+        'amenity=fast_food':     { type: 'food',    icon: '🍔' },
+        'amenity=library':       { type: 'school',  icon: '📚' },
+        'amenity=kindergarten':  { type: 'school',  icon: '🧸' },
+        'shop=toys':             { type: 'kidzone', icon: '🧸' }
+    },
+
+    loadNearbyPOIs: async (lat, lng, force = false) => {
+        if (window.GoHappyMap._nearbyLoading) return;
+        // No re-cargar si estamos a < 800m del último load (evita spam)
+        if (!force && window.GoHappyMap._nearbyLoadedAt) {
+            const dLat = (lat - window.GoHappyMap._nearbyLoadedAt.lat) * 111;
+            const dLng = (lng - window.GoHappyMap._nearbyLoadedAt.lng) * 111 * Math.cos(lat * Math.PI / 180);
+            const dKm = Math.sqrt(dLat*dLat + dLng*dLng);
+            if (dKm < 0.8) return;
+        }
+
+        window.GoHappyMap._nearbyLoading = true;
+        const r = window.GoHappyMap._nearbyRadiusM;
+
+        // Cache localStorage por bucket de 1km
+        const bucketKey = `gh_nearby_${lat.toFixed(2)},${lng.toFixed(2)}`;
+        try {
+            const cached = JSON.parse(localStorage.getItem(bucketKey) || 'null');
+            if (cached && (Date.now() - cached.ts) < 6 * 60 * 60 * 1000) { // 6h TTL
+                console.info('[Overpass] HIT cache', cached.data.length, 'POIs');
+                window.GoHappyMap._addNearbyPOIs(cached.data);
+                window.GoHappyMap._nearbyLoadedAt = { lat, lng };
+                window.GoHappyMap._nearbyLoading = false;
+                return;
+            }
+        } catch (e) {}
+
+        // Construir query Overpass
+        const tags = Object.keys(window.GoHappyMap._OSM_TAGS);
+        const queryParts = tags.map(t => {
+            const [k, v] = t.split('=');
+            return `node["${k}"="${v}"](around:${r},${lat},${lng});\n  way["${k}"="${v}"](around:${r},${lat},${lng});`;
+        }).join('\n  ');
+        const query = `[out:json][timeout:15];\n(\n  ${queryParts}\n);\nout center tags 60;`;
+
+        // Probar endpoints (fallback automático)
+        let data = null;
+        for (const ep of window.GoHappyMap._OVERPASS_ENDPOINTS) {
+            try {
+                const resp = await fetch(ep, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: query,
+                    signal: AbortSignal.timeout(12000)
+                });
+                if (resp.ok) { data = await resp.json(); break; }
+            } catch (e) { console.warn('[Overpass]', ep, 'failed:', e?.message); }
+        }
+        if (!data?.elements) {
+            window.GoHappyMap._nearbyLoading = false;
+            return;
+        }
+
+        // Parsear elementos
+        const pois = [];
+        const seen = new Set();
+        data.elements.forEach(el => {
+            const elLat = el.lat ?? el.center?.lat;
+            const elLng = el.lon ?? el.center?.lon;
+            if (!elLat || !elLng) return;
+            const name = el.tags?.name || el.tags?.['name:en'] || el.tags?.['name:es'];
+            if (!name) return;
+            // Dedupe por nombre + cercanía
+            const key = `${name.toLowerCase()}|${elLat.toFixed(3)},${elLng.toFixed(3)}`;
+            if (seen.has(key)) return;
+            seen.add(key);
+            // Identificar type
+            let typeMeta = { type: 'generic', icon: '📍' };
+            for (const tagKey of tags) {
+                const [k, v] = tagKey.split('=');
+                if (el.tags?.[k] === v) {
+                    typeMeta = window.GoHappyMap._OSM_TAGS[tagKey];
+                    break;
+                }
+            }
+            pois.push({
+                id: 'osm-' + (el.id || Math.random().toString(36).slice(2, 8)),
+                name,
+                type: typeMeta.type,
+                lat: elLat,
+                lng: elLng,
+                rating: 4.5,
+                _osm: true,
+                _icon: typeMeta.icon
+            });
+        });
+
+        console.info('[Overpass] loaded', pois.length, 'real POIs around', lat.toFixed(4), lng.toFixed(4));
+        try { localStorage.setItem(bucketKey, JSON.stringify({ ts: Date.now(), data: pois })); } catch (e) {}
+
+        window.GoHappyMap._addNearbyPOIs(pois);
+        window.GoHappyMap._nearbyLoadedAt = { lat, lng };
+        window.GoHappyMap._nearbyLoading = false;
+
+        // Comprobar si hay favoritos cerca → notificar
+        window.GoHappyMap._checkProximityFavorites(lat, lng);
+    },
+
+    _addNearbyPOIs: (pois) => {
+        const existing = new Set(window.GoHappyMap.markers.map(m => `${m.data?.lat?.toFixed(4)},${m.data?.lng?.toFixed(4)}`));
+        pois.forEach((loc, idx) => {
+            const key = `${loc.lat.toFixed(4)},${loc.lng.toFixed(4)}`;
+            if (existing.has(key)) return;
+            existing.add(key);
+            // Spawn escalonado para no bloquear el thread
+            setTimeout(() => window.GoHappyMap.createMarker(loc), idx * 12);
+        });
+    },
+
+    // ─── PROXIMIDAD: notificar si hay favoritos a < 500m ─────────
+    _proximityNotified: new Set(),
+    _checkProximityFavorites: (lat, lng) => {
+        if (!window.GoHappyMap._favorites.size) return;
+        const lang = window.GoHappyI18n?.lang || 'es';
+        window.GoHappyMap.markers.forEach(m => {
+            if (!m.data || !window.GoHappyMap.isFavorite(m.data)) return;
+            const dLat = (m.data.lat - lat) * 111;
+            const dLng = (m.data.lng - lng) * 111 * Math.cos(lat * Math.PI / 180);
+            const distM = Math.sqrt(dLat*dLat + dLng*dLng) * 1000;
+            if (distM < 500) {
+                const k = window.GoHappyMap._favKey(m.data);
+                if (window.GoHappyMap._proximityNotified.has(k)) return;
+                window.GoHappyMap._proximityNotified.add(k);
+                window.GoHappyToast && window.GoHappyToast.points(
+                    lang === 'en'
+                        ? `★ ${m.data.name} is ${Math.round(distM)}m away!`
+                        : `★ ${m.data.name} a solo ${Math.round(distM)}m!`,
+                    4000
+                );
+            }
+        });
+    },
+
     // ─── RENDER ───────────────────────────────────────────────────
     render: async (container) => {
         console.log('[Map] Render v4.0 MapLibre 3D');
@@ -444,6 +609,19 @@ window.GoHappyMap = {
                 };
                 window.GoHappyMap.instance.on('zoomend', syncMarkerVisibility);
                 window.GoHappyMap.instance.on('moveend', syncMarkerVisibility);
+
+                // AUTO-REFRESH POIs si el usuario se mueve mucho (>1km del último load)
+                let panTimer = null;
+                window.GoHappyMap.instance.on('moveend', () => {
+                    if (panTimer) clearTimeout(panTimer);
+                    panTimer = setTimeout(() => {
+                        const c = window.GoHappyMap.instance.getCenter();
+                        const z = window.GoHappyMap.instance.getZoom();
+                        if (z >= 12) {
+                            window.GoHappyMap.loadNearbyPOIs(c.lat, c.lng);
+                        }
+                    }, 1200);
+                });
             } catch (e) { console.warn('[Map] cluster setup:', e?.message); }
 
             // UI overlay (search + filtros + FABs)
@@ -955,12 +1133,183 @@ window.GoHappyMap = {
 
         const marker = new maplibregl.Marker({ element: el, anchor: 'bottom', offset: [0, -10] })
             .setLngLat([loc.lng, loc.lat])
-            .setPopup(popup)
             .addTo(window.GoHappyMap.instance);
+
+        // Click en marker → BOTTOM SHEET premium (en vez de popup pequeño)
+        el.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            window.GoHappyMap.showPOISheet(loc);
+        });
 
         window.GoHappyMap.markers.push({ instance: marker, type: loc.type, data: loc });
         // Alimentar source clustering
         window.GoHappyMap._syncClusterSource();
+    },
+
+    // ─── BOTTOM SHEET PREMIUM (slide-up con info POI) ─────────────
+    showPOISheet: (loc) => {
+        // Cerrar sheet anterior si existe
+        const old = document.getElementById('gh-poi-sheet');
+        if (old) old.remove();
+
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const sec = window.GoHappySecurity;
+        const safeName = sec ? sec.safe(loc.name) : String(loc.name || '').replace(/[<>]/g, '');
+        const safeImage = (loc.image && /^https?:\/\//.test(loc.image)) ? loc.image : '';
+        const distance = window.GoHappyMap._distanceTo(loc.lat, loc.lng);
+        const isFav = window.GoHappyMap.isFavorite(loc);
+        const iconMap = { park:'🌳', museum:'🎓', school:'🎓', food:'🍎', theater:'🎭', kidzone:'🏰' };
+        const icon = loc._icon || iconMap[loc.type] || '📍';
+
+        const tRoute   = lang === 'en' ? 'Get directions' : 'Cómo llegar';
+        const tReview  = lang === 'en' ? 'Write review'   : 'Reseñar';
+        const tShare   = lang === 'en' ? 'Share'          : 'Compartir';
+        const tFav     = lang === 'en' ? (isFav ? 'Saved' : 'Save') : (isFav ? 'Guardado' : 'Guardar');
+        const tClose   = lang === 'en' ? 'Close' : 'Cerrar';
+
+        const sheet = document.createElement('div');
+        sheet.id = 'gh-poi-sheet';
+        sheet.style.cssText = `
+            position:fixed; left:0; right:0; bottom:0; z-index:1000;
+            background:rgba(255,255,255,0.96); backdrop-filter:blur(30px) saturate(180%);
+            -webkit-backdrop-filter:blur(30px) saturate(180%);
+            border-radius:28px 28px 0 0;
+            box-shadow:0 -20px 50px rgba(11,76,143,0.25);
+            transform:translateY(100%); transition:transform 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+            max-height:78vh; overflow-y:auto;
+            padding-bottom:calc(20px + env(safe-area-inset-bottom));
+        `;
+        sheet.innerHTML = `
+            <!-- Drag handle -->
+            <div style="display:flex; justify-content:center; padding:10px 0 6px;">
+                <div style="width:44px; height:5px; background:rgba(11,76,143,0.20); border-radius:999px;"></div>
+            </div>
+
+            <!-- Hero image / icon -->
+            <div style="position:relative; height:160px; margin:0 16px 0; border-radius:22px; overflow:hidden; ${safeImage ? `background:url('${safeImage}') center/cover` : 'background:linear-gradient(135deg,#0B71FC,#17C8D4)'};">
+                ${!safeImage ? `<div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:80px; opacity:0.55;">${icon}</div>` : ''}
+                <button id="gh-sheet-fav" title="${tFav}" style="position:absolute; top:12px; right:12px; width:44px; height:44px; border-radius:50%; border:none; background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; font-size:22px; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,0.18); color:${isFav ? '#F59E0B' : '#666'};">${isFav ? '★' : '☆'}</button>
+                ${distance ? `<div style="position:absolute; bottom:12px; left:12px; background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); padding:6px 12px; border-radius:999px; font-size:12px; font-weight:800; color:var(--cobalt,#0B4C8F); box-shadow:0 4px 12px rgba(0,0,0,0.12);">📍 ${distance}</div>` : ''}
+            </div>
+
+            <!-- Body -->
+            <div style="padding:18px 20px 8px;">
+                <h2 style="font-family:'Poppins',sans-serif; font-weight:900; font-size:1.45rem; color:var(--cobalt,#0B4C8F); margin:0 0 4px; line-height:1.2;">${safeName}</h2>
+                <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:#666; margin-bottom:14px;">
+                    <span>⭐ ${parseFloat(loc.rating) || 4.5}</span>
+                    <span style="opacity:0.4;">·</span>
+                    <span style="text-transform:capitalize;">${loc.type || 'sitio'}</span>
+                    ${loc._osm ? '<span style="opacity:0.4;">·</span><span style="font-size:10px; padding:2px 7px; background:rgba(11,113,252,0.10); color:var(--cobalt,#0B4C8F); border-radius:999px; font-weight:700;">OSM</span>' : ''}
+                    ${loc.isCommunity ? '<span style="opacity:0.4;">·</span><span style="font-size:10px; padding:2px 7px; background:rgba(245,158,11,0.15); color:#92400E; border-radius:999px; font-weight:700;">⭐ Comunidad</span>' : ''}
+                </div>
+
+                <!-- Primary CTA -->
+                <button id="gh-sheet-route" style="width:100%; padding:14px; border:none; border-radius:16px; background:linear-gradient(135deg,#0B71FC,#17C8D4); color:white; font-weight:800; font-size:15px; cursor:pointer; box-shadow:0 10px 26px rgba(11,113,252,0.35); margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <span style="font-size:18px;">🚗</span> ${tRoute}
+                </button>
+
+                <!-- Secondary actions row -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:6px;">
+                    <button id="gh-sheet-review" style="padding:12px; border:0.5px solid rgba(11,76,143,0.18); border-radius:14px; background:rgba(11,76,143,0.05); color:var(--cobalt,#0B4C8F); font-weight:800; font-size:12.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                        📝 ${tReview}
+                    </button>
+                    <button id="gh-sheet-share" style="padding:12px; border:0.5px solid rgba(11,76,143,0.18); border-radius:14px; background:rgba(11,76,143,0.05); color:var(--cobalt,#0B4C8F); font-weight:800; font-size:12.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                        📤 ${tShare}
+                    </button>
+                </div>
+
+                <!-- Close button -->
+                <button id="gh-sheet-close" style="width:100%; margin-top:10px; padding:10px; border:none; background:transparent; color:#94a3b8; font-weight:700; font-size:13px; cursor:pointer;">${tClose}</button>
+            </div>
+        `;
+        document.body.appendChild(sheet);
+
+        // Animar entrada
+        requestAnimationFrame(() => { sheet.style.transform = 'translateY(0)'; });
+
+        // Backdrop scrim
+        const backdrop = document.createElement('div');
+        backdrop.id = 'gh-poi-backdrop';
+        backdrop.style.cssText = `
+            position:fixed; inset:0; background:rgba(11,76,143,0.20); z-index:999;
+            opacity:0; transition:opacity 0.3s;
+        `;
+        document.body.appendChild(backdrop);
+        requestAnimationFrame(() => { backdrop.style.opacity = '1'; });
+
+        const closeSheet = () => {
+            sheet.style.transform = 'translateY(100%)';
+            backdrop.style.opacity = '0';
+            setTimeout(() => { sheet.remove(); backdrop.remove(); }, 420);
+        };
+
+        backdrop.onclick = closeSheet;
+        document.getElementById('gh-sheet-close').onclick = closeSheet;
+
+        // Swipe-down para cerrar
+        let touchStartY = 0;
+        sheet.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; }, { passive: true });
+        sheet.addEventListener('touchmove', (e) => {
+            const dy = e.touches[0].clientY - touchStartY;
+            if (dy > 0) sheet.style.transform = `translateY(${dy}px)`;
+        }, { passive: true });
+        sheet.addEventListener('touchend', (e) => {
+            const dy = e.changedTouches[0].clientY - touchStartY;
+            if (dy > 80) closeSheet();
+            else sheet.style.transform = 'translateY(0)';
+        });
+
+        // Acciones
+        document.getElementById('gh-sheet-route').onclick = () => {
+            if (window.GoHappyNav?.openRoute) {
+                window.GoHappyNav.openRoute(loc.lat, loc.lng, loc.name);
+            } else {
+                window.open(`https://www.google.com/maps/dir/?api=1&destination=${loc.lat},${loc.lng}&travelmode=walking`, '_blank');
+            }
+        };
+        document.getElementById('gh-sheet-review').onclick = () => {
+            closeSheet();
+            setTimeout(() => window.GoHappyMap.showAddSiteModal(loc.lat, loc.lng, loc.name), 200);
+        };
+        document.getElementById('gh-sheet-share').onclick = async () => {
+            const url = `https://www.google.com/maps?q=${loc.lat},${loc.lng}`;
+            const txt = lang === 'en' ? `Check out ${loc.name} on GoHappy! ${url}` : `¡Mira ${loc.name} en GoHappy! ${url}`;
+            try {
+                if (navigator.share) await navigator.share({ title: loc.name, text: txt, url });
+                else {
+                    await navigator.clipboard.writeText(txt);
+                    window.GoHappyToast && window.GoHappyToast.success(lang === 'en' ? 'Copied' : 'Copiado', 1500);
+                }
+            } catch (e) {}
+        };
+        document.getElementById('gh-sheet-fav').onclick = () => {
+            const nowFav = window.GoHappyMap.toggleFavorite(loc);
+            const btn = document.getElementById('gh-sheet-fav');
+            btn.innerText = nowFav ? '★' : '☆';
+            btn.style.color = nowFav ? '#F59E0B' : '#666';
+            window.GoHappyToast && window.GoHappyToast.success(
+                nowFav ? (lang === 'en' ? '★ Saved' : '★ Guardado') : (lang === 'en' ? 'Removed' : 'Quitado'),
+                1500
+            );
+            setTimeout(() => {
+                const idx = window.GoHappyMap.markers.findIndex(m => m.data === loc);
+                if (idx >= 0) {
+                    window.GoHappyMap.markers[idx].instance.remove();
+                    window.GoHappyMap.markers.splice(idx, 1);
+                    window.GoHappyMap.createMarker(loc);
+                }
+            }, 300);
+        };
+
+        // Acercar el mapa al POI (para que no quede tapado por sheet)
+        try {
+            window.GoHappyMap.instance.flyTo({
+                center: [loc.lng, loc.lat],
+                zoom: Math.max(15, window.GoHappyMap.instance.getZoom()),
+                offset: [0, -window.innerHeight * 0.18],   // desplazar arriba 18%
+                speed: 1.4
+            });
+        } catch (e) {}
     },
 
     // Sincronizar GeoJSON source con array de markers (para clustering)
@@ -1194,6 +1543,10 @@ window.GoHappyMap = {
             if (animate) window.GoHappyMap.instance.flyTo(opts);
             else window.GoHappyMap.instance.setCenter([lng, lat]);
             window.GoHappyMap.updateUserIcon(lat, lng);
+            // ⚡ AUTO-CARGAR POIs reales alrededor en background (no bloquea)
+            requestIdleCallback
+                ? requestIdleCallback(() => window.GoHappyMap.loadNearbyPOIs(lat, lng), { timeout: 2000 })
+                : setTimeout(() => window.GoHappyMap.loadNearbyPOIs(lat, lng), 500);
         };
 
         // 1) Llamada rápida con caché de 60s (resultado instantáneo si hay caché)
