@@ -45,16 +45,6 @@ window.GoHappyMemories = {
                     </div>
                 </div>
 
-                <!-- AI Reflection -->
-                <div class="memory-reflection premium-glass" id="memory-reflection">
-                    <div class="reflection-header">
-                        <span>🤖 Reflexión GoHappy IA</span>
-                    </div>
-                    <p id="reflection-text" class="reflection-body">
-                        <span class="typing-dots"><span></span><span></span><span></span></span>
-                    </p>
-                </div>
-
                 <!-- Timeline -->
                 <div class="memory-timeline" id="memory-timeline">
                     <h3 style="padding: 15px 20px; color: var(--primary-navy);">Timeline de Actividad</h3>
@@ -79,7 +69,8 @@ window.GoHappyMemories = {
         document.getElementById('mem-quests').textContent = activity.quests;
 
         // Generate AI reflection
-        window.GoHappyMemories._generateReflection(activity, currentMonth);
+        // Reflexión IA movida a Perfil (más visible)
+        // window.GoHappyMemories._generateReflection(activity, currentMonth);
 
         // Render timeline
         const timeline = document.getElementById('memory-timeline');

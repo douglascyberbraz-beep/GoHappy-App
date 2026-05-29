@@ -1,4 +1,38 @@
 window.GoHappyProfile = {
+
+    // ─── REFLEXIÓN IA (movida desde Memories — más visible aquí) ───
+    _loadReflection: async (user) => {
+        const el = document.getElementById('profile-reflection-text');
+        if (!el) return;
+        const lang = window.GoHappyI18n?.lang || 'es';
+
+        // Resumen de stats del usuario para personalizar
+        const points = user.points || 0;
+        const weeklyPts = user.weeklyPoints || 0;
+        const levelName = (window.GoHappyPoints?.getLevelInfo?.(points)?.name) || 'Explorador';
+        const familyName = user.familyName ? `de la familia ${user.familyName}` : '';
+
+        const monthName = new Date().toLocaleDateString(lang === 'en' ? 'en-GB' : 'es-ES', { month: 'long' });
+        const ctxSummary = window.GoHappyContext?.summary?.();
+
+        const prompt = lang === 'en'
+            ? `You are GoHappy AI. Write a SHORT motivational reflection (2 sentences max, 180 chars total) for ${user.nickname || 'this parent'} ${familyName}, currently a ${levelName}. They have ${points} total points, ${weeklyPts} this week, and we are in ${monthName}. ${ctxSummary ? 'Their interests: ' + JSON.stringify(ctxSummary).slice(0, 250) : ''} Warm, personal, British English. NO emojis. NO disclaimers. NO 'as an AI'. Just the reflection.`
+            : `Eres GoHappy IA. Escribe una reflexión motivacional CORTA (máx 2 frases, 180 chars total) para ${user.nickname || 'esta familia'} ${familyName}, actualmente ${levelName}. Tiene ${points} puntos totales, ${weeklyPts} esta semana, estamos en ${monthName}. ${ctxSummary ? 'Sus intereses: ' + JSON.stringify(ctxSummary).slice(0, 250) : ''} Tono cálido, personal, español de España. SIN emojis. SIN disclaimers. SIN 'como IA'. Solo la reflexión.`;
+
+        try {
+            const text = await window.GoHappyAI._callGemini(prompt, false);
+            if (text && typeof text === 'string' && text.length > 10) {
+                el.textContent = text.trim().replace(/^["']|["']$/g, '');
+                return;
+            }
+        } catch (e) { /* fallback */ }
+
+        // Fallback motivacional sin IA
+        el.textContent = lang === 'en'
+            ? `Each step you take with your family is a memory in the making. With ${points} points, you are showing what conscious parenting looks like.`
+            : `Cada paso que das con tu familia es un recuerdo que perdurará. Con ${points} puntos, estás demostrando lo que es la crianza consciente.`;
+    },
+
     render: async (container) => {
         const T = window.t || (k => k);
         // Helper para escape XSS — usa GoHappySecurity si está disponible
@@ -50,6 +84,28 @@ window.GoHappyProfile = {
                         <h2 class="profile-name-main">${safe(user.nickname || 'Explorador')}</h2>
                         <p class="profile-email-sub">${safe(user.email || 'Miembro GoHappy')}</p>
                     </div>
+                </div>
+
+                <!-- ✨ REFLEXIÓN IA (movida desde Memories — más visible aquí) -->
+                <div id="profile-ai-reflection" class="profile-reflection-card" style="
+                    background:linear-gradient(135deg, rgba(11,113,252,0.06) 0%, rgba(23,200,212,0.10) 100%);
+                    backdrop-filter:blur(28px) saturate(180%);
+                    -webkit-backdrop-filter:blur(28px) saturate(180%);
+                    border:0.5px solid rgba(11,113,252,0.18);
+                    border-radius:22px;
+                    padding:18px 18px 16px;
+                    margin:0 16px 16px;
+                    box-shadow:0 10px 30px rgba(11,113,252,0.10), inset 0 1px 0 rgba(255,255,255,0.85);
+                    position:relative; overflow:hidden;
+                ">
+                    <div style="position:absolute; top:-30px; right:-30px; width:120px; height:120px; background:radial-gradient(circle, rgba(23,200,212,0.20) 0%, transparent 70%); pointer-events:none;"></div>
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; position:relative;">
+                        <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#0B71FC,#17C8D4); display:flex; align-items:center; justify-content:center; color:white; font-size:17px; box-shadow:0 6px 16px rgba(11,113,252,0.32);">🤖</div>
+                        <div style="font-family:'Poppins', sans-serif; font-weight:900; font-size:14px; color:var(--primary-cobalt,#0B4C8F);">${(window.GoHappyI18n?.lang === 'en') ? 'GoHappy AI · Your reflection' : 'GoHappy IA · Tu reflexión'}</div>
+                    </div>
+                    <p id="profile-reflection-text" style="font-size:14px; line-height:1.55; color:var(--text-primary, #1e293b); margin:0; font-weight:500;">
+                        <span class="typing-dots"><span></span><span></span><span></span></span>
+                    </p>
                 </div>
 
                 <div class="gamification-card-premium">
@@ -195,10 +251,13 @@ window.GoHappyProfile = {
         if (window.GoHappyPremium) {
             window.GoHappyPremium.attachPullToRefresh(container, () => window.GoHappyProfile.render(container));
             setTimeout(() => {
-                const cards = container.querySelectorAll('.action-card-glass, .gamification-card-premium, .profile-hero-premium');
+                const cards = container.querySelectorAll('.action-card-glass, .gamification-card-premium, .profile-hero-premium, .profile-reflection-card');
                 if (cards.length) window.GoHappyPremium.staggerIn(cards, 60);
             }, 50);
         }
+
+        // 🤖 Generar reflexión IA personalizada (async, no bloquea)
+        window.GoHappyProfile._loadReflection(user);
 
         // Bindings de navegación a páginas extra
         document.querySelectorAll('[data-goto-page]').forEach(btn => {
