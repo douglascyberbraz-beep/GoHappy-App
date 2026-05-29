@@ -21,6 +21,40 @@ window.GoHappyMap = {
     lastKnownCoords: "41.6520, -4.7286",
     _gpsWatchId:     null,
     _chipSearchToken: 0,
+    _followMode:     false,    // modo seguir al usuario
+    _is3D:           true,     // estado 2D/3D
+    _clusterZoom:    13,       // bajo este zoom → clusters
+    _searchCache:    new Map(),
+
+    // ─── CACHE de búsquedas IA (localStorage 24h) ────────────────
+    _CACHE_KEY: 'GoHappy_map_search_cache_v1',
+    _CACHE_TTL: 24 * 60 * 60 * 1000,
+    _loadSearchCache: () => {
+        try {
+            const raw = localStorage.getItem(window.GoHappyMap._CACHE_KEY);
+            if (!raw) return;
+            const obj = JSON.parse(raw);
+            const now = Date.now();
+            Object.entries(obj).forEach(([k, v]) => {
+                if (v?.ts && (now - v.ts) < window.GoHappyMap._CACHE_TTL) {
+                    window.GoHappyMap._searchCache.set(k, v);
+                }
+            });
+        } catch (e) {}
+    },
+    _saveSearchCache: () => {
+        try {
+            const obj = {};
+            window.GoHappyMap._searchCache.forEach((v, k) => obj[k] = v);
+            localStorage.setItem(window.GoHappyMap._CACHE_KEY, JSON.stringify(obj));
+        } catch (e) {}
+    },
+    _cacheKey: (query, coords) => {
+        const [lat, lng] = String(coords || '').split(',').map(s => parseFloat(s.trim()));
+        const roundedLat = Math.round((lat || 0) * 100) / 100; // bucket de ~1km
+        const roundedLng = Math.round((lng || 0) * 100) / 100;
+        return `${query.toLowerCase().trim()}|${roundedLat},${roundedLng}`;
+    },
 
     // ─── RENDER ───────────────────────────────────────────────────
     render: async (container) => {
@@ -274,8 +308,93 @@ window.GoHappyMap = {
                 });
             } catch (e) {}
 
+            // ───── CLUSTERING NATIVO MapLibre ─────
+            // Source GeoJSON con cluster:true → MapLibre agrupa puntos cercanos
+            try {
+                window.GoHappyMap.instance.addSource('gh-poi-cluster', {
+                    type: 'geojson',
+                    data: { type: 'FeatureCollection', features: [] },
+                    cluster: true,
+                    clusterMaxZoom: window.GoHappyMap._clusterZoom,
+                    clusterRadius: 50
+                });
+
+                // Círculos de cluster: cobalt con gradiente por cantidad
+                window.GoHappyMap.instance.addLayer({
+                    id: 'gh-clusters',
+                    type: 'circle',
+                    source: 'gh-poi-cluster',
+                    filter: ['has', 'point_count'],
+                    paint: {
+                        'circle-color': [
+                            'step', ['get', 'point_count'],
+                            '#17C8D4',    // 2-9: cyan
+                            10, '#0B71FC',// 10-29: cobalt-bright
+                            30, '#0B4C8F' // 30+: cobalt dark
+                        ],
+                        'circle-radius': [
+                            'step', ['get', 'point_count'],
+                            22, 10, 30, 30, 38
+                        ],
+                        'circle-stroke-width': 4,
+                        'circle-stroke-color': 'rgba(255,255,255,0.85)',
+                        'circle-opacity': 0.92
+                    }
+                });
+
+                // Número de POIs dentro del cluster
+                window.GoHappyMap.instance.addLayer({
+                    id: 'gh-cluster-count',
+                    type: 'symbol',
+                    source: 'gh-poi-cluster',
+                    filter: ['has', 'point_count'],
+                    layout: {
+                        'text-field': '{point_count_abbreviated}',
+                        'text-size': 14,
+                        'text-font': ['Noto Sans Bold']
+                    },
+                    paint: { 'text-color': '#ffffff' }
+                });
+
+                // Click en cluster → zoom in
+                window.GoHappyMap.instance.on('click', 'gh-clusters', (e) => {
+                    const features = window.GoHappyMap.instance.queryRenderedFeatures(e.point, { layers: ['gh-clusters'] });
+                    const clusterId = features[0]?.properties?.cluster_id;
+                    if (clusterId == null) return;
+                    window.GoHappyMap.instance.getSource('gh-poi-cluster').getClusterExpansionZoom(clusterId, (err, zoom) => {
+                        if (err) return;
+                        window.GoHappyMap.instance.easeTo({
+                            center: features[0].geometry.coordinates,
+                            zoom: zoom + 0.5,
+                            duration: 1000
+                        });
+                    });
+                });
+                window.GoHappyMap.instance.on('mouseenter', 'gh-clusters', () => {
+                    window.GoHappyMap.instance.getCanvas().style.cursor = 'pointer';
+                });
+                window.GoHappyMap.instance.on('mouseleave', 'gh-clusters', () => {
+                    window.GoHappyMap.instance.getCanvas().style.cursor = '';
+                });
+
+                // Sync visibilidad markers HTML vs clusters según zoom
+                const syncMarkerVisibility = () => {
+                    const z = window.GoHappyMap.instance.getZoom();
+                    const showHTML = z >= window.GoHappyMap._clusterZoom;
+                    window.GoHappyMap.markers.forEach(m => {
+                        const el = m.instance.getElement();
+                        if (el) el.style.display = showHTML ? '' : 'none';
+                    });
+                };
+                window.GoHappyMap.instance.on('zoomend', syncMarkerVisibility);
+                window.GoHappyMap.instance.on('moveend', syncMarkerVisibility);
+            } catch (e) { console.warn('[Map] cluster setup:', e?.message); }
+
             // UI overlay (search + filtros + FABs)
             window.GoHappyMap.injectUI(container);
+
+            // Cargar caché de búsquedas IA
+            window.GoHappyMap._loadSearchCache();
 
             // Cargar marcadores reales + GPS watch
             try { await window.GoHappyMap.loadMarkers(); } catch (e) { console.warn('[Map] loadMarkers:', e?.message); }
@@ -379,20 +498,96 @@ window.GoHappyMap = {
         `;
         container.appendChild(overlay);
 
-        // FAB locate
-        const locateBtn = document.createElement('button');
-        locateBtn.id = 'locate-me-btn';
-        locateBtn.className = 'fab-btn locate-fab';
-        locateBtn.innerHTML = '🎯';
-        container.appendChild(locateBtn);
+        // ════════ STACK PREMIUM de FABs (derecha inferior) ════════
+        const fabStack = document.createElement('div');
+        fabStack.className = 'gh-map-fab-stack';
+        fabStack.style.cssText = `
+            position:absolute; right:14px; bottom:120px; z-index:6;
+            display:flex; flex-direction:column; gap:10px; align-items:center;
+        `;
+        container.appendChild(fabStack);
 
-        // FAB añadir reseña
-        const addBtn = document.createElement('button');
-        addBtn.id = 'add-review-fab';
-        addBtn.className = 'fab-btn add-review-fab';
-        addBtn.innerHTML = '<span style="font-size:24px; line-height:1;">+</span>';
-        addBtn.title = window.GoHappyI18n ? window.GoHappyI18n.t('map.review') : 'Añadir reseña';
-        container.appendChild(addBtn);
+        const makeFab = (id, icon, title, big = false) => {
+            const b = document.createElement('button');
+            b.id = id;
+            b.title = title;
+            b.style.cssText = `
+                width:${big ? 56 : 46}px; height:${big ? 56 : 46}px;
+                border-radius:50%; border:none;
+                background:rgba(255,255,255,0.95);
+                backdrop-filter:blur(20px) saturate(180%);
+                -webkit-backdrop-filter:blur(20px) saturate(180%);
+                box-shadow:0 8px 22px rgba(11,76,143,0.18), inset 0 1px 0 rgba(255,255,255,0.95);
+                font-size:${big ? 28 : 20}px; color:var(--cobalt,#0B4C8F);
+                display:flex; align-items:center; justify-content:center;
+                cursor:pointer; transition:transform 0.18s cubic-bezier(0.34,1.56,0.64,1), background 0.2s;
+            `;
+            b.innerHTML = icon;
+            b.addEventListener('pointerdown', () => b.style.transform = 'scale(0.92)');
+            b.addEventListener('pointerup',   () => b.style.transform = '');
+            b.addEventListener('pointerleave',() => b.style.transform = '');
+            return b;
+        };
+
+        // 🧭 Compass (resetea bearing a 0)
+        const compassBtn = makeFab('gh-fab-compass', '🧭', lang === 'en' ? 'Reset orientation' : 'Resetear orientación');
+        compassBtn.id = 'gh-fab-compass';
+        compassBtn.addEventListener('click', () => {
+            window.GoHappyMap.instance.easeTo({ bearing: 0, pitch: window.GoHappyMap._is3D ? 55 : 0, duration: 800 });
+        });
+        // Rotar el icono en función del bearing actual
+        window.GoHappyMap.instance.on('rotate', () => {
+            const b = window.GoHappyMap.instance.getBearing();
+            const inner = compassBtn.firstChild;
+            if (inner) compassBtn.style.transform = `rotate(${-b}deg)`;
+        });
+
+        // 🎲 2D / 3D toggle
+        const toggle3D = makeFab('gh-fab-3d', '🎲', lang === 'en' ? 'Toggle 2D/3D' : 'Cambiar 2D/3D');
+        toggle3D.addEventListener('click', () => {
+            window.GoHappyMap._is3D = !window.GoHappyMap._is3D;
+            window.GoHappyMap.instance.easeTo({
+                pitch: window.GoHappyMap._is3D ? 55 : 0,
+                duration: 1000
+            });
+            toggle3D.innerHTML = window.GoHappyMap._is3D ? '🎲' : '🗺️';
+        });
+
+        // 🚶 Follow mode (sigue al usuario al caminar)
+        const followBtn = makeFab('gh-fab-follow', '🚶', lang === 'en' ? 'Follow me' : 'Sígueme');
+        followBtn.addEventListener('click', () => {
+            window.GoHappyMap._followMode = !window.GoHappyMap._followMode;
+            if (window.GoHappyMap._followMode) {
+                followBtn.style.background = 'linear-gradient(135deg,#0B71FC,#17C8D4)';
+                followBtn.style.color = 'white';
+                if (window.GoHappyMap.userMarker) {
+                    const ll = window.GoHappyMap.userMarker.getLngLat();
+                    window.GoHappyMap.instance.easeTo({ center: ll, zoom: 17, pitch: 60, duration: 1200 });
+                }
+                window.GoHappyToast && window.GoHappyToast.info(lang === 'en' ? '🚶 Following you' : '🚶 Siguiéndote', 2000);
+            } else {
+                followBtn.style.background = 'rgba(255,255,255,0.95)';
+                followBtn.style.color = 'var(--cobalt,#0B4C8F)';
+                window.GoHappyToast && window.GoHappyToast.info(lang === 'en' ? 'Follow off' : 'Modo libre', 1500);
+            }
+        });
+
+        // 🎯 Locate (centra al usuario una vez)
+        const locateBtn = makeFab('locate-me-btn', '🎯', lang === 'en' ? 'Locate me' : 'Ubícame');
+
+        // ➕ Añadir reseña (más grande, destacado)
+        const addBtn = makeFab('add-review-fab', '<span style="font-size:28px;line-height:1;font-weight:300;">+</span>',
+                               window.GoHappyI18n ? window.GoHappyI18n.t('map.review') : 'Añadir reseña', true);
+        addBtn.style.background = 'linear-gradient(135deg,#0B71FC,#17C8D4)';
+        addBtn.style.color = 'white';
+        addBtn.style.boxShadow = '0 10px 28px rgba(11,113,252,0.4), inset 0 1px 0 rgba(255,255,255,0.4)';
+
+        // Apilar en orden visual (de arriba a abajo)
+        fabStack.appendChild(compassBtn);
+        fabStack.appendChild(toggle3D);
+        fabStack.appendChild(followBtn);
+        fabStack.appendChild(locateBtn);
+        fabStack.appendChild(addBtn);
 
         addBtn.addEventListener('click', () => {
             let lat, lng;
@@ -560,11 +755,30 @@ window.GoHappyMap = {
             .addTo(window.GoHappyMap.instance);
 
         window.GoHappyMap.markers.push({ instance: marker, type: loc.type, data: loc });
+        // Alimentar source clustering
+        window.GoHappyMap._syncClusterSource();
+    },
+
+    // Sincronizar GeoJSON source con array de markers (para clustering)
+    _syncClusterSource: () => {
+        try {
+            const src = window.GoHappyMap.instance.getSource('gh-poi-cluster');
+            if (!src) return;
+            const features = window.GoHappyMap.markers
+                .filter(m => m.data && typeof m.data.lat === 'number' && typeof m.data.lng === 'number')
+                .map(m => ({
+                    type: 'Feature',
+                    geometry: { type: 'Point', coordinates: [m.data.lng, m.data.lat] },
+                    properties: { name: m.data.name, type: m.type || 'generic' }
+                }));
+            src.setData({ type: 'FeatureCollection', features });
+        } catch (e) {}
     },
 
     clearMarkers: () => {
         window.GoHappyMap.markers.forEach(m => { try { m.instance.remove(); } catch (e) {} });
         window.GoHappyMap.markers = [];
+        window.GoHappyMap._syncClusterSource();
     },
 
     filterMarkers: (type) => {
@@ -603,9 +817,22 @@ window.GoHappyMap = {
         let added = 0;
         try {
             const coords = window.lastKnownCoords || window.GoHappyMap.lastKnownCoords;
-            const results = window.GoHappyData?.searchLocations
-                ? await window.GoHappyData.searchLocations(query, coords)
-                : null;
+
+            // ── CACHE check (búsquedas idénticas instantáneas, TTL 24h)
+            const cacheKey = window.GoHappyMap._cacheKey(query, coords);
+            let results = null;
+            const cached = window.GoHappyMap._searchCache.get(cacheKey);
+            if (cached && (Date.now() - cached.ts) < window.GoHappyMap._CACHE_TTL) {
+                results = cached.data;
+                console.info(`[Map] cache HIT "${query}" → ${results.length} results`);
+            } else if (window.GoHappyData?.searchLocations) {
+                results = await window.GoHappyData.searchLocations(query, coords);
+                // Guardar en caché
+                if (results && results.length > 0) {
+                    window.GoHappyMap._searchCache.set(cacheKey, { ts: Date.now(), data: results });
+                    window.GoHappyMap._saveSearchCache();
+                }
+            }
 
             console.info(`[Map] search "${query}" → ${results?.length || 0} results`);
 
@@ -696,6 +923,15 @@ window.GoHappyMap = {
             }
             lastLat = lat; lastLng = lng;
             window.GoHappyMap.updateUserIcon(lat, lng, heading);
+
+            // FOLLOW MODE: mover el mapa con el usuario + rotar al heading
+            if (window.GoHappyMap._followMode && window.GoHappyMap.instance) {
+                try {
+                    const opts = { center: [lng, lat], duration: 800, essential: true };
+                    if (heading !== null && !isNaN(heading)) opts.bearing = heading;
+                    window.GoHappyMap.instance.easeTo(opts);
+                } catch (e) {}
+            }
         }, null, { enableHighAccuracy: true });
     },
 
