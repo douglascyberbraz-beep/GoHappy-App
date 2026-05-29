@@ -49,6 +49,7 @@ window.GoHappyMyFamily = {
         container.innerHTML = `
             <div class="my-family-page" style="padding:14px 0 120px;">
                 <div class="unified-hero" style="padding:16px 16px 22px;">
+                    ${window.GoHappyPremium ? window.GoHappyPremium.greetingHTML() : ''}
                     <h2 id="mf-title">👨‍👩‍👧 ${T('Mi Familia', 'My Family')}</h2>
                     <p id="mf-sub">${T('Cargando…', 'Loading…')}</p>
                 </div>

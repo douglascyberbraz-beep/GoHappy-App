@@ -10,6 +10,7 @@ window.GoHappyMemories = {
         container.innerHTML = `
             <div class="memories-page">
                 <div class="unified-hero">
+                    ${window.GoHappyPremium ? window.GoHappyPremium.greetingHTML() : ''}
                     <h2>📖 Memories</h2>
                     <p>Tu diario familiar de aventuras</p>
                 </div>

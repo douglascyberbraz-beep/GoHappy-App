@@ -6,8 +6,8 @@
 // la próxima vez que abran la app: localStorage, SW caches, IndexedDB.
 // Sólo se preserva la sesión activa (Firebase Auth). Cero datos demo.
 // ═══════════════════════════════════════════════════════════════════
-const APP_STATE_VERSION = 'v8.7.0';
-const APP_VERSION = '8.7.0';
+const APP_STATE_VERSION = 'v8.8.0';
+const APP_VERSION = '8.8.0';
 
 // ═══════════════════════════════════════════════════════════════════
 // AUTO-UPDATE AGRESIVO — Detecta nueva versión y fuerza reload
@@ -538,6 +538,22 @@ async function loadPage(pageName) {
                         container.querySelectorAll('.stagger-group').forEach(g => {
                             requestAnimationFrame(() => g.classList.add('active'));
                         });
+                        // ✨ POLISH PREMIUM AUTOMÁTICO para todas las páginas
+                        // (excepto las que ya lo hacen explícito: today, map, profile)
+                        if (window.GoHappyPremium && !['map', 'today', 'profile'].includes(pageName)) {
+                            // PTR genérico: re-render la página
+                            try {
+                                window.GoHappyPremium.attachPullToRefresh(container, () => {
+                                    const r = PAGE_RENDERERS[pageName]?.();
+                                    if (r?.render) return r.render(container);
+                                });
+                            } catch (e) {}
+                            // Stagger entry: cards principales (hero + content-list children)
+                            requestAnimationFrame(() => {
+                                const heros = container.querySelectorAll('.unified-hero, .ranking-hero-premium, .memories-page > *:first-child, .mf-card, .moments-feed > *, .ranking-row, .card-anim, .quest-card-smart, .adv-card, .alert-card');
+                                if (heros.length) window.GoHappyPremium.staggerIn(Array.from(heros).slice(0, 20), 45);
+                            });
+                        }
                     }).catch(err => {
                         console.error(`[GoHappy] render ${pageName} error:`, err);
                     });

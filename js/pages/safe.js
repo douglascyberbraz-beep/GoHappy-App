@@ -17,6 +17,7 @@ window.GoHappySafePage = {
         container.innerHTML = `
             <div class="safe-page stagger-group">
                 <div class="unified-hero">
+                    ${window.GoHappyPremium ? window.GoHappyPremium.greetingHTML() : ''}
                     <h2>${txt.title}</h2>
                     <p>${txt.sub}</p>
                 </div>

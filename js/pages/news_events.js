@@ -14,6 +14,7 @@ window.GoHappyNewsEvents = {
             <div class="unified-hero">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
                     <div style="flex:1;">
+                        ${window.GoHappyPremium ? window.GoHappyPremium.greetingHTML() : ''}
                         <h2>${T.title}</h2>
                         <p>${T.sub}</p>
                     </div>

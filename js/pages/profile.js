@@ -46,6 +46,7 @@ window.GoHappyProfile = {
                         <div class="level-badge-premium" style="margin-top:10px;">${levelInfo.icon} ${levelInfo.name}</div>
                     </div>
                     <div class="profile-meta-header">
+                        ${window.GoHappyPremium ? window.GoHappyPremium.greetingHTML() : ''}
                         <h2 class="profile-name-main">${safe(user.nickname || 'Explorador')}</h2>
                         <p class="profile-email-sub">${safe(user.email || 'Miembro GoHappy')}</p>
                     </div>
@@ -189,6 +190,15 @@ window.GoHappyProfile = {
                 setTimeout(() => window.GoHappyTour.start(true), 600);
             }
         };
+
+        // ✨ Premium polish: PTR + stagger entry
+        if (window.GoHappyPremium) {
+            window.GoHappyPremium.attachPullToRefresh(container, () => window.GoHappyProfile.render(container));
+            setTimeout(() => {
+                const cards = container.querySelectorAll('.action-card-glass, .gamification-card-premium, .profile-hero-premium');
+                if (cards.length) window.GoHappyPremium.staggerIn(cards, 60);
+            }, 50);
+        }
 
         // Bindings de navegación a páginas extra
         document.querySelectorAll('[data-goto-page]').forEach(btn => {

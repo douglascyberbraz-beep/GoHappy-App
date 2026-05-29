@@ -10,6 +10,7 @@ window.GoHappyTribu = {
             : 'Comparte y conecta con familias como la tuya';
         container.innerHTML = `
             <div class="unified-hero">
+                ${window.GoHappyPremium ? window.GoHappyPremium.greetingHTML() : ''}
                 <h2 id="tribu-title">🏘️ Tribu</h2>
                 <p>${sub}</p>
             </div>

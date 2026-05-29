@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gohappy-cache-v8.7.0';
+const CACHE_NAME = 'gohappy-cache-v8.8.0';
 const TILE_CACHE = 'gohappy-tiles-v1.3.0';
 
 const ASSETS = [
@@ -16,6 +16,7 @@ const ASSETS = [
     // Services
     'js/data/poi_seed.js',
     'js/services/i18n.js',
+    'js/services/page_premium.js',
     'js/services/navigation.js',
     'js/services/cookies_banner.js',
     'js/services/security.js',
