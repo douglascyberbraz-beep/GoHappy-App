@@ -400,11 +400,32 @@ window.GoHappyMap = {
             document.addEventListener('visibilitychange', window.GoHappyMap._visListener);
         }
 
+        // ── Observar el splash para hacer resize justo cuando desaparece
+        // (el splash z-index 9999 puede impedir que el compositor pinte
+        // el canvas del mapa debajo en algunos navegadores móviles)
+        const splash = document.getElementById('splash-screen');
+        if (splash && !window.GoHappyMap._splashObs) {
+            window.GoHappyMap._splashObs = new MutationObserver(() => {
+                const isHidden = splash.style.display === 'none' || splash.style.opacity === '0';
+                if (isHidden && window.GoHappyMap.instance) {
+                    // Splash se desvanece: forzar resize + repaint AHORA
+                    [50, 400, 900].forEach(ms => setTimeout(() => {
+                        try {
+                            window.GoHappyMap.instance.resize();
+                            window.GoHappyMap.instance.triggerRepaint?.();
+                        } catch (e) {}
+                    }, ms));
+                    window.GoHappyMap._splashObs.disconnect();
+                }
+            });
+            window.GoHappyMap._splashObs.observe(splash, { attributes: true, attributeFilter: ['style'] });
+        }
+
         // Solicitar ubicación al instante (GPS preciso → centra mapa al user)
         window.GoHappyMap.locateUser(true);
 
-        // ── Failsafe: ocultar loader a los 8s si tiles tardan
-        const failsafeHide = setTimeout(() => {
+        // ── Failsafe: ocultar loader a los 3s si tiles tardan
+        const hideLoader = () => {
             const ld = document.getElementById('map-loader');
             if (ld && ld.style.display !== 'none') {
                 ld.style.transition = 'opacity 0.4s';
@@ -412,18 +433,15 @@ window.GoHappyMap = {
                 setTimeout(() => ld.style.display = 'none', 400);
                 window.GoHappyMap.isInitialized = true;
             }
-        }, 8000);
+        };
+        const failsafeHide = setTimeout(hideLoader, 3000);
 
         // ── Idle = primer render completo ─
         window.GoHappyMap.instance.on('idle', () => {
-            const ld = document.getElementById('map-loader');
-            if (ld && ld.style.display !== 'none') {
-                ld.style.transition = 'opacity 0.4s';
-                ld.style.opacity = '0';
-                setTimeout(() => ld.style.display = 'none', 400);
-                window.GoHappyMap.isInitialized = true;
-                clearTimeout(failsafeHide);
-            }
+            hideLoader();
+            clearTimeout(failsafeHide);
+            // Refuerzo: idle = todo renderizado, pero forzamos repaint extra
+            try { window.GoHappyMap.instance.triggerRepaint?.(); } catch (e) {}
         });
 
         // ── ERROR catcher
@@ -441,6 +459,25 @@ window.GoHappyMap = {
                 ld.style.transition = 'opacity 0.4s';
                 setTimeout(() => ld.style.display = 'none', 400);
             }
+
+            // ⚡ FIX BLANK MAP DEFINITIVO: tras 'load', forzar reflow de
+            // compositing layer + resize + repaint. Sin esto, en algunos
+            // navegadores el canvas queda creado pero los tiles no se
+            // pintan hasta el siguiente reflow externo (navegar fuera/volver).
+            const inst = window.GoHappyMap.instance;
+            const canvas = inst.getCanvas?.();
+            const forceRedraw = () => {
+                try { inst.resize(); } catch (e) {}
+                try { inst.triggerRepaint(); } catch (e) {}
+                // Hack: forzar compositing layer refresh tocando el canvas
+                if (canvas) {
+                    canvas.style.transform = 'translateZ(0)';
+                    void canvas.offsetHeight; // forzar reflow síncrono
+                }
+            };
+            // Inmediato + escalones que cubren splash hide y nav slide
+            forceRedraw();
+            [80, 250, 600, 1500, 3000].forEach(ms => setTimeout(forceRedraw, ms));
 
             // ANIMAR a pitch 3D 55° después de cargar (suave, no bloquea)
             setTimeout(() => {

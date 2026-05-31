@@ -1,5 +1,5 @@
 {
-  "version": "8.8.4",
-  "timestamp": "2026-05-29T14:00:00Z",
-  "note": "Map: wait for dimensions + 6 resize-ticks + visibility · Voice: getUserMedia prompt · Search: keydown + sparkle click"
+  "version": "8.8.5",
+  "timestamp": "2026-05-29T16:00:00Z",
+  "note": "Map: force compositing repaint on load + splash MutationObserver + translateZ hack"
 }
