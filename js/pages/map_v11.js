@@ -346,11 +346,20 @@ window.GoHappyMap = {
         }
 
         const mapDiv = document.getElementById('map-canvas') || container;
-        const rect = mapDiv.getBoundingClientRect();
-        if (rect.width < 10 || rect.height < 10) {
-            mapDiv.style.cssText = 'position:absolute; inset:0; width:100vw; height:100vh; z-index:1; background:#DFEEFF;';
+
+        // ── ESPERA ACTIVA: el div debe tener dimensiones reales antes
+        // de crear MapLibre. Sin esto, MapLibre se inicializa con un
+        // canvas 0×0 y los tiles nunca se piden hasta el siguiente
+        // resize (que solo pasa al navegar fuera y volver).
+        for (let i = 0; i < 30; i++) {
+            const r = mapDiv.getBoundingClientRect();
+            if (r.width >= 10 && r.height >= 10) break;
+            // Forzar dimensiones si tras 100ms aún 0×0
+            if (i === 10) mapDiv.style.cssText = 'position:absolute; inset:0; width:100vw; height:100vh; z-index:1; background:#DFEEFF;';
+            await new Promise(r => requestAnimationFrame(r));
         }
-        console.info('[Map] MapLibre', maplibregl.version || '?', '· canvas', rect.width + 'x' + rect.height);
+        const rect = mapDiv.getBoundingClientRect();
+        console.info('[Map] MapLibre', maplibregl.version || '?', '· canvas', Math.round(rect.width) + 'x' + Math.round(rect.height));
 
         // Crear mapa — pitch 0 inicial (tiles cargan ~2x más rápido)
         // Después animamos a 55° cuando los tiles están listos
@@ -368,16 +377,27 @@ window.GoHappyMap = {
             fadeDuration: 100          // transiciones más rápidas
         });
 
-        // ── FIX blank map: forzar resize tras crear el mapa.
-        // Sin esto, en muchos navegadores la primera carga renderiza tiles
-        // con dimensiones 0×0 hasta que el usuario navega fuera y vuelve.
-        // El ResizeObserver además cubre cambios de orientación / split-screen.
-        setTimeout(() => { try { window.GoHappyMap.instance.resize(); } catch (e) {} }, 250);
+        // ── FIX blank map: resize repetido tras crear el mapa.
+        // El splash y el page-transition-overlay cambian el viewport varias
+        // veces durante los primeros 3 segundos, así que hacemos resize() en
+        // varios momentos para cubrir todos los reflows.
+        [100, 300, 600, 1200, 2400, 3500].forEach(ms => {
+            setTimeout(() => { try { window.GoHappyMap.instance.resize(); } catch (e) {} }, ms);
+        });
         if (window.ResizeObserver && !window.GoHappyMap._resizeObs) {
             window.GoHappyMap._resizeObs = new ResizeObserver(() => {
                 try { window.GoHappyMap.instance && window.GoHappyMap.instance.resize(); } catch (e) {}
             });
             window.GoHappyMap._resizeObs.observe(mapDiv);
+        }
+        // Visibility change también dispara resize (vuelta de otra tab)
+        if (!window.GoHappyMap._visListener) {
+            window.GoHappyMap._visListener = () => {
+                if (!document.hidden && window.GoHappyMap.instance) {
+                    setTimeout(() => { try { window.GoHappyMap.instance.resize(); } catch (e) {} }, 100);
+                }
+            };
+            document.addEventListener('visibilitychange', window.GoHappyMap._visListener);
         }
 
         // Solicitar ubicación al instante (GPS preciso → centra mapa al user)
@@ -889,11 +909,21 @@ window.GoHappyMap = {
             }, 2500);
         }
 
-        // Buscador IA
+        // Buscador IA (keydown cubre teclados móviles donde keypress no dispara)
         const input = document.getElementById('map-search-input');
-        input.addEventListener('keypress', e => {
-            if (e.key === 'Enter') window.GoHappyMap.handleSearch(input.value);
-        });
+        const fireSearch = () => {
+            const q = (input.value || '').trim();
+            if (!q) return;
+            console.info('[Map] search →', q);
+            window.GoHappyMap.handleSearch(q);
+        };
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); fireSearch(); } });
+        // Clic en el sparkle ✨ también dispara búsqueda
+        const sparkle = overlay.querySelector('.gemini-sparkle');
+        if (sparkle) {
+            sparkle.style.cursor = 'pointer';
+            sparkle.addEventListener('click', fireSearch);
+        }
 
         // ── VOICE SEARCH (Web Speech API) ──
         const voiceBtn = document.getElementById('gh-voice-search');
@@ -921,7 +951,21 @@ window.GoHappyMap = {
                 voiceBtn.innerText = '🎤';
                 voiceBtn.style.animation = '';
             };
-            voiceBtn.addEventListener('click', () => {
+            voiceBtn.addEventListener('click', async () => {
+                // 1) Pedir permiso de micrófono explícito (algunos navegadores
+                //    no lo piden con SR.start() sin un getUserMedia previo)
+                if (navigator.mediaDevices?.getUserMedia) {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        stream.getTracks().forEach(t => t.stop()); // cerrar enseguida
+                    } catch (permErr) {
+                        console.warn('[Voice] mic permission:', permErr?.message);
+                        window.GoHappyToast && window.GoHappyToast.warning(
+                            window.L('Habilita el micrófono para usar la búsqueda por voz', 'Enable microphone to use voice search'), 3500
+                        );
+                        return;
+                    }
+                }
                 const rec = new SR();
                 rec.lang = lang === 'en' ? 'en-GB' : 'es-ES';
                 rec.interimResults = false;
