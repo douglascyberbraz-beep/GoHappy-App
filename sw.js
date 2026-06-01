@@ -1,10 +1,9 @@
-const CACHE_NAME = 'gohappy-cache-v8.8.5';
+const CACHE_NAME = 'gohappy-cache-v8.8.6';
 const TILE_CACHE = 'gohappy-tiles-v1.3.0';
 
 const ASSETS = [
     './',
-    'js/lib/maplibre-gl-csp.js',
-    'js/lib/maplibre-gl-csp-worker.js',
+    'js/lib/maplibre-gl.js',
     'js/lib/maplibre-gl.css',
     'index.html',
     'manifest.json',

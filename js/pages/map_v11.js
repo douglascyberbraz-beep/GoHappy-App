@@ -319,12 +319,33 @@ window.GoHappyMap = {
         } else {
             const loader = document.getElementById('map-loader');
             if (loader) loader.style.display = 'none';
-            try { window.GoHappyMap.instance.resize(); } catch (e) {}
+            // Mismo kick que el resto (resize solo no basta en algunos navegadores)
+            window.GoHappyMap._kickRepaint();
+            setTimeout(() => window.GoHappyMap._kickRepaint(), 200);
             if (window._navContext) {
                 window.GoHappyMap.handleNavContext(window._navContext);
                 window._navContext = null;
             }
         }
+    },
+
+    // ─── KICK REPAINT ──────────────────────────────────────────────
+    // Replica el ciclo display:none→reflow→display que arregla el
+    // "mapa blanco". Lo usan: evento load, splash observer, rama else.
+    _kickRepaint: () => {
+        const inst = window.GoHappyMap.instance;
+        if (!inst) return;
+        try {
+            const viewport = document.getElementById('map-viewport-v11');
+            if (viewport && viewport.style.display !== 'none') {
+                const prev = viewport.style.display || 'flex';
+                viewport.style.display = 'none';
+                void viewport.offsetHeight;   // reflow síncrono forzado
+                viewport.style.display = prev;
+            }
+            inst.resize();
+            inst.triggerRepaint();
+        } catch (e) {}
     },
 
     // ─── INIT (3D PREMIUM) ────────────────────────────────────────
@@ -347,15 +368,27 @@ window.GoHappyMap = {
 
         const mapDiv = document.getElementById('map-canvas') || container;
 
-        // ── ESPERA ACTIVA: el div debe tener dimensiones reales antes
-        // de crear MapLibre. Sin esto, MapLibre se inicializa con un
-        // canvas 0×0 y los tiles nunca se piden hasta el siguiente
-        // resize (que solo pasa al navegar fuera y volver).
-        for (let i = 0; i < 30; i++) {
+        // ══ FIX RAÍZ del mapa blanco ══
+        // El bug clásico: MapLibre pinta un primer frame VACÍO si se crea
+        // mientras el splash (z-index 9999) está encima, o mientras el
+        // viewport está en transición. Ese frame vacío queda "pegado" hasta
+        // que un reflow externo (navegar fuera y volver) fuerza recompositing.
+        //
+        // SOLUCIÓN: no crear el mapa hasta que (a) el splash haya desaparecido
+        // y (b) el div tenga dimensiones reales estables.
+        const splashEl = document.getElementById('splash-screen');
+        for (let i = 0; i < 120; i++) {           // hasta ~2s máx
             const r = mapDiv.getBoundingClientRect();
-            if (r.width >= 10 && r.height >= 10) break;
-            // Forzar dimensiones si tras 100ms aún 0×0
-            if (i === 10) mapDiv.style.cssText = 'position:absolute; inset:0; width:100vw; height:100vh; z-index:1; background:#DFEEFF;';
+            const splashGone = !splashEl ||
+                splashEl.style.display === 'none' ||
+                splashEl.offsetParent === null ||
+                parseFloat(getComputedStyle(splashEl).opacity || '1') < 0.05;
+            const hasSize = r.width >= 10 && r.height >= 10;
+            if (splashGone && hasSize) break;
+            if (i === 20 && !hasSize) {
+                // tras ~330ms sin dimensiones, forzarlas
+                mapDiv.style.cssText = 'position:absolute; inset:0; width:100vw; height:100vh; z-index:1; background:#DFEEFF;';
+            }
             await new Promise(r => requestAnimationFrame(r));
         }
         const rect = mapDiv.getBoundingClientRect();
@@ -408,13 +441,8 @@ window.GoHappyMap = {
             window.GoHappyMap._splashObs = new MutationObserver(() => {
                 const isHidden = splash.style.display === 'none' || splash.style.opacity === '0';
                 if (isHidden && window.GoHappyMap.instance) {
-                    // Splash se desvanece: forzar resize + repaint AHORA
-                    [50, 400, 900].forEach(ms => setTimeout(() => {
-                        try {
-                            window.GoHappyMap.instance.resize();
-                            window.GoHappyMap.instance.triggerRepaint?.();
-                        } catch (e) {}
-                    }, ms));
+                    // Splash se desvanece: kick repaint AHORA (display-toggle)
+                    [50, 400, 900].forEach(ms => setTimeout(() => window.GoHappyMap._kickRepaint(), ms));
                     window.GoHappyMap._splashObs.disconnect();
                 }
             });
@@ -460,24 +488,12 @@ window.GoHappyMap = {
                 setTimeout(() => ld.style.display = 'none', 400);
             }
 
-            // ⚡ FIX BLANK MAP DEFINITIVO: tras 'load', forzar reflow de
-            // compositing layer + resize + repaint. Sin esto, en algunos
-            // navegadores el canvas queda creado pero los tiles no se
-            // pintan hasta el siguiente reflow externo (navegar fuera/volver).
-            const inst = window.GoHappyMap.instance;
-            const canvas = inst.getCanvas?.();
-            const forceRedraw = () => {
-                try { inst.resize(); } catch (e) {}
-                try { inst.triggerRepaint(); } catch (e) {}
-                // Hack: forzar compositing layer refresh tocando el canvas
-                if (canvas) {
-                    canvas.style.transform = 'translateZ(0)';
-                    void canvas.offsetHeight; // forzar reflow síncrono
-                }
-            };
-            // Inmediato + escalones que cubren splash hide y nav slide
-            forceRedraw();
-            [80, 250, 600, 1500, 3000].forEach(ms => setTimeout(forceRedraw, ms));
+            // ⚡ FIX BLANK MAP DEFINITIVO ⚡ (ver _kickRepaint)
+            // Replica el ciclo display:none→reflow→display que fuerza al
+            // compositor a re-componer la capa WebGL (lo que un resize() solo
+            // NO consigue). Inmediato + escalones que cubren splash-hide.
+            window.GoHappyMap._kickRepaint();
+            [120, 400, 900, 1800, 3000].forEach(ms => setTimeout(() => window.GoHappyMap._kickRepaint(), ms));
 
             // ANIMAR a pitch 3D 55° después de cargar (suave, no bloquea)
             setTimeout(() => {
