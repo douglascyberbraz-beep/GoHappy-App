@@ -296,50 +296,101 @@ JSON estricto:
     // Búsqueda Semántica Dinámica
     // IMPORTANTE: Gemini ALUCINA coordenadas. Por eso re-geocodificamos
     // cada resultado con Photon (real coords reales del Open Street Map).
+    // Búsqueda HÍBRIDA y robusta:
+    //  • Photon directo (OpenStreetMap) → siempre responde, coords EXACTAS
+    //  • Gemini en paralelo → recomendaciones inteligentes + re-geocoding
+    // Si Gemini falla, Photon solo ya da resultados precisos.
     searchDynamicLocations: async (query, coordinates = "41.6520, -4.7286") => {
-        const cityInfo = await window.GoHappyAI.getCityFromCoords(coordinates);
-        const g = window.GoHappyAI._geoContext(cityInfo);
-        const prompt = `${window.GoHappyAI._geoGuard(cityInfo)}${g.lang === 'en'
-            ? `User in ${cityInfo.full} (${g.countryName}, coords ${coordinates}) searched: "${query}". Recommend 4-5 REAL local places in ${g.countryName} that perfectly match. ONLY return real well-known places verifiable on Google Maps. Include the FULL ADDRESS in the name (e.g. "Hyde Park, London W2 2UH").`
-            : `Usuario en ${cityInfo.full} (${g.countryName}, coords ${coordinates}) ha buscado: "${query}". Recomienda 4-5 lugares locales REALES de ${g.countryName}. SOLO devuelve sitios reales verificables en Google Maps. Incluye la DIRECCIÓN COMPLETA en el nombre (ej. "Parque del Retiro, Madrid 28009").`}
-JSON: [ { "id": UID, "name": "Real Name with Address", "type": "park"|"museum"|"school"|"theater"|"kidzone"|"food"|"generic", "lat": NUM, "lng": NUM, "rating": 4.8, "reviews": 120 } ]`;
-
-        const aiResults = await window.GoHappyAI._callGemini(prompt);
-        if (!Array.isArray(aiResults) || aiResults.length === 0) return [];
-
-        // Re-geocodificar cada resultado con Photon para coords PRECISAS
-        // (las lat/lng de Gemini son inventadas — esto las corrige al sitio real)
         const [userLat, userLng] = coordinates.split(',').map(s => parseFloat(s.trim()));
-        const geocoded = await Promise.all(aiResults.map(async (loc) => {
-            try {
-                // Bias la búsqueda a coordenadas del usuario (lat/lon = priorizar cercanos)
-                const u = `https://photon.komoot.io/api/?q=${encodeURIComponent(loc.name)}&limit=1&lat=${userLat}&lon=${userLng}&zoom=14`;
-                const r = await fetch(u, { signal: AbortSignal.timeout(5000) });
-                const data = await r.json();
-                const feat = data?.features?.[0];
-                if (feat?.geometry?.coordinates) {
-                    const [lng, lat] = feat.geometry.coordinates;
-                    // Solo aceptar si está a < 100km del usuario (filtra resultados de otra ciudad)
-                    const dKm = Math.sqrt(Math.pow((lat - userLat) * 111, 2) + Math.pow((lng - userLng) * 111 * Math.cos(userLat * Math.PI / 180), 2));
-                    if (dKm < 100) {
-                        // Limpiar nombre: quitar la dirección si Photon ya nos da uno mejor
-                        const cleanName = feat.properties?.name || loc.name.split(',')[0].trim();
-                        return { ...loc, lat, lng, name: cleanName, _verified: true };
-                    }
-                }
-            } catch (e) { /* fallback Gemini coords */ }
-            return loc; // sin verificar: usar lo que dijo Gemini
-        }));
+        const distKm = (lat, lng) => Math.sqrt(
+            Math.pow((lat - userLat) * 111, 2) +
+            Math.pow((lng - userLng) * 111 * Math.cos(userLat * Math.PI / 180), 2)
+        );
 
-        // Filtrar duplicados por coordenadas (a 50m de distancia)
+        // Mapeo OSM key/value → type interno GoHappy
+        const osmToType = (k, v) => {
+            if (k === 'leisure' && (v === 'park' || v === 'garden')) return 'park';
+            if (k === 'leisure' && v === 'playground') return 'kidzone';
+            if (k === 'tourism' && v === 'museum') return 'museum';
+            if (k === 'tourism' && (v === 'zoo' || v === 'theme_park' || v === 'aquarium')) return 'kidzone';
+            if (k === 'amenity' && (v === 'theatre' || v === 'cinema')) return 'theater';
+            if (k === 'amenity' && ['cafe','restaurant','fast_food','ice_cream'].includes(v)) return 'food';
+            if (k === 'amenity' && (v === 'library' || v === 'school' || v === 'kindergarten')) return 'school';
+            if (k === 'shop' && v === 'toys') return 'kidzone';
+            return 'generic';
+        };
+
+        // ── 1) PHOTON DIRECTO (preciso, siempre disponible) ──
+        const photonSearch = (async () => {
+            try {
+                const u = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=8&lat=${userLat}&lon=${userLng}&lang=${(window.GoHappyI18n?.lang === 'en' ? 'en' : 'es')}`;
+                const r = await fetch(u, { signal: AbortSignal.timeout(6000) });
+                const data = await r.json();
+                return (data?.features || []).map(f => {
+                    const [lng, lat] = f.geometry?.coordinates || [];
+                    if (typeof lat !== 'number' || typeof lng !== 'number') return null;
+                    if (distKm(lat, lng) > 60) return null;  // solo cercanos
+                    const p = f.properties || {};
+                    return {
+                        id: 'ph-' + (p.osm_id || Math.random().toString(36).slice(2, 8)),
+                        name: p.name || query,
+                        type: osmToType(p.osm_key, p.osm_value),
+                        lat, lng,
+                        rating: 4.5,
+                        _verified: true
+                    };
+                }).filter(Boolean);
+            } catch (e) { return []; }
+        })();
+
+        // ── 2) GEMINI (recomendaciones) + re-geocoding Photon ──
+        const geminiSearch = (async () => {
+            try {
+                const cityInfo = await window.GoHappyAI.getCityFromCoords(coordinates);
+                const g = window.GoHappyAI._geoContext(cityInfo);
+                const prompt = `${window.GoHappyAI._geoGuard(cityInfo)}${g.lang === 'en'
+                    ? `User in ${cityInfo.full} (${g.countryName}) searched: "${query}". Recommend 4 REAL well-known places verifiable on Google Maps. Include FULL ADDRESS in the name.`
+                    : `Usuario en ${cityInfo.full} (${g.countryName}) buscó: "${query}". Recomienda 4 lugares REALES verificables en Google Maps. Incluye DIRECCIÓN COMPLETA en el nombre.`}
+JSON: [ { "name": "Real Name with Address", "type": "park"|"museum"|"theater"|"kidzone"|"food"|"generic" } ]`;
+                const aiResults = await window.GoHappyAI._callGemini(prompt);
+                if (!Array.isArray(aiResults)) return [];
+                // Geocodificar cada nombre con Photon → coords reales
+                return (await Promise.all(aiResults.slice(0, 4).map(async (loc) => {
+                    try {
+                        const u = `https://photon.komoot.io/api/?q=${encodeURIComponent(loc.name)}&limit=1&lat=${userLat}&lon=${userLng}`;
+                        const r = await fetch(u, { signal: AbortSignal.timeout(5000) });
+                        const data = await r.json();
+                        const feat = data?.features?.[0];
+                        if (feat?.geometry?.coordinates) {
+                            const [lng, lat] = feat.geometry.coordinates;
+                            if (distKm(lat, lng) < 60) {
+                                return {
+                                    id: 'ai-' + Math.random().toString(36).slice(2, 8),
+                                    name: feat.properties?.name || loc.name.split(',')[0].trim(),
+                                    type: loc.type || 'generic',
+                                    lat, lng, rating: 4.7, _verified: true
+                                };
+                            }
+                        }
+                    } catch (e) {}
+                    return null;
+                }))).filter(Boolean);
+            } catch (e) { return []; }
+        })();
+
+        // Combinar ambas fuentes (Photon directo tiene prioridad por precisión)
+        const [photonRes, geminiRes] = await Promise.all([photonSearch, geminiSearch]);
+        const combined = [...photonRes, ...geminiRes];
+
+        // Dedupe por coords (~50m)
         const seen = new Set();
-        return geocoded.filter(loc => {
+        return combined.filter(loc => {
             if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') return false;
             const key = `${loc.lat.toFixed(4)},${loc.lng.toFixed(4)}`;
             if (seen.has(key)) return false;
             seen.add(key);
             return true;
-        });
+        }).slice(0, 12);
     },
 
     // Generar Misiones Contextuales (IA)

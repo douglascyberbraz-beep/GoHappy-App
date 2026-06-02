@@ -1,5 +1,5 @@
 {
-  "version": "8.8.6",
-  "timestamp": "2026-05-29T16:30:00Z",
-  "note": "Fix DEFINITIVO mapa blanco: esperar splash + display-toggle repaint (replica navegar-fuera-y-volver)"
+  "version": "8.9.0",
+  "timestamp": "2026-05-29T19:00:00Z",
+  "note": "Mapa REFACTOR: IntersectionObserver (blank fix) + UI fuera del load (botones) + busqueda hibrida Photon+Gemini + night sin filter"
 }

@@ -107,12 +107,25 @@ window.GoHappyMap = {
         return h >= 21 || h < 7;
     },
     _applyNightMode: () => {
-        const mapDiv = document.getElementById('map-canvas');
-        if (!mapDiv) return;
+        // NUNCA aplicar filter CSS sobre #map-canvas — rompe el compositing
+        // WebGL y deja el mapa BLANCO en muchos navegadores. En su lugar
+        // usamos un overlay <div> encima del canvas con mix-blend-mode.
+        const viewport = document.getElementById('map-viewport-v11');
+        if (!viewport) return;
+        let overlay = document.getElementById('gh-night-overlay');
         if (window.GoHappyMap._isNightMode()) {
-            mapDiv.style.filter = 'brightness(0.78) contrast(1.05) hue-rotate(-12deg) saturate(1.1)';
-        } else {
-            mapDiv.style.filter = '';
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'gh-night-overlay';
+                overlay.style.cssText = `
+                    position:absolute; inset:0; z-index:2; pointer-events:none;
+                    background:linear-gradient(180deg, rgba(11,30,60,0.32), rgba(5,20,45,0.40));
+                    mix-blend-mode:multiply;
+                `;
+                viewport.appendChild(overlay);
+            }
+        } else if (overlay) {
+            overlay.remove();
         }
     },
 
@@ -319,9 +332,13 @@ window.GoHappyMap = {
         } else {
             const loader = document.getElementById('map-loader');
             if (loader) loader.style.display = 'none';
-            // Mismo kick que el resto (resize solo no basta en algunos navegadores)
-            window.GoHappyMap._kickRepaint();
-            setTimeout(() => window.GoHappyMap._kickRepaint(), 200);
+            // El IntersectionObserver dispara resize al hacerse visible.
+            // Refuerzo inmediato por si el canvas ya estaba "visible" en el DOM.
+            try {
+                window.GoHappyMap.instance.resize();
+                window.GoHappyMap.instance.triggerRepaint();
+            } catch (e) {}
+            setTimeout(() => { try { window.GoHappyMap.instance.resize(); } catch (e) {} }, 150);
             if (window._navContext) {
                 window.GoHappyMap.handleNavContext(window._navContext);
                 window._navContext = null;
@@ -394,60 +411,68 @@ window.GoHappyMap = {
         const rect = mapDiv.getBoundingClientRect();
         console.info('[Map] MapLibre', maplibregl.version || '?', '· canvas', Math.round(rect.width) + 'x' + Math.round(rect.height));
 
-        // Crear mapa — pitch 0 inicial (tiles cargan ~2x más rápido)
-        // Después animamos a 55° cuando los tiles están listos
+        // Crear mapa — configuración estable. pitch directo (sin easeTo
+        // posterior que dejaba el canvas en estado intermedio), antialias
+        // on (más estable en GPUs móviles que el toggle false→repaint).
         window.GoHappyMap.instance = new maplibregl.Map({
             container: mapDiv,
             style: 'https://tiles.openfreemap.org/styles/liberty',
             center: [-4.7286, 41.6520],
             zoom: 14,
-            pitch: 0,           // arranque rápido en 2D
-            bearing: 0,
-            antialias: false,   // off al inicio, render más rápido
+            pitch: 50,                 // 3D directo desde el arranque
+            bearing: -10,
+            antialias: true,
             attributionControl: false,
             maxPitch: 60,
-            renderWorldCopies: false,  // evita renderizar el mundo en bucle
-            fadeDuration: 100          // transiciones más rápidas
+            renderWorldCopies: false,
+            fadeDuration: 0,           // sin fade → primer frame inmediato
+            trackResize: true          // MapLibre auto-resize en window resize
         });
 
-        // ── FIX blank map: resize repetido tras crear el mapa.
-        // El splash y el page-transition-overlay cambian el viewport varias
-        // veces durante los primeros 3 segundos, así que hacemos resize() en
-        // varios momentos para cubrir todos los reflows.
-        [100, 300, 600, 1200, 2400, 3500].forEach(ms => {
-            setTimeout(() => { try { window.GoHappyMap.instance.resize(); } catch (e) {} }, ms);
-        });
+        // ══ FIX BLANK MAP — mecanismo ÚNICO y robusto ══
+        // Reemplaza los 6 mecanismos anteriores (timers, visibility,
+        // MutationObserver, display-toggle) que se pisaban entre sí.
+        //
+        // IntersectionObserver detecta cuándo el canvas es REALMENTE
+        // visible en pantalla (no ocluido por splash, no display:none).
+        // Ese es el momento exacto en que MapLibre debe recalcular su
+        // tamaño y repintar — lo que arregla el "blanco hasta navegar".
+        const kick = () => {
+            try {
+                window.GoHappyMap.instance.resize();
+                window.GoHappyMap.instance.triggerRepaint();
+            } catch (e) {}
+        };
+        if (window.IntersectionObserver && !window.GoHappyMap._intersectObs) {
+            window.GoHappyMap._intersectObs = new IntersectionObserver((entries) => {
+                entries.forEach(e => {
+                    if (e.isIntersecting && e.intersectionRatio > 0) {
+                        // El canvas acaba de hacerse visible → resize + repaint
+                        kick();
+                        requestAnimationFrame(kick);
+                        setTimeout(kick, 200);
+                    }
+                });
+            }, { threshold: [0, 0.01, 0.5] });
+            window.GoHappyMap._intersectObs.observe(mapDiv);
+        }
+        // ResizeObserver para cambios de tamaño (rotación, split-screen)
         if (window.ResizeObserver && !window.GoHappyMap._resizeObs) {
-            window.GoHappyMap._resizeObs = new ResizeObserver(() => {
-                try { window.GoHappyMap.instance && window.GoHappyMap.instance.resize(); } catch (e) {}
-            });
+            window.GoHappyMap._resizeObs = new ResizeObserver(kick);
             window.GoHappyMap._resizeObs.observe(mapDiv);
         }
-        // Visibility change también dispara resize (vuelta de otra tab)
-        if (!window.GoHappyMap._visListener) {
-            window.GoHappyMap._visListener = () => {
-                if (!document.hidden && window.GoHappyMap.instance) {
-                    setTimeout(() => { try { window.GoHappyMap.instance.resize(); } catch (e) {} }, 100);
-                }
-            };
-            document.addEventListener('visibilitychange', window.GoHappyMap._visListener);
-        }
+        // Red de seguridad: 2 resize tras crear (cubre el caso raro donde
+        // el IntersectionObserver no dispara porque el canvas ya era visible)
+        setTimeout(kick, 400);
+        setTimeout(kick, 1200);
 
-        // ── Observar el splash para hacer resize justo cuando desaparece
-        // (el splash z-index 9999 puede impedir que el compositor pinte
-        // el canvas del mapa debajo en algunos navegadores móviles)
-        const splash = document.getElementById('splash-screen');
-        if (splash && !window.GoHappyMap._splashObs) {
-            window.GoHappyMap._splashObs = new MutationObserver(() => {
-                const isHidden = splash.style.display === 'none' || splash.style.opacity === '0';
-                if (isHidden && window.GoHappyMap.instance) {
-                    // Splash se desvanece: kick repaint AHORA (display-toggle)
-                    [50, 400, 900].forEach(ms => setTimeout(() => window.GoHappyMap._kickRepaint(), ms));
-                    window.GoHappyMap._splashObs.disconnect();
-                }
-            });
-            window.GoHappyMap._splashObs.observe(splash, { attributes: true, attributeFilter: ['style'] });
-        }
+        // ⚡ UI INMEDIATA — barra de búsqueda + filtros + FABs ⚡
+        // CRÍTICO: inyectar la UI AHORA, no en el evento 'load'. Si los tiles
+        // tardan o el mapa queda blanco, la UI (botones/búsqueda) debe existir
+        // igual — es HTML overlay, no necesita WebGL pintado.
+        window.GoHappyMap.injectUI(container);
+        window.GoHappyMap._loadSearchCache();
+        window.GoHappyMap.startGPSWatch();
 
         // Solicitar ubicación al instante (GPS preciso → centra mapa al user)
         window.GoHappyMap.locateUser(true);
@@ -488,21 +513,12 @@ window.GoHappyMap = {
                 setTimeout(() => ld.style.display = 'none', 400);
             }
 
-            // ⚡ FIX BLANK MAP DEFINITIVO ⚡ (ver _kickRepaint)
-            // Replica el ciclo display:none→reflow→display que fuerza al
-            // compositor a re-componer la capa WebGL (lo que un resize() solo
-            // NO consigue). Inmediato + escalones que cubren splash-hide.
-            window.GoHappyMap._kickRepaint();
-            [120, 400, 900, 1800, 3000].forEach(ms => setTimeout(() => window.GoHappyMap._kickRepaint(), ms));
-
-            // ANIMAR a pitch 3D 55° después de cargar (suave, no bloquea)
-            setTimeout(() => {
-                try {
-                    window.GoHappyMap.instance.easeTo({
-                        pitch: 55, bearing: -10, duration: 1500, easing: t => t * (2 - t)
-                    });
-                } catch (e) {}
-            }, 300);
+            // Resize + repaint al cargar (el IntersectionObserver cubre el
+            // resto de casos de visibilidad). El mapa ya nace con pitch 50.
+            try {
+                window.GoHappyMap.instance.resize();
+                window.GoHappyMap.instance.triggerRepaint();
+            } catch (e) {}
 
             // ───── COLORES NAVEGADOR PREMIUM (estilo Waze/Google 2026) ─────
             const layersColor = [
@@ -713,15 +729,9 @@ window.GoHappyMap = {
                 });
             } catch (e) { console.warn('[Map] cluster setup:', e?.message); }
 
-            // UI overlay (search + filtros + FABs)
-            window.GoHappyMap.injectUI(container);
-
-            // Cargar caché de búsquedas IA
-            window.GoHappyMap._loadSearchCache();
-
-            // Cargar marcadores reales + GPS watch
+            // Cargar marcadores reales (los markers necesitan estilo cargado
+            // para el clustering; la UI ya se inyectó fuera del 'load')
             try { await window.GoHappyMap.loadMarkers(); } catch (e) { console.warn('[Map] loadMarkers:', e?.message); }
-            window.GoHappyMap.startGPSWatch();
 
             // SMART NAV (al volver a la pestaña con contexto)
             if (window._navContext) {
