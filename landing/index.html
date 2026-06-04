@@ -1338,6 +1338,86 @@
         .fade-up[data-delay="2"] { transition-delay: 0.24s; }
         .fade-up[data-delay="3"] { transition-delay: 0.36s; }
         .fade-up[data-delay="4"] { transition-delay: 0.48s; }
+
+        /* ═══════════════════════════════════════════════════════════════
+           PREMIUM MOTION v2 — fluido, moderno, ligero (GPU only)
+           ═══════════════════════════════════════════════════════════════ */
+
+        /* Easing más premium para los reveals existentes */
+        .fade-up {
+            transition: opacity .7s cubic-bezier(.16,1,.3,1),
+                        transform .7s cubic-bezier(.16,1,.3,1);
+            will-change: opacity, transform;
+        }
+        .fade-up.visible { will-change: auto; }
+
+        /* Barra de progreso de scroll (top, finísima) */
+        #scroll-progress {
+            position: fixed; top: 0; left: 0;
+            height: 3px; width: 100%;
+            transform: scaleX(0); transform-origin: left center;
+            background: var(--brand-bright);
+            z-index: 1000; pointer-events: none;
+            box-shadow: 0 0 10px rgba(11,113,252,.45);
+        }
+
+        /* Aurora viva: anima suavemente los blobs del hero (sólo transform) */
+        .hero::before { animation: auroraA 19s ease-in-out infinite alternate; }
+        .hero::after  { animation: auroraB 23s ease-in-out infinite alternate; }
+        @keyframes auroraA {
+            from { transform: translate(0,0) scale(1); }
+            to   { transform: translate(-60px,42px) scale(1.18); }
+        }
+        @keyframes auroraB {
+            from { transform: translate(0,0) scale(1); }
+            to   { transform: translate(52px,-32px) scale(1.22); }
+        }
+
+        /* Stagger del hero: el hero ya se revela con .fade-up; añadimos un
+           leve escalonado para un arranque más fluido (sin capas extra). */
+        .hero-title    { transition-delay: .10s; }
+        .hero-subtitle { transition-delay: .20s; }
+        .hero-actions  { transition-delay: .30s; }
+        .hero-trust    { transition-delay: .40s; }
+
+        /* Shine sweep en el CTA primario */
+        .btn-primary { position: relative; overflow: hidden; }
+        .btn-primary::after {
+            content: ''; position: absolute; top: 0; left: -120%;
+            width: 55%; height: 100%;
+            background: linear-gradient(100deg, transparent, rgba(255,255,255,.45), transparent);
+            transform: skewX(-18deg);
+            transition: left .75s ease;
+            pointer-events: none;
+        }
+        .btn-primary:hover::after { left: 135%; }
+
+        /* Botones: micro-rebote premium */
+        .btn { transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s ease; }
+        .btn:active { transform: translateY(0) scale(.97); }
+
+        /* Tarjetas: lift + glow al pasar el cursor */
+        .stat-card, .feature-card {
+            transition: transform .35s cubic-bezier(.16,1,.3,1),
+                        box-shadow .35s ease, border-color .35s ease;
+        }
+        .stat-card:hover, .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--glass-shadow-lg);
+            border-color: rgba(11,113,252,.18);
+        }
+
+        /* Accesibilidad / rendimiento: menos movimiento si el usuario lo pide */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation: none !important;
+                transition-duration: .01ms !important;
+            }
+            .fade-up, .hero-badge, .hero-title, .hero-subtitle,
+            .hero-actions, .hero-trust {
+                opacity: 1 !important; transform: none !important;
+            }
+        }
     </style>
 </head>
 
@@ -1345,7 +1425,7 @@
     <!-- ════════════════ NAV ════════════════ -->
     <nav class="nav" id="nav">
         <a href="#" class="nav-logo">
-            <img src="assets/logo.png?v=7.0.0" alt="GoHappy">
+            <img src="assets/logo_transparent.png?v=8.9.3" alt="GoHappy">
             <span>GoHappy</span>
         </a>
         <ul class="nav-links">
@@ -2006,7 +2086,7 @@
             <div class="footer-grid">
                 <div>
                     <div class="footer-brand">
-                        <img src="assets/logo.png?v=7.0.0" alt="GoHappy">
+                        <img src="assets/logo_white.png?v=8.9.3" alt="GoHappy">
                         <span>GoHappy Family</span>
                     </div>
                     <p class="footer-tag" data-en="The smart app for families that want to live more, not scroll more.">La app inteligente para familias que quieren vivir más, no hacer scroll más.</p>
@@ -2125,6 +2205,57 @@
                     }
                 }
             });
+        });
+
+        // ── Barra de progreso de scroll (premium, ligera) ──
+        const sp = document.createElement('div');
+        sp.id = 'scroll-progress';
+        document.body.appendChild(sp);
+        let spTick = false;
+        function updateProgress() {
+            const h = document.documentElement;
+            const max = h.scrollHeight - h.clientHeight;
+            sp.style.transform = 'scaleX(' + (max > 0 ? h.scrollTop / max : 0) + ')';
+            spTick = false;
+        }
+        window.addEventListener('scroll', () => {
+            if (!spTick) { spTick = true; requestAnimationFrame(updateProgress); }
+        }, { passive: true });
+        updateProgress();
+
+        // ── Contadores animados en las cifras (73%, 2,5h, 68%…) ──
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        function animateCount(el) {
+            const raw = el.getAttribute('data-target') || el.textContent.trim();
+            const m = raw.match(/([0-9]+(?:[.,][0-9]+)?)/);
+            if (!m) return;
+            const numStr = m[1];
+            const decimalChar = numStr.indexOf(',') >= 0 ? ',' : '.';
+            const hasDec = /[.,]/.test(numStr);
+            const end = parseFloat(numStr.replace(',', '.'));
+            const prefix = raw.slice(0, m.index);
+            const suffix = raw.slice(m.index + numStr.length);
+            const dur = 1400, t0 = performance.now();
+            function tick(now) {
+                const k = Math.min((now - t0) / dur, 1);
+                const eased = 1 - Math.pow(1 - k, 3);
+                const val = end * eased;
+                const shown = hasDec ? val.toFixed(1).replace('.', decimalChar) : Math.round(val).toString();
+                el.textContent = prefix + shown + suffix;
+                if (k < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        }
+        const countIO = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) { animateCount(e.target); countIO.unobserve(e.target); }
+            });
+        }, { threshold: 0.6 });
+        document.querySelectorAll('.stat-num').forEach(el => {
+            el.setAttribute('data-target', el.textContent.trim());
+            if (reduceMotion) return;          // sin animación si el usuario lo pide
+            el.textContent = el.textContent.replace(/[0-9]/g, '0'); // arranca en 0
+            countIO.observe(el);
         });
     </script>
 </body>
