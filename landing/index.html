@@ -159,6 +159,14 @@
             color: var(--cobalt);
         }
         .nav-logo img { width: 32px; height: 32px; border-radius: 8px; }
+        /* Wordmark "GoHappy Family" con los colores oficiales del logo */
+        .nav-wordmark { letter-spacing: -0.01em; white-space: nowrap; }
+        .nav-wordmark .w-go     { color: var(--cobalt); }
+        .nav-wordmark .w-happy  { color: var(--cyan); }
+        .nav-wordmark .w-family { color: var(--cyan); }
+        @media (max-width: 420px) {
+            .nav-wordmark .w-family { display: none; } /* en móvil estrecho, solo GoHappy */
+        }
         .nav-links {
             display: flex; gap: 28px;
             list-style: none;
@@ -1425,8 +1433,8 @@
     <!-- ════════════════ NAV ════════════════ -->
     <nav class="nav" id="nav">
         <a href="#" class="nav-logo">
-            <img src="assets/logo_transparent.png?v=8.9.3" alt="GoHappy">
-            <span>GoHappy</span>
+            <img src="assets/logo_transparent.png?v=8.9.3" alt="GoHappy Family">
+            <span class="nav-wordmark"><span class="w-go">Go</span><span class="w-happy">Happy</span> <span class="w-family">Family</span></span>
         </a>
         <ul class="nav-links">
             <li><a href="#features" data-en="Features">Funciones</a></li>
