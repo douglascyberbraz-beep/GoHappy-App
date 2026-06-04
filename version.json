@@ -1,5 +1,5 @@
 {
-  "version": "8.9.3",
-  "timestamp": "2026-06-04T10:30:00Z",
-  "note": "UI premium: logo del login con fondo transparente real (sin cuadrado, sin tarjeta, sin halo)."
+  "version": "8.9.4",
+  "timestamp": "2026-06-04T11:00:00Z",
+  "note": "UI premium: logo transparente tambien en splash de arranque (sin mix-blend hack)."
 }

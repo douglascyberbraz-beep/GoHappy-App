@@ -146,7 +146,7 @@ body {
     max-width: 72vw;
     height: auto;
     object-fit: contain;
-    mix-blend-mode: multiply; /* Para ocultar el fondo blanco del asset oficial */
+    /* logo_transparent.png ya trae fondo transparente real → sin blend hacks */
     animation:
         splashBounceIn 1s cubic-bezier(0.34,1.56,0.64,1) both,
         splashBreathe 3.5s ease-in-out infinite 1.2s;
