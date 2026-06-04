@@ -334,13 +334,26 @@ exports.geminiProxy = onRequest(
 
             const data = await r.json();
 
-            // Guardar en caché solo respuestas válidas
-            if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-                db.collection('_aicache').doc(cacheKey).set({
-                    response: data,
-                    savedAt: FieldValue.serverTimestamp(),
-                    expectJson
-                }).catch(() => {});
+            // Guardar en caché solo respuestas válidas.
+            const respText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (respText) {
+                // ANTI-ENVENENAMIENTO: para EVENTOS (useSearch) NO cachear respuestas
+                // vacías o pobres. Si el grounding falla y devuelve [] o 1 item, cachearlo
+                // serviría "0 eventos" durante 6h a TODA la ciudad. Mejor no cachear y
+                // que el siguiente usuario reintente con datos frescos.
+                const looksEmpty = useSearch === true && (
+                    respText.replace(/\s/g, '').length < 80 ||
+                    (respText.match(/"(title|name)"\s*:/g) || []).length < 2
+                );
+                if (!looksEmpty) {
+                    db.collection('_aicache').doc(cacheKey).set({
+                        response: data,
+                        savedAt: FieldValue.serverTimestamp(),
+                        expectJson
+                    }).catch(() => {});
+                } else {
+                    console.warn('[Gemini] Respuesta de eventos vacía/pobre — NO cacheada');
+                }
             }
 
             db.collection('_ailogs').add({

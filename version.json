@@ -1,5 +1,5 @@
 {
-  "version": "8.9.4",
-  "timestamp": "2026-06-04T11:00:00Z",
-  "note": "UI premium: logo transparente tambien en splash de arranque (sin mix-blend hack)."
+  "version": "8.9.5",
+  "timestamp": "2026-06-04T12:00:00Z",
+  "note": "Fix eventos: no cachear respuestas vacias (anti-envenenamiento) + fallback resiliente sin grounding."
 }

@@ -222,7 +222,28 @@ Formato JSON estricto, sin markdown ni texto extra:
 [ { "title":"", "description":"", "category":"", "date":"YYYY-MM-DD", "time":"", "location":"", "distanceDesc":"", "price":"", "ages":"", "linkText":"", "linkUrl":"", "tip":"" } ]`;
 
         // Eventos REALES: SÍ activamos Search Grounding (necesario para fechas/horas reales)
-        return await window.GoHappyAI._callGemini(prompt, true, true);
+        let eventos = await window.GoHappyAI._callGemini(prompt, true, true);
+
+        // FALLBACK ANTI-PANTALLA-VACÍA: si el grounding está saturado o no devolvió
+        // nada, pedimos actividades familiares REALES y habituales de la ciudad
+        // (museos, teatros, bibliotecas, mercados reconocibles) que el modelo conoce
+        // por entrenamiento — SIN depender de Google Search. Marcamos que la
+        // programación concreta se consulta en la web oficial (no inventamos fechas).
+        if (!Array.isArray(eventos) || eventos.length === 0) {
+            const fbPrompt = `${window.GoHappyAI._geoGuard(cityInfo)}${g2.lang === 'en'
+                ? `List 5 REAL, well-known family activities/venues in ${cityInfo.city} (${g2.countryName}) that regularly host children's programmes (museums, theatres, libraries, parks, cultural centres). Use ONLY real recognisable places. Do NOT invent exact dates — set date to "" and tell the family to check the official site for the current schedule.`
+                : `Lista 5 actividades/lugares familiares REALES y reconocibles de ${cityInfo.city} (${g2.countryName}) que suelen tener programación infantil (museos, teatros, bibliotecas, parques, centros culturales). Usa SOLO sitios reales reconocibles. NO inventes fechas exactas — pon date en "" y di que se consulte la web oficial para la programación actual.`}
+
+Campos por item: title, description, category (taller|teatro|museo|aire-libre|cine|feria|mercado|ruta), date (""), time ("Consulta web" / "Check site"), location (sitio real de ${cityInfo.city}), distanceDesc, price, ages, linkText ("Web oficial"/"Official site"), linkUrl (web oficial real del lugar), tip.
+Formato JSON estricto, sin markdown:
+[ { "title":"", "description":"", "category":"", "date":"", "time":"", "location":"", "distanceDesc":"", "price":"", "ages":"", "linkText":"", "linkUrl":"", "tip":"" } ]`;
+            const fb = await window.GoHappyAI._callGemini(fbPrompt, true, false);
+            if (Array.isArray(fb) && fb.length > 0) {
+                window.GoHappyAI._lastSource = 'ai-knowledge';
+                eventos = fb;
+            }
+        }
+        return eventos;
     },
 
     // ───────────────────────────────────────────────────────────
@@ -780,8 +801,16 @@ JSON: [ { "title": "", "description": "", "deadline": "", "requirements": "", "h
                 result = text.trim();
             }
 
-            // Cache client-side la respuesta exitosa
-            window.GoHappyAI._setCached(cacheKey, result);
+            // Cache client-side la respuesta exitosa.
+            // IMPORTANTE: NO cachear respuestas VACÍAS (array [] u objeto {}).
+            // Si un fallo transitorio (grounding saturado, timeout) devuelve vacío,
+            // cachearlo serviría "0 resultados" durante horas → eventos/planes en blanco.
+            const isEmptyResult =
+                (Array.isArray(result) && result.length === 0) ||
+                (result && typeof result === 'object' && !Array.isArray(result) && Object.keys(result).length === 0);
+            if (!isEmptyResult) {
+                window.GoHappyAI._setCached(cacheKey, result);
+            }
             window.GoHappyAI._lastSource = fromCache ? 'cache' : 'real';
 
             return result;
