@@ -6,8 +6,8 @@
 // la próxima vez que abran la app: localStorage, SW caches, IndexedDB.
 // Sólo se preserva la sesión activa (Firebase Auth). Cero datos demo.
 // ═══════════════════════════════════════════════════════════════════
-const APP_STATE_VERSION = 'v8.9.0';
-const APP_VERSION = '8.9.0';
+const APP_STATE_VERSION = 'v8.9.1';
+const APP_VERSION = '8.9.1';
 
 // ═══════════════════════════════════════════════════════════════════
 // AUTO-UPDATE AGRESIVO — Detecta nueva versión y fuerza reload
@@ -110,7 +110,12 @@ const APP_VERSION = '8.9.0';
 })();
 
 const appState = {
-    currentPage: 'map',
+    // IMPORTANTE: arranca en null, NO en 'map'. Si fuese 'map', la primera
+    // llamada loadPage('map') del arranque chocaría con la guardia
+    // "if (currentPage === pageName) return" y el mapa NUNCA se renderizaría
+    // (quedaba blanco hasta navegar a otra pestaña y volver). Bug raíz del
+    // mapa en blanco que persistió semanas.
+    currentPage: null,
     user: null,
     location: null,
     transitioning: false
