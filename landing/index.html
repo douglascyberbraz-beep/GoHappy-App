@@ -2215,6 +2215,25 @@
             });
         });
 
+        // ── Invitación: reenviar ?ref / ?fam de la URL a los enlaces del app ──
+        // El QR de invitación lleva aquí (web); al abrir el app le pasamos el código
+        // para que se aplique la recompensa (+1000 pts) o el auto-join a la familia.
+        (function() {
+            try {
+                const p = new URLSearchParams(location.search);
+                const ref = p.get('ref');
+                const fam = p.get('fam') || p.get('family');
+                if (!ref && !fam) return;
+                document.querySelectorAll('a[href*="douglascyberbraz-beep.github.io/GoHappy-App/"]').forEach(a => {
+                    if (a.href.includes('page=legal')) return; // no tocar enlaces legales
+                    const u = new URL(a.href);
+                    if (ref) u.searchParams.set('ref', ref);
+                    if (fam) u.searchParams.set('fam', fam);
+                    a.href = u.toString();
+                });
+            } catch (e) { /* ignore */ }
+        })();
+
         // ── Barra de progreso de scroll (premium, ligera) ──
         const sp = document.createElement('div');
         sp.id = 'scroll-progress';

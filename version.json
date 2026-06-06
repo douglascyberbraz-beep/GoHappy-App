@@ -1,5 +1,5 @@
 {
-  "version": "8.9.14",
-  "timestamp": "2026-06-04T17:30:00Z",
-  "note": "Progreso+fases del perfil se muestran con DOBLE CLIC en la foto (clic simple = editar avatar)."
+  "version": "8.9.15",
+  "timestamp": "2026-06-04T18:00:00Z",
+  "note": "QR invitacion lleva a la web (landing reenvia ref/fam al app). Perfil: Mi Familia card grande + 3 circulos."
 }

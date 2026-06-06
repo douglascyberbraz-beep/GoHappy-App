@@ -226,27 +226,29 @@ window.GoHappyProfile = {
                     </div>
                 </div>
 
-                <!-- Acceso rápido a páginas — diseño premium con icono grande, sin Noticias -->
-                <div class="profile-quick-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:18px 16px;">
-                    <button class="profile-quick-card" data-goto-page="my_family" style="background:linear-gradient(135deg,rgba(11,113,252,0.10),rgba(23,200,212,0.14)); border:0.5px solid rgba(11,113,252,0.20); border-radius:20px; padding:18px 14px; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:6px; box-shadow:0 4px 14px rgba(11,76,143,0.08); transition:transform 0.2s;">
-                        <div style="font-size:28px;">👨‍👩‍👧</div>
-                        <div style="font-weight:800; color:var(--primary-cobalt); font-size:14px;">${(window.GoHappyI18n?.lang === 'en') ? 'My Family' : 'Mi Familia'}</div>
-                        <div style="font-size:11px; color:var(--text-secondary);">${(window.GoHappyI18n?.lang === 'en') ? 'Retos, photos & members' : 'Retos, fotos y miembros'}</div>
+                <!-- Mi Familia: acceso GRANDE (tamaño del card de Invita y Gana) -->
+                <button class="profile-quick-card" data-goto-page="my_family" style="width:calc(100% - 32px); margin:18px 16px 14px; padding:20px 22px; border:0.5px solid rgba(11,113,252,0.22); border-radius:26px; cursor:pointer; text-align:left; display:flex; align-items:center; gap:16px; background:linear-gradient(135deg,rgba(11,113,252,0.12),rgba(23,200,212,0.16)); box-shadow:0 8px 24px rgba(11,76,143,0.10); transition:transform 0.2s;">
+                    <div style="font-size:42px; flex-shrink:0; line-height:1;">👨‍👩‍👧</div>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-family:'Poppins',sans-serif; font-weight:900; color:var(--primary-cobalt,#0B4C8F); font-size:19px; line-height:1.15;">${(window.GoHappyI18n?.lang === 'en') ? 'My Family' : 'Mi Familia'}</div>
+                        <div style="font-size:12.5px; color:var(--text-secondary); margin-top:3px;">${(window.GoHappyI18n?.lang === 'en') ? 'Protection, quests, photos & members' : 'Protección, retos, fotos y miembros'}</div>
+                    </div>
+                    <span style="font-size:24px; color:var(--primary-cobalt,#0B4C8F); flex-shrink:0;">→</span>
+                </button>
+
+                <!-- Otras 3 funciones en formato circular debajo -->
+                <div style="display:flex; justify-content:space-around; align-items:flex-start; gap:8px; margin:2px 16px 14px;">
+                    <button class="profile-quick-card" data-goto-page="memories" style="background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px; flex:1; padding:4px;">
+                        <div style="width:60px; height:60px; border-radius:50%; background:rgba(255,255,255,0.92); border:0.5px solid rgba(11,76,143,0.12); box-shadow:0 4px 14px rgba(11,76,143,0.10); display:flex; align-items:center; justify-content:center; font-size:27px;">📸</div>
+                        <span style="font-size:11.5px; font-weight:700; color:var(--primary-cobalt,#0B4C8F);">${(window.GoHappyI18n?.lang === 'en') ? 'Memories' : 'Recuerdos'}</span>
                     </button>
-                    <button class="profile-quick-card" data-goto-page="memories" style="background:rgba(255,255,255,0.85); border:0.5px solid rgba(255,255,255,0.95); border-radius:20px; padding:18px 14px; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:6px; box-shadow:0 4px 14px rgba(11,76,143,0.08); transition:transform 0.2s;">
-                        <div style="font-size:28px;">📸</div>
-                        <div style="font-weight:800; color:var(--primary-cobalt); font-size:14px;">${(window.GoHappyI18n?.lang === 'en') ? 'Memories' : 'Recuerdos'}</div>
-                        <div style="font-size:11px; color:var(--text-secondary);">${(window.GoHappyI18n?.lang === 'en') ? 'Your activity timeline' : 'Tu historial de aventuras'}</div>
+                    <button class="profile-quick-card" data-goto-page="tribu" style="background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px; flex:1; padding:4px;">
+                        <div style="width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(236,72,153,0.16)); border:0.5px solid rgba(168,85,247,0.22); box-shadow:0 4px 14px rgba(168,85,247,0.12); display:flex; align-items:center; justify-content:center; font-size:27px;">🏘️</div>
+                        <span style="font-size:11.5px; font-weight:700; color:#7C3AED;">${(window.GoHappyI18n?.lang === 'en') ? 'Community' : 'Comunidad'}</span>
                     </button>
-                    <button class="profile-quick-card" data-goto-page="tribu" style="background:linear-gradient(135deg,rgba(168,85,247,0.08),rgba(236,72,153,0.10)); border:0.5px solid rgba(168,85,247,0.20); border-radius:20px; padding:18px 14px; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:6px; box-shadow:0 4px 14px rgba(168,85,247,0.10); transition:transform 0.2s;">
-                        <div style="font-size:28px;">🏘️</div>
-                        <div style="font-weight:800; color:#7C3AED; font-size:14px;">${(window.GoHappyI18n?.lang === 'en') ? 'Community' : 'Comunidad'}</div>
-                        <div style="font-size:11px; color:var(--text-secondary);">${(window.GoHappyI18n?.lang === 'en') ? 'Tribe of parents' : 'Tribu de padres'}</div>
-                    </button>
-                    <button class="profile-quick-card" data-goto-page="safe" style="background:linear-gradient(135deg,rgba(239,68,68,0.06),rgba(245,158,11,0.10)); border:0.5px solid rgba(239,68,68,0.20); border-radius:20px; padding:18px 14px; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:6px; box-shadow:0 4px 14px rgba(239,68,68,0.08); transition:transform 0.2s;">
-                        <div style="font-size:28px;">🛡️</div>
-                        <div style="font-weight:800; color:#DC2626; font-size:14px;">${(window.GoHappyI18n?.lang === 'en') ? 'Safety alerts' : 'Alertas'}</div>
-                        <div style="font-size:11px; color:var(--text-secondary);">${(window.GoHappyI18n?.lang === 'en') ? 'Community warnings' : 'Avisos comunitarios'}</div>
+                    <button class="profile-quick-card" data-goto-page="safe" style="background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px; flex:1; padding:4px;">
+                        <div style="width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg,rgba(239,68,68,0.10),rgba(245,158,11,0.16)); border:0.5px solid rgba(239,68,68,0.22); box-shadow:0 4px 14px rgba(239,68,68,0.10); display:flex; align-items:center; justify-content:center; font-size:27px;">🛡️</div>
+                        <span style="font-size:11.5px; font-weight:700; color:#DC2626;">${(window.GoHappyI18n?.lang === 'en') ? 'Alerts' : 'Alertas'}</span>
                     </button>
                 </div>
 
@@ -317,8 +319,9 @@ window.GoHappyProfile = {
         // Flujo D: renderizar ADN familiar desde family_context
         window.GoHappyProfile._renderFamilyDNA();
 
-        // ─── REFERIDO: URL base configurable ───
-        const INVITE_BASE_URL = 'https://douglascyberbraz-beep.github.io/GoHappy-App/';
+        // ─── REFERIDO: el QR/link lleva a nuestra WEB (landing). La landing
+        //     reenvía el ?ref= al app, donde se aplica la recompensa (+1000 pts). ───
+        const INVITE_BASE_URL = 'https://gohappy-landing.web.app/';
         const buildInviteLink = (code) => `${INVITE_BASE_URL}?ref=${encodeURIComponent(code || '')}`;
 
         document.getElementById('copy-ref-link').onclick = async (e) => {
