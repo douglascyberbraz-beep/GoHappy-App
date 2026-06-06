@@ -873,9 +873,27 @@ body {
 }
 .q-filter-btn:active, .filter-chip:active, .rank-toggle-btn:active { transform: scale(0.92) !important; }
 
-/* ── Filtros del MAPA: botones circulares pequeños, SOLO icono (clean) ── */
-.map-filters {
-    justify-content: center !important;   /* centrados bajo la barra de búsqueda */
+/* ── Búsqueda + filtros del MAPA: centrados al viewport como la nav flotante ── */
+/* El contenedor (que arrastra el descentrado) se centra igual que .bottom-nav */
+body .map-search-container {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: calc(100% - 24px) !important;
+    max-width: 420px !important;
+    margin: 0 !important;
+}
+/* Los filtros llenan el contenedor centrado y centran sus chips */
+.map-search-container .map-filters {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: none !important;
+    justify-content: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
 }
 .map-filters .filter-chip {
     width: 46px !important;

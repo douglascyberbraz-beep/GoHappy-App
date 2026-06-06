@@ -1295,13 +1295,15 @@ window.GoHappyToday = {
         const storedPrefs = JSON.parse(localStorage.getItem('GoHappy_family_prefs') || 'null');
         const T = window.t || (k => k);
 
+        // El botón "Sorpréndeme" va ABAJO: debajo del cuestionario y, dentro de
+        // los planes, al final de todo.
         content.innerHTML = `
-            <button id="surprise-btn" class="surprise-btn">
-                ${T('today.surprise')}
-            </button>
             <div id="planes-list">
                 ${window.GoHappyToday._skeletonCards(3)}
             </div>
+            <button id="surprise-btn" class="surprise-btn" style="margin-top:14px;">
+                ${T('today.surprise')}
+            </button>
         `;
 
         document.getElementById('surprise-btn').onclick = () => {
