@@ -53,6 +53,30 @@ window.GoHappyToday = {
         } catch (e) { return 1; }
     },
 
+    // ─── 💾 Guardar el SÚPER PLAN del día (por-usuario, para la push) ───
+    _saveSuperPlan: (plan) => {
+        try {
+            const today = new Date().toISOString().slice(0, 10);
+            const compact = {
+                date: today,
+                title: plan.title || '',
+                summary: plan.summary || '',
+                whyPerfect: plan.whyPerfect || '',
+                location: plan.location || '',
+                time: plan.time || '',
+                price: plan.price || '',
+                lat: parseFloat(plan.lat) || null,
+                lng: parseFloat(plan.lng) || null
+            };
+            localStorage.setItem('GoHappy_super_plan_today', JSON.stringify(compact));
+            // Persistir en Firestore (users/{uid}/private/family_context) para que un
+            // job de notificaciones push pueda leer el súper plan de cada usuario.
+            if (window.GoHappyContext?.update) {
+                window.GoHappyContext.update({ superPlanToday: compact });
+            }
+        } catch (e) { /* ignore */ }
+    },
+
     // ─── ⭐ PLAN DEL DÍA — el plan estrella de hoy, instantáneo desde caché ───
     _renderPlanDelDia: async () => {
         const box = document.getElementById('today-plan-hero');
@@ -91,12 +115,18 @@ window.GoHappyToday = {
 
         if (!best) { box.innerHTML = ''; return; }  // si no hay, ocultar (la vista Planes ya gestiona el error)
 
+        // 💾 Guardar el SÚPER PLAN del día (por-usuario) — lo usará la notificación push
+        window.GoHappyToday._saveSuperPlan(best);
+
         const isFree = (best.price || '').toLowerCase().includes('grat') || (best.price || '').toLowerCase().includes('free');
+        const whyHtml = best.whyPerfect
+            ? `<div class="pdd-why">💙 ${safe(best.whyPerfect)}</div>` : '';
         box.innerHTML = `
             <div class="pdd-card">
-                <div class="pdd-eyebrow">✨ ${lang === 'en' ? 'YOUR PLAN FOR TODAY' : 'TU PLAN DE HOY'}</div>
+                <div class="pdd-eyebrow">⭐ ${lang === 'en' ? 'SUPER PLAN OF THE DAY' : 'SÚPER PLAN DEL DÍA'}</div>
                 <h3 class="pdd-title">${safe(best.title || (lang === 'en' ? 'Family plan' : 'Plan familiar'))}</h3>
                 <p class="pdd-summary">${safe(best.summary || '')}</p>
+                ${whyHtml}
                 <div class="pdd-meta">
                     <span class="pdd-pill">${safe(best.typeLabel || '📍 Plan')}</span>
                     <span class="pdd-pill">🕐 ${safe(best.time || (lang === 'en' ? 'Flexible' : 'Flexible'))}</span>
@@ -273,7 +303,25 @@ window.GoHappyToday = {
                     line-height:1.18; margin:0 0 5px; letter-spacing:-0.3px;
                     text-shadow:0 1px 8px rgba(0,0,0,0.12);
                 }
-                .pdd-summary { font-size:13px; line-height:1.4; opacity:0.95; margin:0 0 12px; }
+                .pdd-summary { font-size:13px; line-height:1.4; opacity:0.95; margin:0 0 10px; }
+                .pdd-why {
+                    display:inline-block; background:rgba(255,255,255,0.18);
+                    border:0.5px solid rgba(255,255,255,0.28);
+                    border-radius:12px; padding:7px 11px; margin-bottom:12px;
+                    font-size:12px; font-weight:700; line-height:1.35;
+                }
+                /* Badge "Súper plan" en la primera card de la lista de Planes */
+                .superplan-badge {
+                    display:inline-flex; align-items:center; gap:4px;
+                    background:linear-gradient(135deg,#FF8A50,#FF6B9D);
+                    color:#fff; font-size:10px; font-weight:900; letter-spacing:0.4px;
+                    padding:3px 9px; border-radius:999px; text-transform:uppercase;
+                    box-shadow:0 3px 10px rgba(255,107,157,0.3);
+                }
+                .plan-card-premium.is-superplan {
+                    border:1.5px solid rgba(255,138,80,0.55);
+                    box-shadow:0 10px 26px rgba(255,107,157,0.18);
+                }
                 .pdd-meta { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
                 .pdd-pill {
                     background:rgba(255,255,255,0.22); backdrop-filter:blur(8px);
@@ -1218,17 +1266,25 @@ window.GoHappyToday = {
         const sec = window.GoHappySecurity;
         const safe = (s) => sec ? sec.safe(s || '') : String(s || '').replace(/[<>]/g, '');
 
+        const lang2 = window.GoHappyI18n?.lang || 'es';
         list.innerHTML = activities.map((act, idx) => {
             const isFree = (act.price || '').toLowerCase().includes('grat');
+            const isSuper = idx === 0;
+            const superBadge = isSuper
+                ? `<span class="superplan-badge">⭐ ${lang2 === 'en' ? 'Super plan' : 'Súper plan'}</span>` : '';
+            const whyHtml = (isSuper && act.whyPerfect)
+                ? `<div class="event-tip" style="background:rgba(255,138,80,0.10);"><span class="event-tip-icon">💙</span><span>${safe(act.whyPerfect)}</span></div>` : '';
             return `
-                <div class="plan-card-premium card-anim">
+                <div class="plan-card-premium card-anim ${isSuper ? 'is-superplan' : ''}">
                     <div class="event-meta-row">
+                        ${superBadge}
                         <span class="event-day-badge">${safe(act.typeLabel || 'Plan')}</span>
                         <span class="event-time">🕐 ${safe(act.time || 'Flexible')}</span>
                         <span class="event-cat-tag" style="background:${isFree?'rgba(39,174,96,0.1)':'rgba(230,126,34,0.1)'}; color:${isFree?'#27AE60':'#E67E22'};">${safe(act.price || 'Gratis')}</span>
                     </div>
                     <h3 class="event-title">${safe(act.title || 'Plan')}</h3>
                     <p class="event-desc">${safe(act.summary || '')}</p>
+                    ${whyHtml}
                     <div class="event-info-grid">
                         <div class="event-info-item">📍 <strong>${safe(act.location || '')}</strong></div>
                         <div class="event-info-item">🚶 ${safe(act.distanceDesc || '')}</div>

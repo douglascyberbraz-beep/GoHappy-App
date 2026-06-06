@@ -88,6 +88,13 @@ PERFIL FAMILIAR ESPECÍFICO (ALTAMENTE PERSONALIZAR):
 ADAPTA cada plan a estas edades específicas: si tienen 3-5 años evita museos largos, si tienen 10-14 sugiere retos más estimulantes.`;
         }
 
+        // ⭐ SÚPER PLAN: instrucción para blindar el plan nº1 con TODO lo que sabemos
+        // del usuario (el contexto familiar completo ya se inyecta vía _callGemini).
+        const superPlanRule = lang === 'en'
+            ? `\nCRITICAL — PLAN #1 IS THE "SUPER PLAN OF THE DAY": it must be the SINGLE best possible plan for THIS exact family, maximally personalised. Cross every signal you have: children's exact ages, their interests, places they already loved (favouritePlaces), recent concerns from Care, their environment/budget/distance preferences, today's REAL weather and the time of day. It must feel hand-picked for them. Plans #2 and #3 are good diverse alternatives.`
+            : `\nCRÍTICO — EL PLAN Nº1 ES EL "SÚPER PLAN DEL DÍA": debe ser EL mejor plan posible para ESTA familia concreta, lo más personalizado posible. Cruza TODAS las señales que tienes: edades exactas de los niños, sus intereses, lugares que ya les encantaron (favoritePlaces), preocupaciones recientes de Care, sus preferencias de entorno/presupuesto/distancia, el CLIMA real de hoy y la hora del día. Debe sentirse elegido a mano para ellos. Los planes nº2 y nº3 son buenas alternativas variadas.`;
+        prefsContext += superPlanRule;
+
         const g = window.GoHappyAI._geoContext(cityInfo);
         const prompt = `${window.GoHappyAI._geoGuard(cityInfo)}${g.lang === 'en' ? 'You are the Premium Concierge for REAL family activities of GoHappy.' : 'Eres el Concierge Premium de actividades familiares REALES de GoHappy.'} Use Google Search to find verifiable places and times.
 ${g.lang === 'en' ? 'Location' : 'Ubicación'}: ${cityInfo.full} (coords ${coordinates}). Country: ${g.countryName}.
@@ -115,9 +122,10 @@ TAREA OBLIGATORIA:
    - highlights: array de 2 frases CORTAS (max 40 chars cada una)
    - packingList: array de 2-3 items esenciales
    - tip: 1 consejo práctico breve (max 70 chars)
+   - whyPerfect: SOLO para el plan nº1 — 1 frase corta (max 70 chars) explicando por qué es PERFECTO para esta familia concreta (menciona edad/interés/preferencia real). En los planes 2 y 3 deja "".
    - link: URL oficial si la tienes, si no ""
 
-Formato JSON estricto: [ { "title":"", "summary":"", "typeLabel":"", "location":"", "lat":NUM, "lng":NUM, "time":"", "duration":"", "price":"", "age":"", "highlights":["",""], "packingList":["",""], "tip":"", "link":"" } ]`;
+Formato JSON estricto: [ { "title":"", "summary":"", "typeLabel":"", "location":"", "lat":NUM, "lng":NUM, "time":"", "duration":"", "price":"", "age":"", "highlights":["",""], "packingList":["",""], "tip":"", "whyPerfect":"", "link":"" } ]`;
 
         // Planes IA: SIN Search Grounding (Gemini conoce lugares emblemáticos por entrenamiento)
         // Esto ahorra cuota Grounding (limitada) y resuelve el 429
