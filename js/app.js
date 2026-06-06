@@ -6,8 +6,8 @@
 // la próxima vez que abran la app: localStorage, SW caches, IndexedDB.
 // Sólo se preserva la sesión activa (Firebase Auth). Cero datos demo.
 // ═══════════════════════════════════════════════════════════════════
-const APP_STATE_VERSION = 'v8.9.15';
-const APP_VERSION = '8.9.15';
+const APP_STATE_VERSION = 'v8.9.16';
+const APP_VERSION = '8.9.16';
 
 // ═══════════════════════════════════════════════════════════════════
 // AUTO-UPDATE AGRESIVO — Detecta nueva versión y fuerza reload

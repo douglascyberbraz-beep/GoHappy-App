@@ -1,5 +1,5 @@
 {
-  "version": "8.9.15",
-  "timestamp": "2026-06-04T18:00:00Z",
-  "note": "QR invitacion lleva a la web (landing reenvia ref/fam al app). Perfil: Mi Familia card grande + 3 circulos."
+  "version": "8.9.16",
+  "timestamp": "2026-06-04T18:30:00Z",
+  "note": "Filtros del mapa: botones circulares pequenos solo icono (clean). Etiqueta de busqueda en data-label."
 }

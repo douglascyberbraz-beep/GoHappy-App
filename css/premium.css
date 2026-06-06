@@ -873,6 +873,39 @@ body {
 }
 .q-filter-btn:active, .filter-chip:active, .rank-toggle-btn:active { transform: scale(0.92) !important; }
 
+/* ── Filtros del MAPA: botones circulares pequeños, SOLO icono (clean) ── */
+.map-filters .filter-chip {
+    width: 46px !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 21px !important;
+    line-height: 1 !important;
+    flex-shrink: 0 !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 12px rgba(11,76,143,0.10) !important;
+}
+.map-filters .filter-chip.active { transform: scale(1.06); }
+.map-filters .filter-chip.loading { opacity: 0.5 !important; pointer-events: none !important; }
+.map-filters .filter-chip.loading::after {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important; margin: auto !important;
+    left: auto !important; top: auto !important; right: auto !important; bottom: auto !important;
+    width: 18px !important; height: 18px !important;
+    transform: none !important;
+    border: 2px solid rgba(11,76,143,0.25) !important;
+    border-top-color: var(--cobalt, #0B4C8F) !important;
+    border-radius: 50% !important;
+    animation: chip-spin-circ 0.7s linear infinite !important;
+}
+@keyframes chip-spin-circ { to { transform: rotate(360deg); } }
+
 /* ── 9. Inputs ─────────────────────────────────────────────────── */
 input, textarea, .post-input, .review-input, .auth-input {
     font-family: -apple-system, 'SF Pro Text', sans-serif !important;

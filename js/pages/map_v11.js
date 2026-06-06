@@ -823,13 +823,13 @@ window.GoHappyMap = {
                 <button id="gh-voice-search" title="${lang === 'en' ? 'Voice search' : 'Búsqueda por voz'}" style="background:rgba(11,113,252,0.10); border:none; width:38px; height:38px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; color:var(--cobalt,#0B4C8F); flex-shrink:0; transition:all 0.2s;">🎤</button>
             </div>
             <div class="map-filters">
-                <div class="filter-chip active" data-type="all"><span style="margin-right:5px;">🌐</span>${T('map.filter.all')}</div>
-                <div class="filter-chip" data-type="park"><span style="margin-right:5px;">🌳</span>${T('map.filter.parks')}</div>
-                <div class="filter-chip" data-type="school"><span style="margin-right:5px;">🎓</span>${T('map.filter.schools')}</div>
-                <div class="filter-chip" data-type="theater"><span style="margin-right:5px;">🎭</span>${T('map.filter.theaters')}</div>
-                <div class="filter-chip" data-type="kidzone"><span style="margin-right:5px;">🏰</span>${T('map.filter.kidzones')}</div>
-                <div class="filter-chip" data-type="food"><span style="margin-right:5px;">🍎</span>${T('map.filter.food')}</div>
-                <div class="filter-chip" data-type="fav"><span style="margin-right:5px;">★</span>${lang === 'en' ? 'Favourites' : 'Favoritos'}</div>
+                <div class="filter-chip active" data-type="all" data-label="${T('map.filter.all')}" title="${T('map.filter.all')}">🌐</div>
+                <div class="filter-chip" data-type="park" data-label="${T('map.filter.parks')}" title="${T('map.filter.parks')}">🌳</div>
+                <div class="filter-chip" data-type="school" data-label="${T('map.filter.schools')}" title="${T('map.filter.schools')}">🎓</div>
+                <div class="filter-chip" data-type="theater" data-label="${T('map.filter.theaters')}" title="${T('map.filter.theaters')}">🎭</div>
+                <div class="filter-chip" data-type="kidzone" data-label="${T('map.filter.kidzones')}" title="${T('map.filter.kidzones')}">🏰</div>
+                <div class="filter-chip" data-type="food" data-label="${T('map.filter.food')}" title="${T('map.filter.food')}">🍎</div>
+                <div class="filter-chip" data-type="fav" data-label="${lang === 'en' ? 'Favourites' : 'Favoritos'}" title="${lang === 'en' ? 'Favourites' : 'Favoritos'}">★</div>
             </div>
         `;
         container.appendChild(overlay);
@@ -1112,7 +1112,8 @@ window.GoHappyMap = {
             });
         };
         // Label sin emoji para los queries a IA: '🎭 Teatros' → 'Teatros'
-        const cleanLabel = (chip) => chip.innerText.replace(/[^\p{L}\s]/gu, '').trim();
+        // La etiqueta de búsqueda vive en data-label (los chips ya solo muestran icono)
+        const cleanLabel = (chip) => (chip.dataset.label || chip.innerText || '').replace(/[^\p{L}\s]/gu, '').trim();
 
         chips.forEach(chip => {
             chip.addEventListener('click', async () => {
