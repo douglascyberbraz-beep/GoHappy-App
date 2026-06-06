@@ -146,13 +146,15 @@ window.GoHappyMap = {
         'leisure=park':          { type: 'park',    icon: '🌳' },
         'leisure=playground':    { type: 'kidzone', icon: '🏰' },
         'leisure=garden':        { type: 'park',    icon: '🌿' },
-        'tourism=museum':        { type: 'museum',  icon: '🎓' },
+        'tourism=museum':        { type: 'school',  icon: '🎓' },
+        'tourism=gallery':       { type: 'school',  icon: '🖼️' },
         'tourism=zoo':           { type: 'kidzone', icon: '🦁' },
         'tourism=theme_park':    { type: 'kidzone', icon: '🎢' },
         'tourism=aquarium':      { type: 'kidzone', icon: '🐠' },
-        'tourism=attraction':    { type: 'museum',  icon: '🏛️' },
+        'tourism=attraction':    { type: 'school',  icon: '🏛️' },
         'amenity=theatre':       { type: 'theater', icon: '🎭' },
         'amenity=cinema':        { type: 'theater', icon: '🎬' },
+        'amenity=arts_centre':   { type: 'theater', icon: '🎪' },
         'amenity=cafe':          { type: 'food',    icon: '☕' },
         'amenity=ice_cream':     { type: 'food',    icon: '🍦' },
         'amenity=restaurant':    { type: 'food',    icon: '🍽️' },
@@ -259,15 +261,75 @@ window.GoHappyMap = {
         window.GoHappyMap._checkProximityFavorites(lat, lng);
     },
 
-    _addNearbyPOIs: (pois) => {
+    _addNearbyPOIs: (pois, immediate = false) => {
         const existing = new Set(window.GoHappyMap.markers.map(m => `${m.data?.lat?.toFixed(4)},${m.data?.lng?.toFixed(4)}`));
         pois.forEach((loc, idx) => {
             const key = `${loc.lat.toFixed(4)},${loc.lng.toFixed(4)}`;
             if (existing.has(key)) return;
             existing.add(key);
-            // Spawn escalonado para no bloquear el thread
-            setTimeout(() => window.GoHappyMap.createMarker(loc), idx * 12);
+            if (immediate) window.GoHappyMap.createMarker(loc);
+            // Spawn escalonado para no bloquear el thread (carga inicial)
+            else setTimeout(() => window.GoHappyMap.createMarker(loc), idx * 12);
         });
+    },
+
+    // ─── CATEGORÍAS: tags OSM precisos por cada botón de filtro ───
+    // Cada botón carga SUS sitios reales vía Overpass (coords exactas, sin IA).
+    _CATEGORY_TAGS: {
+        park:    ['leisure=park', 'leisure=garden', 'leisure=nature_reserve'],
+        kidzone: ['leisure=playground', 'tourism=theme_park', 'tourism=zoo', 'tourism=aquarium', 'leisure=water_park'],
+        theater: ['amenity=theatre', 'amenity=cinema', 'amenity=arts_centre'],
+        school:  ['tourism=museum', 'tourism=gallery', 'amenity=library'],   // botón "Museos/Cultura"
+        food:    ['amenity=restaurant', 'amenity=cafe', 'amenity=ice_cream', 'amenity=fast_food']
+    },
+    _CATEGORY_ICON: { park: '🌳', kidzone: '🏰', theater: '🎭', school: '🎓', food: '🍽️' },
+
+    // Carga REAL por categoría (Overpass, radio amplio para cubrir pueblos UK
+    // donde cines/teatros/parques temáticos están lejos). Asigna el type del botón.
+    _loadCategoryPOIs: async (type, lat, lng) => {
+        const tags = window.GoHappyMap._CATEGORY_TAGS[type];
+        if (!tags || isNaN(lat) || isNaN(lng)) return 0;
+        const RADIUS = 8000; // 8 km
+        const parts = tags.map(t => {
+            const [k, v] = t.split('=');
+            return `node["${k}"="${v}"](around:${RADIUS},${lat},${lng});way["${k}"="${v}"](around:${RADIUS},${lat},${lng});`;
+        }).join('');
+        const query = `[out:json][timeout:20];(${parts});out center tags 80;`;
+
+        let data = null;
+        for (const ep of window.GoHappyMap._OVERPASS_ENDPOINTS) {
+            try {
+                const resp = await fetch(ep, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: query, signal: AbortSignal.timeout(14000) });
+                if (resp.ok) { data = await resp.json(); break; }
+            } catch (e) { console.warn('[Overpass cat]', ep, e?.message); }
+        }
+        if (!data?.elements) return 0;
+
+        const icon = window.GoHappyMap._CATEGORY_ICON[type] || '📍';
+        const distKm = (la, ln) => Math.sqrt(Math.pow((la - lat) * 111, 2) + Math.pow((ln - lng) * 111 * Math.cos(lat * Math.PI / 180), 2));
+        const pois = [];
+        const seen = new Set();
+        data.elements.forEach(el => {
+            const elLat = el.lat ?? el.center?.lat;
+            const elLng = el.lon ?? el.center?.lon;
+            if (!elLat || !elLng) return;
+            const name = el.tags?.name || el.tags?.['name:en'] || el.tags?.['name:es'];
+            if (!name) return;
+            const key = `${name.toLowerCase()}|${elLat.toFixed(3)},${elLng.toFixed(3)}`;
+            if (seen.has(key)) return;
+            seen.add(key);
+            pois.push({
+                id: 'osm-' + (el.id || Math.random().toString(36).slice(2, 8)),
+                name, type, lat: elLat, lng: elLng, rating: 4.5,
+                _osm: true, _icon: icon, _distKm: distKm(elLat, elLng)
+            });
+        });
+        // Más cercanos primero, máx 40 (no saturar)
+        pois.sort((a, b) => a._distKm - b._distKm);
+        const slice = pois.slice(0, 40);
+        window.GoHappyMap._addNearbyPOIs(slice, true);  // inmediato para poder filtrar al instante
+        console.info(`[Overpass cat] ${type}: ${slice.length} sitios reales`);
+        return slice.length;
     },
 
     // ─── PROXIMIDAD: notificar si hay favoritos a < 500m ─────────
@@ -1120,23 +1182,28 @@ window.GoHappyMap = {
                 const type = chip.dataset.type;
                 const filters = window.GoHappyMap._activeFilters;
 
-                // 'all' es exclusivo (deselecciona los demás)
-                if (type === 'all') {
+                // ── SINGLE-SELECT: una categoría a la vez (NO se mezclan) ──
+                if (type === 'all' || filters.has(type)) {
+                    // 'all', o volver a tocar la categoría activa → mostrar todo
                     filters.clear();
                     filters.add('all');
                 } else {
-                    filters.delete('all');
-                    if (filters.has(type)) filters.delete(type);
-                    else filters.add(type);
-                    if (filters.size === 0) filters.add('all');
+                    filters.clear();
+                    filters.add(type);
                 }
                 refreshChipsUI();
                 window.GoHappyMap.currentFilter = [...filters].join(',');
 
-                // Filtros locales SIN IA: 'all' o solo 'fav'
-                if (filters.has('all') || (filters.size === 1 && filters.has('fav'))) {
+                // 'all' → mostrar todos los markers
+                if (filters.has('all')) {
                     window.GoHappyMap.filterMarkers();
-                    if (filters.has('fav') && window.GoHappyToast) {
+                    return;
+                }
+
+                // 'fav' → solo favoritos (filtro local)
+                if (filters.has('fav')) {
+                    window.GoHappyMap.filterMarkers();
+                    if (window.GoHappyToast) {
                         const favCount = window.GoHappyMap.markers.filter(m => m.data && window.GoHappyMap.isFavorite(m.data)).length;
                         window.GoHappyToast.info(window.L(
                             favCount > 0 ? `★ ${favCount} favoritos` : 'Sin favoritos aún — toca ☆ en cualquier sitio',
@@ -1146,40 +1213,35 @@ window.GoHappyMap = {
                     return;
                 }
 
+                // ── CATEGORÍA REAL ── mostrar lo que ya hay de ESE tipo (oculta el resto)
                 window.GoHappyMap.filterMarkers();
-                // ¿Algún tipo seleccionado tiene <5 markers? → expandir con IA
-                const typesToExpand = [...filters].filter(t => t !== 'all' && t !== 'fav');
-                const needsAI = typesToExpand.find(t => window.GoHappyMap.markers.filter(m => m.type === t).length < 5);
-                if (!needsAI) return;
+
+                // Si hay pocos, cargar más con Overpass (datos reales, radio amplio)
+                const have = window.GoHappyMap.markers.filter(m => m.type === type).length;
+                if (have >= 8) return;
 
                 const label = cleanLabel(chip);
                 const myToken = ++window.GoHappyMap._chipSearchToken;
                 chip.classList.add('loading');
-                const beforeIds = new Set(window.GoHappyMap.markers.map(m => m.data?.id));
-                try {
-                    await Promise.race([
-                        window.GoHappyMap.handleSearch(`mejores ${label} para ir con niños`),
-                        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 12000))
-                    ]);
-                } catch (e) {}
-                if (myToken !== window.GoHappyMap._chipSearchToken) return;
+                const coords = window.lastKnownCoords || window.GoHappyMap.lastKnownCoords || '41.6520,-4.7286';
+                const [la, ln] = String(coords).split(',').map(s => parseFloat(s.trim()));
+                let added = 0;
+                try { added = await window.GoHappyMap._loadCategoryPOIs(type, la, ln); } catch (e) {}
                 chip.classList.remove('loading');
 
-                // Fuerza el type esperado a los markers nuevos que la IA devolvió
-                // como 'generic' u otro — así el filtro los muestra correctamente.
-                let forced = 0;
-                window.GoHappyMap.markers.forEach(m => {
-                    if (!beforeIds.has(m.data?.id) && m.type !== needsAI) {
-                        m.type = needsAI;
-                        if (m.data) m.data.type = needsAI;
-                        forced++;
-                    }
-                });
-                if (forced > 0) window.GoHappyMap.filterMarkers();
+                // si el usuario cambió de filtro mientras cargaba, no tocar nada
+                if (myToken !== window.GoHappyMap._chipSearchToken) return;
 
-                const newCount = window.GoHappyMap.markers.filter(m => m.type === needsAI).length;
-                if (newCount > 0 && window.GoHappyToast) {
-                    window.GoHappyToast.success(T('map.community.found', { n: newCount, label: label.toLowerCase() }), 2500);
+                // Re-aplicar filtro: muestra los nuevos de ESTA categoría y encuadra
+                window.GoHappyMap.filterMarkers();
+                const total = window.GoHappyMap.markers.filter(m => m.type === type).length;
+                if (window.GoHappyToast) {
+                    window.GoHappyToast[total > 0 ? 'success' : 'info'](
+                        total > 0
+                            ? window.L(`${total} ${label.toLowerCase()} cerca ✨`, `${total} ${label.toLowerCase()} nearby ✨`)
+                            : window.L(`No encontré ${label.toLowerCase()} cerca`, `No ${label.toLowerCase()} found nearby`),
+                        2500
+                    );
                 }
             });
         });

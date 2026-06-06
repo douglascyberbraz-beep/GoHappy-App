@@ -1,5 +1,5 @@
 {
-  "version": "8.9.18",
-  "timestamp": "2026-06-04T19:30:00Z",
-  "note": "Filtros mapa centrados como la nav. Perfil: MiFamilia card grande destacado encima del QR. Today: Sorprendeme abajo."
+  "version": "8.9.19",
+  "timestamp": "2026-06-04T20:00:00Z",
+  "note": "Mapa: filtros single-select (no se mezclan) + carga real por categoria via Overpass (radio 8km) boton por boton."
 }
