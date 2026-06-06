@@ -167,11 +167,7 @@ window.GoHappyProfile = {
                         </div>
                     </div>
                     
-                    <!-- Progreso + fases OCULTOS por defecto (perfil limpio) → desplegable -->
-                    <button id="g-detail-toggle" style="width:100%; margin-top:4px; padding:8px; background:transparent; border:none; color:var(--text-secondary); font-weight:700; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
-                        <span>📊 ${(window.GoHappyI18n?.lang === 'en') ? 'View progress' : 'Ver progreso'}</span>
-                        <span id="g-detail-caret" style="transition:transform 0.25s;">▾</span>
-                    </button>
+                    <!-- Progreso + fases OCULTOS por defecto → doble clic en la foto de perfil los muestra -->
                     <div id="g-detail" style="display:none;">
                         <div class="g-progress-wrapper">
                             <div class="g-progress-track">
@@ -276,16 +272,6 @@ window.GoHappyProfile = {
         // Interaction logic
         document.getElementById('logout-btn').onclick = () => window.GoHappyAuth.logout();
 
-        // Desplegable progreso + fases (oculto por defecto → perfil limpio)
-        const gToggle = document.getElementById('g-detail-toggle');
-        if (gToggle) gToggle.onclick = () => {
-            const d = document.getElementById('g-detail');
-            const caret = document.getElementById('g-detail-caret');
-            const open = d.style.display !== 'none';
-            d.style.display = open ? 'none' : 'block';
-            if (caret) caret.style.transform = open ? '' : 'rotate(180deg)';
-        };
-
         // Re-disparar tour bajo demanda
         const tourBtn = document.getElementById('show-tour-btn');
         if (tourBtn) tourBtn.onclick = () => {
@@ -380,7 +366,7 @@ window.GoHappyProfile = {
             window.GoHappyApp.loadPage('legal');
         };
 
-        document.getElementById('open-avatar-editor').onclick = () => {
+        const _openAvatarEditor = () => {
             const lang = window.GoHappyI18n?.lang || 'es';
             const L = (es, en) => lang === 'en' ? en : es;
             const modal = document.createElement('div');
@@ -563,6 +549,28 @@ window.GoHappyProfile = {
                 }
             };
         };
+
+        // Foto de perfil: 1 clic = editar avatar · DOBLE clic = ver progreso + fases
+        const _avatarEl = document.getElementById('open-avatar-editor');
+        let _avTimer = null;
+        if (_avatarEl) {
+            _avatarEl.onclick = () => {
+                if (_avTimer) return; // segundo clic en curso → lo gestiona dblclick
+                _avTimer = setTimeout(() => { _avTimer = null; _openAvatarEditor(); }, 250);
+            };
+            _avatarEl.ondblclick = () => {
+                if (_avTimer) { clearTimeout(_avTimer); _avTimer = null; }
+                const d = document.getElementById('g-detail');
+                if (!d) return;
+                const open = d.style.display !== 'none';
+                d.style.display = open ? 'none' : 'block';
+                if (!open) {
+                    d.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const lang = window.GoHappyI18n?.lang || 'es';
+                    window.GoHappyToast && window.GoHappyToast.info(lang === 'en' ? '📊 Progress & phases' : '📊 Progreso y fases', 1600);
+                }
+            };
+        }
 
         // Bind navegación de cards de acción (Recuerdos, etc)
         container.querySelectorAll('[data-goto]').forEach(card => {
