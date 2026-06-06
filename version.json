@@ -1,5 +1,5 @@
 {
-  "version": "8.9.12",
-  "timestamp": "2026-06-04T16:30:00Z",
-  "note": "Events pestana propia (reemplaza Top en el menu); Top movido a Perfil; Today solo Planes."
+  "version": "8.9.13",
+  "timestamp": "2026-06-04T17:00:00Z",
+  "note": "Perfil clean: progreso+fases en desplegable oculto, quitados duplicados (Recuerdos/Invitar), Top movido a Comunidad."
 }

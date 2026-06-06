@@ -167,50 +167,39 @@ window.GoHappyProfile = {
                         </div>
                     </div>
                     
-                    <div class="g-progress-wrapper">
-                        <div class="g-progress-track">
-                            <div class="g-progress-fill" style="width: ${levelInfo.progress}%">
-                                <div class="fill-glow"></div>
+                    <!-- Progreso + fases OCULTOS por defecto (perfil limpio) → desplegable -->
+                    <button id="g-detail-toggle" style="width:100%; margin-top:4px; padding:8px; background:transparent; border:none; color:var(--text-secondary); font-weight:700; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                        <span>📊 ${(window.GoHappyI18n?.lang === 'en') ? 'View progress' : 'Ver progreso'}</span>
+                        <span id="g-detail-caret" style="transition:transform 0.25s;">▾</span>
+                    </button>
+                    <div id="g-detail" style="display:none;">
+                        <div class="g-progress-wrapper">
+                            <div class="g-progress-track">
+                                <div class="g-progress-fill" style="width: ${levelInfo.progress}%">
+                                    <div class="fill-glow"></div>
+                                </div>
+                            </div>
+                            <div class="g-progress-stats">
+                                <span>${Math.floor(levelInfo.progress)}%</span>
+                                <span>${levelInfo.nextPoints || 'Max'} pts</span>
                             </div>
                         </div>
-                        <div class="g-progress-stats">
-                            <span>${Math.floor(levelInfo.progress)}%</span>
-                            <span>${levelInfo.nextPoints || 'Max'} pts</span>
-                        </div>
-                    </div>
 
-                    <!-- Leyenda de fases (todos los aros visibles) -->
-                    <div style="margin-top:18px; padding-top:14px; border-top:0.5px solid rgba(11,76,143,0.10);">
-                        <div style="font-size:10px; font-weight:800; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; text-align:center;">${T('profile.phases') || 'Fases'}</div>
-                        <div style="display:flex; justify-content:space-between; gap:6px; overflow-x:auto; padding:4px 2px;">
-                            ${(window.GoHappyPoints?.LEVELS || []).map(lv => {
-                                const reached = (user.points || 0) >= lv.min;
-                                return `
-                                    <div style="flex:1; min-width:48px; text-align:center; opacity:${reached ? '1' : '0.42'};">
-                                        <div style="margin:0 auto; width:34px; height:34px; padding:2.5px; border-radius:50%; background:${lv.ring}; box-shadow:0 0 ${reached ? '8px' : '4px'} ${lv.shadow}; display:flex; align-items:center; justify-content:center; box-sizing:border-box;">
-                                            <div style="width:29px; height:29px; border-radius:50%; background:white; display:flex; align-items:center; justify-content:center; font-size:14px;">${lv.icon}</div>
+                        <div style="margin-top:18px; padding-top:14px; border-top:0.5px solid rgba(11,76,143,0.10);">
+                            <div style="font-size:10px; font-weight:800; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; text-align:center;">${T('profile.phases') || 'Fases'}</div>
+                            <div style="display:flex; justify-content:space-between; gap:6px; overflow-x:auto; padding:4px 2px;">
+                                ${(window.GoHappyPoints?.LEVELS || []).map(lv => {
+                                    const reached = (user.points || 0) >= lv.min;
+                                    return `
+                                        <div style="flex:1; min-width:48px; text-align:center; opacity:${reached ? '1' : '0.42'};">
+                                            <div style="margin:0 auto; width:34px; height:34px; padding:2.5px; border-radius:50%; background:${lv.ring}; box-shadow:0 0 ${reached ? '8px' : '4px'} ${lv.shadow}; display:flex; align-items:center; justify-content:center; box-sizing:border-box;">
+                                                <div style="width:29px; height:29px; border-radius:50%; background:white; display:flex; align-items:center; justify-content:center; font-size:14px;">${lv.icon}</div>
+                                            </div>
+                                            <div style="font-size:9px; font-weight:700; color:var(--cobalt); margin-top:5px; line-height:1.2;">${lv.min}</div>
                                         </div>
-                                        <div style="font-size:9px; font-weight:700; color:var(--cobalt); margin-top:5px; line-height:1.2;">${lv.min}</div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="profile-action-grid">
-                    <div class="action-card-glass" data-goto="memories">
-                        <div class="a-icon">📸</div>
-                        <div class="a-text">
-                            <h4>${T('profile.memories')}</h4>
-                            <p>${T('profile.my.photos')}</p>
-                        </div>
-                    </div>
-                    <div class="action-card-glass" id="share-app-btn">
-                        <div class="a-icon">🎁</div>
-                        <div class="a-text">
-                            <h4>${T('profile.invite')}</h4>
-                            <p>${T('profile.invite.gain')}</p>
+                                    `;
+                                }).join('')}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -269,10 +258,6 @@ window.GoHappyProfile = {
                 <div id="profile-saved-plans" style="margin-top:10px;"></div>
 
                 <div class="account-actions-list">
-                    <button id="ranking-link" class="action-list-item">
-                        <span>🏆 ${(window.GoHappyI18n?.lang === 'en') ? 'Top / Ranking' : 'Top / Ranking'}</span>
-                        <span class="arrow">→</span>
-                    </button>
                     <button id="show-tour-btn" class="action-list-item">
                         <span>🎓 ${(window.GoHappyI18n?.lang === 'en') ? 'Show tutorial again' : 'Ver tutorial otra vez'}</span>
                         <span class="arrow">→</span>
@@ -291,9 +276,15 @@ window.GoHappyProfile = {
         // Interaction logic
         document.getElementById('logout-btn').onclick = () => window.GoHappyAuth.logout();
 
-        // Top / Ranking (movido desde el menú central)
-        const rankingLink = document.getElementById('ranking-link');
-        if (rankingLink) rankingLink.onclick = () => window.GoHappyApp?.loadPage?.('ranking');
+        // Desplegable progreso + fases (oculto por defecto → perfil limpio)
+        const gToggle = document.getElementById('g-detail-toggle');
+        if (gToggle) gToggle.onclick = () => {
+            const d = document.getElementById('g-detail');
+            const caret = document.getElementById('g-detail-caret');
+            const open = d.style.display !== 'none';
+            d.style.display = open ? 'none' : 'block';
+            if (caret) caret.style.transform = open ? '' : 'rotate(180deg)';
+        };
 
         // Re-disparar tour bajo demanda
         const tourBtn = document.getElementById('show-tour-btn');
@@ -361,7 +352,8 @@ window.GoHappyProfile = {
             setTimeout(() => e.target.innerText = T('profile.copy.link'), 2400);
         };
 
-        document.getElementById('share-app-btn').onclick = async () => {
+        const shareAppBtn = document.getElementById('share-app-btn');
+        if (shareAppBtn) shareAppBtn.onclick = async () => {
             const lang = window.GoHappyI18n?.lang || 'es';
             const link = buildInviteLink(user.referralCode);
             const shareData = {

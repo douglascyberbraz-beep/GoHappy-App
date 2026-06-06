@@ -13,6 +13,9 @@ window.GoHappyTribu = {
                 ${window.GoHappyPremium ? window.GoHappyPremium.greetingHTML() : ''}
                 <h2 id="tribu-title">🏘️ Tribu</h2>
                 <p>${sub}</p>
+                <button id="tribu-ranking-btn" style="margin-top:14px; display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg,#F59E0B,#FF6B9D); color:#fff; border:none; border-radius:999px; padding:10px 18px; font-weight:800; font-size:13px; cursor:pointer; box-shadow:0 6px 18px rgba(245,158,11,0.32);">
+                    🏆 ${lang === 'en' ? 'Top / Ranking' : 'Top / Ranking'} →
+                </button>
             </div>
             
             <div id="tribu-content" class="content-list stagger-group" style="padding-bottom: 100px; width: 100%; display: flex; flex-direction: column; align-items: center;">
@@ -37,6 +40,10 @@ window.GoHappyTribu = {
 
         const contentContainer = document.getElementById('tribu-content');
         const actionBtn = document.getElementById('tribu-action-btn');
+
+        // 🏆 Top / Ranking (movido aquí desde el menú central)
+        const rankingBtn = document.getElementById('tribu-ranking-btn');
+        if (rankingBtn) rankingBtn.onclick = () => window.GoHappyApp?.loadPage?.('ranking');
 
         // Direct load community
         await window.GoHappyTribu.loadComunidad(contentContainer);
