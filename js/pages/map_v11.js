@@ -837,8 +837,9 @@ window.GoHappyMap = {
         // ════════ STACK PREMIUM de FABs (derecha inferior) ════════
         const fabStack = document.createElement('div');
         fabStack.className = 'gh-map-fab-stack';
+        // bottom = altura de la barra de navegación + margen → la reseña (+) nunca se corta
         fabStack.style.cssText = `
-            position:absolute; right:14px; bottom:120px; z-index:6;
+            position:absolute; right:14px; bottom:calc(var(--nav-total, 110px) + 18px); z-index:6;
             display:flex; flex-direction:column; gap:10px; align-items:center;
         `;
         container.appendChild(fabStack);
@@ -938,12 +939,39 @@ window.GoHappyMap = {
         addBtn.style.color = 'white';
         addBtn.style.boxShadow = '0 10px 28px rgba(11,113,252,0.4), inset 0 1px 0 rgba(255,255,255,0.4)';
 
-        // Apilar en orden visual (de arriba a abajo)
-        fabStack.appendChild(heatBtn);
-        fabStack.appendChild(familyBtn);
-        fabStack.appendChild(compassBtn);
-        fabStack.appendChild(toggle3D);
-        fabStack.appendChild(followBtn);
+        // ── LIMPIO: solo 3 FABs visibles; el resto en un grupo plegable ──
+        // Grupo plegable de herramientas secundarias (oculto por defecto)
+        const toolsWrap = document.createElement('div');
+        toolsWrap.id = 'gh-fab-tools';
+        toolsWrap.style.cssText = `
+            display:none; flex-direction:column; gap:10px; align-items:center;
+            animation:gh-tools-in 0.28s cubic-bezier(0.16,1,0.3,1);
+        `;
+        if (!document.getElementById('gh-tools-style')) {
+            const s = document.createElement('style');
+            s.id = 'gh-tools-style';
+            s.textContent = `@keyframes gh-tools-in { from{opacity:0; transform:translateY(12px) scale(0.9);} to{opacity:1; transform:none;} }`;
+            document.head.appendChild(s);
+        }
+        toolsWrap.appendChild(familyBtn);
+        toolsWrap.appendChild(heatBtn);
+        toolsWrap.appendChild(toggle3D);
+        toolsWrap.appendChild(followBtn);
+        toolsWrap.appendChild(compassBtn);
+
+        // Botón que despliega/oculta las herramientas
+        const toolsToggle = makeFab('gh-fab-tools-toggle', '🧰', lang === 'en' ? 'More tools' : 'Más herramientas');
+        let toolsOpen = false;
+        toolsToggle.addEventListener('click', () => {
+            toolsOpen = !toolsOpen;
+            toolsWrap.style.display = toolsOpen ? 'flex' : 'none';
+            toolsToggle.innerHTML = toolsOpen ? '✕' : '🧰';
+            toolsToggle.style.background = toolsOpen ? 'rgba(11,76,143,0.10)' : 'rgba(255,255,255,0.95)';
+        });
+
+        // Orden visual (arriba → abajo): [herramientas plegables], 🧰, 🎯, ➕
+        fabStack.appendChild(toolsWrap);
+        fabStack.appendChild(toolsToggle);
         fabStack.appendChild(locateBtn);
         fabStack.appendChild(addBtn);
 
@@ -1177,6 +1205,10 @@ window.GoHappyMap = {
     // ─── createMarker (pin premium con icono) ─────────────────────
     createMarker: (loc) => {
         if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') return;
+
+        // FIX: 'lang' se usaba más abajo (tFav/tShare) sin declararse → ReferenceError
+        // que hacía fallar TODA búsqueda con resultados ("Búsqueda falló", 0 marcadores).
+        const lang = window.GoHappyI18n?.lang || 'es';
 
         const hasReview = loc.isCommunity || (loc.rating || 0) >= 4.7;
 
