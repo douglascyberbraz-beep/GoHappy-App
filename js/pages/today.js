@@ -53,6 +53,31 @@ window.GoHappyToday = {
         } catch (e) { return 1; }
     },
 
+    // ─── 🕑 Momento del día (asistente que cambia mañana/tarde/noche) ───
+    _dayMoment: () => {
+        const h = new Date().getHours();
+        if (h < 12) return 'morning';
+        if (h < 19) return 'afternoon';
+        return 'evening';
+    },
+
+    // ─── 🔁 CERRAR EL BUCLE: marcar un plan como "pendiente de feedback" ───
+    // Cuando el usuario guarda un plan, lo recordamos para preguntarle por la
+    // tarde/noche "¿qué tal estuvo?" → eso alimenta sus sitios favoritos.
+    _markPlanPending: (plan) => {
+        try {
+            const today = new Date().toISOString().slice(0, 10);
+            localStorage.setItem('GoHappy_plan_pending', JSON.stringify({
+                date: today,
+                title: plan.title || '',
+                location: plan.location || '',
+                lat: parseFloat(plan.lat) || null,
+                lng: parseFloat(plan.lng) || null,
+                rated: false
+            }));
+        } catch (e) { /* ignore */ }
+    },
+
     // ─── 💾 Guardar el SÚPER PLAN del día (por-usuario, para la push) ───
     _saveSuperPlan: (plan) => {
         try {
@@ -85,6 +110,18 @@ window.GoHappyToday = {
         const prefs = JSON.parse(localStorage.getItem('GoHappy_family_prefs') || 'null');
         const sec = window.GoHappySecurity;
         const safe = (s) => sec ? sec.safe(s || '') : String(s || '').replace(/[<>]/g, '');
+
+        // 🔁 CERRAR EL BUCLE: por la tarde/noche, si hay un plan guardado hoy sin
+        // valorar, preguntamos "¿qué tal estuvo?" (alimenta sitios favoritos → mejor
+        // súper plan mañana) en lugar de mostrar otro plan.
+        const moment = window.GoHappyToday._dayMoment();
+        const todayStr = new Date().toISOString().slice(0, 10);
+        let pending = null;
+        try { pending = JSON.parse(localStorage.getItem('GoHappy_plan_pending') || 'null'); } catch (e) {}
+        if ((moment === 'afternoon' || moment === 'evening') && pending && pending.date === todayStr && !pending.rated) {
+            window.GoHappyToday._renderFeedbackCard(box, pending, lang, safe);
+            return;
+        }
 
         // Sin preferencias → invitación a personalizar (1 toque)
         if (!prefs) {
@@ -121,9 +158,15 @@ window.GoHappyToday = {
         const isFree = (best.price || '').toLowerCase().includes('grat') || (best.price || '').toLowerCase().includes('free');
         const whyHtml = best.whyPerfect
             ? `<div class="pdd-why">💙 ${safe(best.whyPerfect)}</div>` : '';
+        // Título adaptado al momento del día (asistente vivo)
+        const eyebrowTxt = moment === 'evening'
+            ? (lang === 'en' ? '🌙 PLAN FOR TONIGHT' : '🌙 PLAN PARA ESTA NOCHE')
+            : moment === 'afternoon'
+                ? (lang === 'en' ? '☀️ PLAN FOR THIS AFTERNOON' : '☀️ PLAN PARA LA TARDE')
+                : (lang === 'en' ? '⭐ SUPER PLAN OF THE DAY' : '⭐ SÚPER PLAN DEL DÍA');
         box.innerHTML = `
             <div class="pdd-card">
-                <div class="pdd-eyebrow">⭐ ${lang === 'en' ? 'SUPER PLAN OF THE DAY' : 'SÚPER PLAN DEL DÍA'}</div>
+                <div class="pdd-eyebrow">${eyebrowTxt}</div>
                 <h3 class="pdd-title">${safe(best.title || (lang === 'en' ? 'Family plan' : 'Plan familiar'))}</h3>
                 <p class="pdd-summary">${safe(best.summary || '')}</p>
                 ${whyHtml}
@@ -157,6 +200,8 @@ window.GoHappyToday = {
                     }).catch(() => {});
                 }
             } catch (e) { /* ignore */ }
+            // 🔁 recordar este plan para preguntar "¿qué tal estuvo?" por la tarde/noche
+            window.GoHappyToday._markPlanPending(best);
             saveBtn.textContent = lang === 'en' ? '✅ Saved' : '✅ Guardado';
             saveBtn.style.background = '#27AE60';
             window.GoHappyToast && window.GoHappyToast.points(
@@ -167,6 +212,61 @@ window.GoHappyToday = {
             const lat = parseFloat(best.lat), lng = parseFloat(best.lng);
             if (lat && lng && window.GoHappyNav) window.GoHappyNav.openRoute(lat, lng, best.location);
             else if (window.GoHappyNav) window.GoHappyNav.openSearch(best.location || '');
+        };
+    },
+
+    // ─── 🔁 Tarjeta "¿Qué tal estuvo?" — cierra el bucle y aprende ───
+    _renderFeedbackCard: (box, pending, lang, safe) => {
+        const place = pending.location || pending.title || (lang === 'en' ? 'your plan' : 'vuestro plan');
+        box.innerHTML = `
+            <div class="pdd-card pdd-feedback">
+                <div class="pdd-eyebrow">${lang === 'en' ? '🔁 HOW DID IT GO?' : '🔁 ¿QUÉ TAL FUE?'}</div>
+                <h3 class="pdd-title">${safe(pending.title || place)}</h3>
+                <p class="pdd-summary">${lang === 'en' ? 'Rate it so I learn what your family loves 💙' : 'Puntúalo para aprender qué le encanta a tu familia 💙'}</p>
+                <div class="pdd-stars" id="pdd-stars">
+                    ${[1,2,3,4,5].map(n => `<span class="pdd-star" data-n="${n}">☆</span>`).join('')}
+                </div>
+                <button class="pdd-skip" id="pdd-skip">${lang === 'en' ? 'Not today' : 'Hoy no'}</button>
+            </div>`;
+
+        const stars = box.querySelectorAll('.pdd-star');
+        const paint = (n) => stars.forEach(s => s.textContent = (parseInt(s.dataset.n) <= n) ? '★' : '☆');
+        stars.forEach(s => {
+            s.onmouseenter = () => paint(parseInt(s.dataset.n));
+            s.onclick = async () => {
+                const rating = parseInt(s.dataset.n);
+                paint(rating);
+                // Aprende: guarda la valoración → alimenta favoritePlaces (rating>=4)
+                try {
+                    if (window.GoHappyContext?.addActivity) {
+                        window.GoHappyContext.addActivity('place_reviewed', {
+                            place: pending.location || pending.title, rating
+                        });
+                    }
+                } catch (e) {}
+                try {
+                    pending.rated = true;
+                    localStorage.setItem('GoHappy_plan_pending', JSON.stringify(pending));
+                } catch (e) {}
+                if (window.GoHappyPoints) { try { await window.GoHappyPoints.addPoints('REVIEW'); } catch(e){} }
+
+                // Gracias + invitación a inmortalizar el momento (→ Moments)
+                box.innerHTML = `
+                    <div class="pdd-card pdd-feedback">
+                        <div class="pdd-eyebrow">${rating >= 4 ? '💙 ' : ''}${lang === 'en' ? 'THANK YOU!' : '¡GRACIAS!'}</div>
+                        <p class="pdd-summary" style="margin-bottom:12px;">${rating >= 4
+                            ? (lang === 'en' ? 'Noted — I\'ll suggest more like this ✨' : 'Anotado — te propondré más planes así ✨')
+                            : (lang === 'en' ? 'Got it — I\'ll fine-tune your plans.' : 'Entendido — afinaré tus próximos planes.')}</p>
+                        <button class="pdd-cta" id="pdd-tomoments">📸 ${lang === 'en' ? 'Share the moment' : 'Guardar el momento'}</button>
+                    </div>`;
+                const mb = document.getElementById('pdd-tomoments');
+                if (mb) mb.onclick = () => { try { window.GoHappyApp?.loadPage?.('moments'); } catch (e) {} };
+            };
+        });
+        const skip = document.getElementById('pdd-skip');
+        if (skip) skip.onclick = () => {
+            try { pending.rated = true; localStorage.setItem('GoHappy_plan_pending', JSON.stringify(pending)); } catch (e) {}
+            window.GoHappyToday._renderPlanDelDia(); // vuelve a mostrar el plan del momento
         };
     },
 
@@ -310,6 +410,14 @@ window.GoHappyToday = {
                     border-radius:12px; padding:7px 11px; margin-bottom:12px;
                     font-size:12px; font-weight:700; line-height:1.35;
                 }
+                /* 🔁 Tarjeta de feedback "¿qué tal estuvo?" */
+                .pdd-feedback { background:linear-gradient(135deg, rgba(124,107,255,0.96), rgba(11,113,252,0.95)); }
+                .pdd-stars { display:flex; gap:6px; margin:6px 0 14px; }
+                .pdd-star { font-size:32px; line-height:1; cursor:pointer; color:#FFD54A;
+                    transition:transform .15s cubic-bezier(.34,1.56,.64,1); user-select:none; }
+                .pdd-star:active { transform:scale(0.85); }
+                .pdd-skip { background:transparent; border:none; color:rgba(255,255,255,0.85);
+                    font-size:12.5px; font-weight:700; cursor:pointer; text-decoration:underline; padding:2px; }
                 /* Badge "Súper plan" en la primera card de la lista de Planes */
                 .superplan-badge {
                     display:inline-flex; align-items:center; gap:4px;
@@ -1309,6 +1417,7 @@ window.GoHappyToday = {
             btn.onclick = async () => {
                 const idx = parseInt(btn.dataset.act);
                 const act = activities[idx];
+                window.GoHappyToday._markPlanPending(act); // 🔁 cerrar el bucle más tarde
                 if (window.GoHappyPoints) await window.GoHappyPoints.addPoints('QUEST');
                 const user = window.GoHappyAuth.checkAuth();
                 if (user && !user.isGuest) {
