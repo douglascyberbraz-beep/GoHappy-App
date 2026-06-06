@@ -38,6 +38,108 @@ window.GoHappyToday = {
         return (lang === 'en' ? EN : ES)[tag] || tag;
     },
 
+    // ─── RACHA DIARIA — días seguidos abriendo la app (hábito) ───
+    // Idempotente por día: llamarlo varias veces el mismo día no incrementa.
+    _bumpStreak: () => {
+        try {
+            const today = new Date().toISOString().slice(0, 10);
+            const yest  = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+            const s = JSON.parse(localStorage.getItem('GoHappy_streak') || 'null') || { count: 0, last: null };
+            if (s.last === today) return s.count || 1;       // ya contado hoy
+            s.count = (s.last === yest) ? (s.count || 0) + 1 : 1;  // consecutivo o reinicio
+            s.last = today;
+            localStorage.setItem('GoHappy_streak', JSON.stringify(s));
+            return s.count;
+        } catch (e) { return 1; }
+    },
+
+    // ─── ⭐ PLAN DEL DÍA — el plan estrella de hoy, instantáneo desde caché ───
+    _renderPlanDelDia: async () => {
+        const box = document.getElementById('today-plan-hero');
+        if (!box) return;
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const prefs = JSON.parse(localStorage.getItem('GoHappy_family_prefs') || 'null');
+        const sec = window.GoHappySecurity;
+        const safe = (s) => sec ? sec.safe(s || '') : String(s || '').replace(/[<>]/g, '');
+
+        // Sin preferencias → invitación a personalizar (1 toque)
+        if (!prefs) {
+            box.innerHTML = `
+                <div class="pdd-card pdd-setup">
+                    <div class="pdd-eyebrow">✨ ${lang === 'en' ? 'YOUR DAILY PLAN' : 'TU PLAN DE HOY'}</div>
+                    <div class="pdd-setup-title">${lang === 'en' ? 'Tell us who you are and get your perfect plan every morning' : 'Cuéntanos quiénes sois y tendréis vuestro plan perfecto cada mañana'}</div>
+                    <button class="pdd-cta" id="pdd-setup-btn">${lang === 'en' ? '🎯 Personalise my plan' : '🎯 Personalizar mi plan'}</button>
+                </div>`;
+            const b = document.getElementById('pdd-setup-btn');
+            if (b) b.onclick = () => {
+                window.GoHappyToday._currentView = 'planes';
+                document.querySelectorAll('.t-view-btn').forEach(x => x.classList.toggle('active', x.dataset.view === 'planes'));
+                window.GoHappyToday._renderView();
+                document.getElementById('today-view-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            };
+            return;
+        }
+
+        // Skeleton compacto mientras llega (suele ser instantáneo por prefetch)
+        box.innerHTML = `<div class="pdd-card pdd-skel"><div class="pdd-skel-line w60"></div><div class="pdd-skel-line w90"></div><div class="pdd-skel-line w40"></div></div>`;
+
+        let best = null;
+        try {
+            const acts = await window.GoHappyAI.getTodayActivities(window.GoHappyToday._coords, prefs);
+            if (Array.isArray(acts) && acts.length) best = acts[0];
+        } catch (e) { /* ignore */ }
+
+        if (!best) { box.innerHTML = ''; return; }  // si no hay, ocultar (la vista Planes ya gestiona el error)
+
+        const isFree = (best.price || '').toLowerCase().includes('grat') || (best.price || '').toLowerCase().includes('free');
+        box.innerHTML = `
+            <div class="pdd-card">
+                <div class="pdd-eyebrow">✨ ${lang === 'en' ? 'YOUR PLAN FOR TODAY' : 'TU PLAN DE HOY'}</div>
+                <h3 class="pdd-title">${safe(best.title || (lang === 'en' ? 'Family plan' : 'Plan familiar'))}</h3>
+                <p class="pdd-summary">${safe(best.summary || '')}</p>
+                <div class="pdd-meta">
+                    <span class="pdd-pill">${safe(best.typeLabel || '📍 Plan')}</span>
+                    <span class="pdd-pill">🕐 ${safe(best.time || (lang === 'en' ? 'Flexible' : 'Flexible'))}</span>
+                    <span class="pdd-pill ${isFree ? 'free' : 'paid'}">${safe(best.price || (lang === 'en' ? 'Free' : 'Gratis'))}</span>
+                </div>
+                <div class="pdd-loc">📍 <strong>${safe(best.location || '')}</strong></div>
+                <div class="pdd-actions">
+                    <button class="pdd-cta" id="pdd-save">✨ ${lang === 'en' ? 'Save plan' : 'Guardar plan'}</button>
+                    <button class="pdd-map" id="pdd-map" title="${lang === 'en' ? 'Open in maps' : 'Abrir en mapa'}">🗺️</button>
+                </div>
+            </div>`;
+
+        // Guardar plan (reutiliza el mismo flujo que las cards: actividad + puntos)
+        const saveBtn = document.getElementById('pdd-save');
+        if (saveBtn) saveBtn.onclick = async () => {
+            if (saveBtn.dataset.done) return;
+            saveBtn.dataset.done = '1';
+            try {
+                if (window.GoHappyPoints) await window.GoHappyPoints.addPoints('QUEST');
+                const user = window.GoHappyAuth.checkAuth();
+                if (user && !user.isGuest) {
+                    await window.GoHappyDB.collection('activity').add({
+                        userId: user.uid, type: 'visit',
+                        title: best.title || 'Plan',
+                        description: `Plan familiar en ${best.location || ''}`,
+                        points: 50,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    }).catch(() => {});
+                }
+            } catch (e) { /* ignore */ }
+            saveBtn.textContent = lang === 'en' ? '✅ Saved' : '✅ Guardado';
+            saveBtn.style.background = '#27AE60';
+            window.GoHappyToast && window.GoHappyToast.points(
+                lang === 'en' ? `Plan saved! +50 pts 🎉` : `¡Plan guardado! +50 pts 🎉`);
+        };
+        const mapBtn = document.getElementById('pdd-map');
+        if (mapBtn) mapBtn.onclick = () => {
+            const lat = parseFloat(best.lat), lng = parseFloat(best.lng);
+            if (lat && lng && window.GoHappyNav) window.GoHappyNav.openRoute(lat, lng, best.location);
+            else if (window.GoHappyNav) window.GoHappyNav.openSearch(best.location || '');
+        };
+    },
+
     render: async (container) => {
         // Coords iniciales
         window.GoHappyToday._coords = window.lastKnownCoords || '41.6520, -4.7286';
@@ -73,6 +175,13 @@ window.GoHappyToday = {
                 : (lang0 === 'en' ? 'Good evening' : 'Buenas noches'));
         const userName = window.GoHappyAuth?.checkAuth?.()?.nickname || (lang0 === 'en' ? 'Family' : 'Familia');
 
+        // Racha diaria — "llevas N días" (crea hábito de volver cada día)
+        const streakCount = window.GoHappyToday._bumpStreak();
+        const dayWord = lang0 === 'en'
+            ? (streakCount === 1 ? 'day' : 'days')
+            : (streakCount === 1 ? 'día' : 'días');
+        const streakChip = `<span class="today-streak-chip" title="${lang0==='en'?'Days in a row':'Días seguidos'}">🔥 ${streakCount} ${dayWord}</span>`;
+
         container.innerHTML = `
             <div class="today-page">
                 <!-- Pull-to-refresh indicator -->
@@ -86,7 +195,10 @@ window.GoHappyToday = {
                 <div class="today-hero-premium">
                     <div style="position:relative; z-index:2; display:flex; align-items:flex-start; gap:16px;">
                         <div style="flex:1; min-width:0;">
-                            <div style="font-size:13px; font-weight:700; color:var(--text-secondary); margin-bottom:2px; opacity:0.85;">${greeting}, <span style="color:var(--primary-cobalt,#0B4C8F);">${userName}</span> ✨</div>
+                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:2px;">
+                                <div style="font-size:13px; font-weight:700; color:var(--text-secondary); opacity:0.85;">${greeting}, <span style="color:var(--primary-cobalt,#0B4C8F);">${userName}</span> ✨</div>
+                                ${streakChip}
+                            </div>
                             <h2 class="today-welcome-title" style="margin-top:2px;">${T('today.title')}</h2>
                             <p class="today-welcome-subtitle" id="today-city-sub">${T('today.detecting')}</p>
                         </div>
@@ -98,6 +210,9 @@ window.GoHappyToday = {
                     </div>
                 </div>
                 ${contextBanner}
+
+                <!-- ⭐ PLAN DEL DÍA — el motivo de abrir la app cada día -->
+                <div id="today-plan-hero" class="today-plan-hero-wrap"></div>
 
                 <!-- TOGGLE 2 vistas — Planes IA + Eventos (Semana eliminada) -->
                 <div class="today-view-toggle">
@@ -123,6 +238,74 @@ window.GoHappyToday = {
             style.id = styleId;
             style.textContent = `
                 .today-page { width:100%; min-height:100vh; box-sizing:border-box; overflow-x:hidden; }
+
+                /* ─── 🔥 Chip de racha diaria ─── */
+                .today-streak-chip {
+                    display:inline-flex; align-items:center; gap:3px;
+                    background:linear-gradient(135deg,#FF8A50,#FF6B9D);
+                    color:#fff; font-size:11px; font-weight:900;
+                    padding:3px 10px; border-radius:999px;
+                    box-shadow:0 3px 10px rgba(255,107,157,0.32);
+                    letter-spacing:0.2px; white-space:nowrap;
+                }
+
+                /* ─── ⭐ PLAN DEL DÍA (hero card) ─── */
+                .today-plan-hero-wrap { padding:0 14px; margin:4px 0 14px; }
+                .today-plan-hero-wrap:empty { display:none; }
+                .pdd-card {
+                    position:relative; overflow:hidden;
+                    background:linear-gradient(135deg, rgba(11,113,252,0.97), rgba(23,200,212,0.95));
+                    border-radius:24px; padding:18px 18px 16px;
+                    box-shadow:0 14px 34px rgba(11,76,143,0.28);
+                    color:#fff;
+                    animation:pddIn .55s cubic-bezier(.16,1,.3,1) both;
+                }
+                @keyframes pddIn { from{opacity:0; transform:translateY(16px) scale(.98);} to{opacity:1; transform:none;} }
+                .pdd-card::after {
+                    content:''; position:absolute; top:-40%; right:-10%;
+                    width:55%; height:180%;
+                    background:radial-gradient(circle, rgba(255,255,255,0.22), transparent 70%);
+                    pointer-events:none;
+                }
+                .pdd-eyebrow { font-size:10.5px; font-weight:900; letter-spacing:1.2px; opacity:0.92; margin-bottom:6px; }
+                .pdd-title {
+                    font-family:'Poppins',sans-serif; font-size:20px; font-weight:900;
+                    line-height:1.18; margin:0 0 5px; letter-spacing:-0.3px;
+                    text-shadow:0 1px 8px rgba(0,0,0,0.12);
+                }
+                .pdd-summary { font-size:13px; line-height:1.4; opacity:0.95; margin:0 0 12px; }
+                .pdd-meta { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+                .pdd-pill {
+                    background:rgba(255,255,255,0.22); backdrop-filter:blur(8px);
+                    border:0.5px solid rgba(255,255,255,0.3);
+                    padding:4px 10px; border-radius:999px; font-size:11px; font-weight:800;
+                }
+                .pdd-pill.free { background:rgba(255,255,255,0.95); color:#1a8a4a; }
+                .pdd-pill.paid { background:rgba(255,255,255,0.95); color:#b5651d; }
+                .pdd-loc { font-size:12.5px; margin-bottom:14px; opacity:0.96; }
+                .pdd-actions { display:flex; gap:8px; }
+                .pdd-cta {
+                    flex:1; background:#fff; color:var(--primary-cobalt,#0B4C8F);
+                    border:none; border-radius:14px; padding:13px 16px;
+                    font-size:14px; font-weight:900; cursor:pointer;
+                    box-shadow:0 6px 16px rgba(0,0,0,0.16);
+                    transition:transform .2s cubic-bezier(.34,1.56,.64,1);
+                }
+                .pdd-cta:active { transform:scale(.96); }
+                .pdd-map {
+                    width:48px; flex-shrink:0; background:rgba(255,255,255,0.22);
+                    border:0.5px solid rgba(255,255,255,0.3); border-radius:14px;
+                    font-size:20px; cursor:pointer; color:#fff;
+                    transition:transform .2s cubic-bezier(.34,1.56,.64,1);
+                }
+                .pdd-map:active { transform:scale(.92); }
+                /* Setup (sin prefs) y skeleton */
+                .pdd-setup { text-align:left; }
+                .pdd-setup-title { font-family:'Poppins',sans-serif; font-size:16px; font-weight:800; line-height:1.3; margin-bottom:12px; }
+                .pdd-skel { min-height:120px; }
+                .pdd-skel-line { height:14px; border-radius:8px; background:rgba(255,255,255,0.28); margin-bottom:10px; animation:pddPulse 1.2s ease-in-out infinite; }
+                .pdd-skel-line.w60 { width:60%; } .pdd-skel-line.w90 { width:90%; } .pdd-skel-line.w40 { width:40%; }
+                @keyframes pddPulse { 0%,100%{opacity:0.5;} 50%{opacity:0.9;} }
 
                 /* ─── Skeleton cards (evita pantalla en blanco) ─── */
                 /* ─── EVENT CARD V2 — premium y robusta ─── */
@@ -758,6 +941,9 @@ window.GoHappyToday = {
                 window.GoHappyToday._renderView();
             };
         });
+
+        // ⭐ Plan del día (no bloquea el resto del render — aparece en cuanto llega)
+        window.GoHappyToday._renderPlanDelDia();
 
         // Render vista inicial
         await window.GoHappyToday._renderView();

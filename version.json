@@ -1,5 +1,5 @@
 {
-  "version": "8.9.5",
-  "timestamp": "2026-06-04T12:00:00Z",
-  "note": "Fix eventos: no cachear respuestas vacias (anti-envenenamiento) + fallback resiliente sin grounding."
+  "version": "8.9.6",
+  "timestamp": "2026-06-04T13:00:00Z",
+  "note": "Today como home diario: Plan del Dia destacado + racha diaria. Hook de retorno diario."
 }
