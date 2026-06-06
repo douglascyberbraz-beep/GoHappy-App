@@ -36,7 +36,7 @@
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="assets/logo.png">
-    <link rel="manifest" href="manifest.json?v=8.9.19">
+    <link rel="manifest" href="manifest.json?v=8.9.20">
 
     <!-- Resource hints — abrir conexiones críticas YA para reducir latencia primer fetch -->
     <link rel="preconnect" href="https://geminiproxy-cwdjjopdga-ew.a.run.app" crossorigin>
@@ -59,11 +59,11 @@
 
     <!-- MapLibre GL JS 4.7 — motor 3D navegador premium (Google Maps 2026 style)
          Self-hosted. CSP wide-open permite WebGL + workers + blob: sin problemas. -->
-    <link href='js/lib/maplibre-gl.css?v=8.9.19' rel='stylesheet' />
+    <link href='js/lib/maplibre-gl.css?v=8.9.20' rel='stylesheet' />
 
     <!-- App CSS -->
-    <link rel="stylesheet" href="css/main.css?v=8.9.19">
-    <link rel="stylesheet" href="css/premium.css?v=8.9.19">
+    <link rel="stylesheet" href="css/main.css?v=8.9.20">
+    <link rel="stylesheet" href="css/premium.css?v=8.9.20">
 </head>
 
 <body>
@@ -80,7 +80,7 @@
             </div>
             <div class="splash-loader"></div>
             <!-- Versión silenciosa (solo data-attr para debug por consola) -->
-            <div id="splash-version" data-version="v8.9.19" style="display:none;"></div>
+            <div id="splash-version" data-version="v8.9.20" style="display:none;"></div>
         </div>
 
         <!-- Main Content Area inside #app -->
@@ -131,7 +131,7 @@
 
     <!-- MapLibre GL JS for 3D/Tilt/Rotate -->
     <!-- MapLibre GL JS 4.7 self-hosted (3D + WebGL) -->
-    <script src='js/lib/maplibre-gl.js?v=8.9.19'></script>
+    <script src='js/lib/maplibre-gl.js?v=8.9.20'></script>
 
     <!-- Firebase SDKs (Compat version) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -164,51 +164,51 @@
     <script src="js/lib/qrcode.min.js"></script>
 
     <!-- Datos pre-cargados (POIs Castilla y León + Inglaterra) -->
-    <script src="js/data/poi_seed.js?v=8.9.19"></script>
+    <script src="js/data/poi_seed.js?v=8.9.20"></script>
 
     <!-- Services (load order matters) -->
-    <script src="js/config.js?v=8.9.19"></script>
-    <script src="js/services/i18n.js?v=8.9.19"></script>
-    <script src="js/services/page_premium.js?v=8.9.19"></script>
-    <script src="js/services/navigation.js?v=8.9.19"></script>
-    <script src="js/services/cookies_banner.js?v=8.9.19"></script>
-    <script src="js/services/security.js?v=8.9.19"></script>
-    <script src="js/services/session_guard.js?v=8.9.19"></script>
-    <script src="js/services/onboarding_tour.js?v=8.9.19"></script>
-    <script src="js/services/toast.js?v=8.9.19"></script>
-    <script src="js/services/sound.js?v=8.9.19"></script>
-    <script src="js/services/data.js?v=8.9.19"></script>
-    <script src="js/services/points.js?v=8.9.19"></script>
-    <script src="js/services/events_api.js?v=8.9.19"></script>
-    <script src="js/services/family_context.js?v=8.9.19"></script>
-    <script src="js/services/proactive.js?v=8.9.19"></script>
-    <script src="js/services/ai_content.js?v=8.9.19"></script>
-    <script src="js/services/auth.js?v=8.9.19"></script>
-    <script src="js/services/quests.js?v=8.9.19"></script>
-    <script src="js/services/safety.js?v=8.9.19"></script>
-    <script src="js/services/families.js?v=8.9.19"></script>
-    <script src="js/services/notifications.js?v=8.9.19"></script>
+    <script src="js/config.js?v=8.9.20"></script>
+    <script src="js/services/i18n.js?v=8.9.20"></script>
+    <script src="js/services/page_premium.js?v=8.9.20"></script>
+    <script src="js/services/navigation.js?v=8.9.20"></script>
+    <script src="js/services/cookies_banner.js?v=8.9.20"></script>
+    <script src="js/services/security.js?v=8.9.20"></script>
+    <script src="js/services/session_guard.js?v=8.9.20"></script>
+    <script src="js/services/onboarding_tour.js?v=8.9.20"></script>
+    <script src="js/services/toast.js?v=8.9.20"></script>
+    <script src="js/services/sound.js?v=8.9.20"></script>
+    <script src="js/services/data.js?v=8.9.20"></script>
+    <script src="js/services/points.js?v=8.9.20"></script>
+    <script src="js/services/events_api.js?v=8.9.20"></script>
+    <script src="js/services/family_context.js?v=8.9.20"></script>
+    <script src="js/services/proactive.js?v=8.9.20"></script>
+    <script src="js/services/ai_content.js?v=8.9.20"></script>
+    <script src="js/services/auth.js?v=8.9.20"></script>
+    <script src="js/services/quests.js?v=8.9.20"></script>
+    <script src="js/services/safety.js?v=8.9.20"></script>
+    <script src="js/services/families.js?v=8.9.20"></script>
+    <script src="js/services/notifications.js?v=8.9.20"></script>
 
     <!-- Pages -->
-    <script src="js/pages/map_v11.js?v=8.9.19"></script>
-    <script src="js/pages/today.js?v=8.9.19"></script>
-    <script src="js/pages/events.js?v=8.9.19"></script>
-    <script src="js/pages/quests.js?v=8.9.19"></script>
-    <script src="js/pages/ranking.js?v=8.9.19"></script>
-    <script src="js/pages/news_events.js?v=8.9.19"></script>
-    <script src="js/pages/moments.js?v=8.9.19"></script>
-    <script src="js/pages/coach.js?v=8.9.19"></script>
-    <script src="js/pages/safe.js?v=8.9.19"></script>
-    <script src="js/pages/profile.js?v=8.9.19"></script>
-    <script src="js/pages/tribu.js?v=8.9.19"></script>
-    <script src="js/pages/memories.js?v=8.9.19"></script>
-    <script src="js/pages/legal.js?v=8.9.19"></script>
-    <script src="js/pages/family_onboarding.js?v=8.9.19"></script>
-    <script src="js/pages/my_family.js?v=8.9.19"></script>
-    <script src="js/pages/adventures.js?v=8.9.19"></script>
+    <script src="js/pages/map_v11.js?v=8.9.20"></script>
+    <script src="js/pages/today.js?v=8.9.20"></script>
+    <script src="js/pages/events.js?v=8.9.20"></script>
+    <script src="js/pages/quests.js?v=8.9.20"></script>
+    <script src="js/pages/ranking.js?v=8.9.20"></script>
+    <script src="js/pages/news_events.js?v=8.9.20"></script>
+    <script src="js/pages/moments.js?v=8.9.20"></script>
+    <script src="js/pages/coach.js?v=8.9.20"></script>
+    <script src="js/pages/safe.js?v=8.9.20"></script>
+    <script src="js/pages/profile.js?v=8.9.20"></script>
+    <script src="js/pages/tribu.js?v=8.9.20"></script>
+    <script src="js/pages/memories.js?v=8.9.20"></script>
+    <script src="js/pages/legal.js?v=8.9.20"></script>
+    <script src="js/pages/family_onboarding.js?v=8.9.20"></script>
+    <script src="js/pages/my_family.js?v=8.9.20"></script>
+    <script src="js/pages/adventures.js?v=8.9.20"></script>
 
     <!-- App Core (last) -->
-    <script src="js/app.js?v=8.9.19"></script>
+    <script src="js/app.js?v=8.9.20"></script>
 
     <!-- Service Worker Registration -->
     <script>
@@ -221,7 +221,7 @@
                     setTimeout(() => window.location.reload(true), 500);
                 };
 
-                navigator.serviceWorker.register('sw.js?v=8.9.19').then(reg => {
+                navigator.serviceWorker.register('sw.js?v=8.9.20').then(reg => {
                     console.log('[SW] GoHappy v5.2.0 registrado');
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;

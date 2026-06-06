@@ -144,8 +144,16 @@ window.GoHappyMap = {
     // Tags OSM → type interno de GoHappy
     _OSM_TAGS: {
         'leisure=park':          { type: 'park',    icon: '🌳' },
-        'leisure=playground':    { type: 'kidzone', icon: '🏰' },
+        'leisure=playground':    { type: 'park',    icon: '🛝' },
         'leisure=garden':        { type: 'park',    icon: '🌿' },
+        // Diversión de pago (ocio infantil)
+        'leisure=indoor_play':     { type: 'kidzone', icon: '🎈' },
+        'leisure=trampoline_park': { type: 'kidzone', icon: '🤸' },
+        'leisure=amusement_arcade':{ type: 'kidzone', icon: '🕹️' },
+        'leisure=bowling_alley':   { type: 'kidzone', icon: '🎳' },
+        'leisure=miniature_golf':  { type: 'kidzone', icon: '⛳' },
+        'leisure=escape_game':     { type: 'kidzone', icon: '🧩' },
+        'leisure=water_park':      { type: 'kidzone', icon: '💦' },
         'tourism=museum':        { type: 'school',  icon: '🎓' },
         'tourism=gallery':       { type: 'school',  icon: '🖼️' },
         'tourism=zoo':           { type: 'kidzone', icon: '🦁' },
@@ -160,8 +168,7 @@ window.GoHappyMap = {
         'amenity=restaurant':    { type: 'food',    icon: '🍽️' },
         'amenity=fast_food':     { type: 'food',    icon: '🍔' },
         'amenity=library':       { type: 'school',  icon: '📚' },
-        'amenity=kindergarten':  { type: 'school',  icon: '🧸' },
-        'shop=toys':             { type: 'kidzone', icon: '🧸' }
+        'amenity=kindergarten':  { type: 'school',  icon: '🧸' }
     },
 
     loadNearbyPOIs: async (lat, lng, force = false) => {
@@ -277,7 +284,10 @@ window.GoHappyMap = {
     // Cada botón carga SUS sitios reales vía Overpass (coords exactas, sin IA).
     _CATEGORY_TAGS: {
         park:    ['leisure=park', 'leisure=garden', 'leisure=nature_reserve'],
-        kidzone: ['leisure=playground', 'tourism=theme_park', 'tourism=zoo', 'tourism=aquarium', 'leisure=water_park'],
+        // Diversión = OCIO INFANTIL DE PAGO: parques de bolas/soft play, camas
+        // elásticas, recreativos (tipo Ozone), boleras, minigolf, escape rooms,
+        // parques temáticos/acuáticos, zoo y acuario. (NO playgrounds gratis.)
+        kidzone: ['leisure=indoor_play', 'leisure=trampoline_park', 'leisure=amusement_arcade', 'leisure=bowling_alley', 'leisure=miniature_golf', 'leisure=escape_game', 'tourism=theme_park', 'leisure=water_park', 'tourism=zoo', 'tourism=aquarium'],
         theater: ['amenity=theatre', 'amenity=cinema', 'amenity=arts_centre'],
         school:  ['tourism=museum', 'tourism=gallery', 'amenity=library'],   // botón "Museos/Cultura"
         food:    ['amenity=restaurant', 'amenity=cafe', 'amenity=ice_cream', 'amenity=fast_food']
