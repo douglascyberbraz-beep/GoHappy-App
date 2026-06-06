@@ -1,5 +1,52 @@
 window.GoHappyProfile = {
 
+    // ─── 📌 MIS PLANES GUARDADOS (los que el usuario guardó en Today) ───
+    _renderSavedPlans: () => {
+        const box = document.getElementById('profile-saved-plans');
+        if (!box) return;
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const sec = window.GoHappySecurity;
+        const safe = (s) => sec ? sec.safe(s || '') : String(s || '').replace(/[<>]/g, '');
+        let plans = [];
+        try { plans = JSON.parse(localStorage.getItem('GoHappy_saved_plans') || '[]'); } catch (e) {}
+
+        if (!plans.length) { box.innerHTML = ''; return; }  // sin planes → no ocupar espacio
+
+        box.innerHTML = `
+            <div style="background:rgba(255,255,255,0.85); border:0.5px solid rgba(255,255,255,0.95); border-radius:20px; padding:16px; box-shadow:0 4px 14px rgba(11,76,143,0.08);">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                    <h3 style="font-size:14px; font-weight:800; color:var(--primary-cobalt,#0B4C8F); margin:0;">📌 ${lang === 'en' ? 'My saved plans' : 'Mis planes guardados'}</h3>
+                    <span style="font-size:11px; color:var(--text-secondary);">${plans.length}</span>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    ${plans.slice(0, 8).map((p, i) => `
+                        <div class="psp-row" data-i="${i}" style="display:flex; gap:10px; align-items:center; padding:10px; background:rgba(11,76,143,0.04); border-radius:12px;">
+                            <div style="flex:1; min-width:0;">
+                                <div style="font-weight:800; font-size:13px; color:var(--cobalt,#0B4C8F); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${safe(p.title)}</div>
+                                <div style="font-size:11px; color:var(--text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📍 ${safe(p.location)}${p.time ? ' · 🕐 ' + safe(p.time) : ''}</div>
+                            </div>
+                            ${(p.lat && p.lng) ? `<button class="psp-map" data-i="${i}" title="${lang === 'en' ? 'Open in maps' : 'Abrir en mapa'}" style="flex-shrink:0; width:36px; height:36px; border-radius:10px; border:none; background:rgba(11,113,252,0.10); color:var(--cobalt,#0B4C8F); font-size:16px; cursor:pointer;">🗺️</button>` : ''}
+                            <button class="psp-del" data-i="${i}" title="${lang === 'en' ? 'Remove' : 'Quitar'}" style="flex-shrink:0; width:36px; height:36px; border-radius:10px; border:none; background:rgba(239,68,68,0.08); color:#DC2626; font-size:14px; cursor:pointer;">✕</button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+
+        box.querySelectorAll('.psp-map').forEach(b => b.onclick = (e) => {
+            e.stopPropagation();
+            const p = plans[parseInt(b.dataset.i)];
+            if (p && p.lat && p.lng && window.GoHappyNav) window.GoHappyNav.openRoute(p.lat, p.lng, p.location);
+            else if (p && window.GoHappyNav) window.GoHappyNav.openSearch(p.location || '');
+        });
+        box.querySelectorAll('.psp-del').forEach(b => b.onclick = (e) => {
+            e.stopPropagation();
+            const i = parseInt(b.dataset.i);
+            plans.splice(i, 1);
+            try { localStorage.setItem('GoHappy_saved_plans', JSON.stringify(plans)); } catch (er) {}
+            window.GoHappyProfile._renderSavedPlans();
+        });
+    },
+
     // ─── REFLEXIÓN IA (movida desde Memories — más visible aquí) ───
     _loadReflection: async (user) => {
         const el = document.getElementById('profile-reflection-text');
@@ -218,6 +265,9 @@ window.GoHappyProfile = {
                     </button>
                 </div>
 
+                <!-- 📌 Mis planes guardados (desde Today) -->
+                <div id="profile-saved-plans" style="margin-top:10px;"></div>
+
                 <div class="account-actions-list">
                     <button id="show-tour-btn" class="action-list-item">
                         <span>🎓 ${(window.GoHappyI18n?.lang === 'en') ? 'Show tutorial again' : 'Ver tutorial otra vez'}</span>
@@ -255,6 +305,9 @@ window.GoHappyProfile = {
                 if (cards.length) window.GoHappyPremium.staggerIn(cards, 60);
             }, 50);
         }
+
+        // 📌 Mis planes guardados (desde Today)
+        window.GoHappyProfile._renderSavedPlans();
 
         // 🤖 Generar reflexión IA personalizada (async, no bloquea)
         window.GoHappyProfile._loadReflection(user);

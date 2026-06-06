@@ -6,6 +6,7 @@
 window.GoHappyMyFamily = {
 
     render: async (container) => {
+        window.GoHappyMyFamily._container = container; // para re-render tras completar un reto
         const user = window.GoHappyAuth?.checkAuth?.();
         const lang = window.GoHappyI18n?.lang || 'es';
         const T = (es, en) => lang === 'en' ? en : es;
@@ -93,6 +94,14 @@ window.GoHappyMyFamily = {
             const customQuests = questsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
                 .filter(q => q.origen === 'today_plan' || q.origen === 'custom_admin');
 
+            // Qué retos ya completó la familia HOY (para marcarlos hechos)
+            let completedTodayIds = new Set();
+            try {
+                const hoy = window.GoHappyQuests._fechaHoy();
+                const done = await window.GoHappyQuests._getCompletadasHoy(family.id, hoy);
+                completedTodayIds = new Set((done || []).map(c => c.questId));
+            } catch (e) { /* sin datos de completadas → todas pendientes */ }
+
             // Render
             const content = document.getElementById('mf-content');
             content.innerHTML = `
@@ -147,15 +156,20 @@ window.GoHappyMyFamily = {
                     <div id="mf-quests-list">
                         ${customQuests.length === 0
                             ? `<div style="text-align:center; padding:18px 8px; color:var(--text-secondary); font-size:13px;">${T('Sin retos personalizados todavía', 'No custom quests yet')}</div>`
-                            : customQuests.map(q => `
-                                <div style="display:flex; gap:10px; align-items:center; padding:10px; background:rgba(11,76,143,0.04); border-radius:12px; margin-bottom:8px;">
-                                    <div style="font-size:24px; flex-shrink:0;">${q.icono || '🎯'}</div>
+                            : customQuests.map(q => {
+                                const done = completedTodayIds.has(q.id);
+                                return `
+                                <div class="mf-reto-row" data-quest-id="${q.id}" ${done ? '' : 'role="button" tabindex="0"'} style="display:flex; gap:10px; align-items:center; padding:11px; background:${done ? 'rgba(39,174,96,0.08)' : 'rgba(11,76,143,0.04)'}; border-radius:12px; margin-bottom:8px; cursor:${done ? 'default' : 'pointer'}; transition:transform 0.15s, background 0.2s; ${done ? 'opacity:0.75;' : ''}">
+                                    <div style="font-size:24px; flex-shrink:0;">${done ? '✅' : (q.icono || '🎯')}</div>
                                     <div style="flex:1; min-width:0;">
-                                        <div style="font-weight:800; font-size:13px; color:var(--cobalt); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${safe(q.titulo)}</div>
+                                        <div style="font-weight:800; font-size:13px; color:var(--cobalt); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; ${done ? 'text-decoration:line-through;' : ''}">${safe(q.titulo)}</div>
                                         <div style="font-size:11px; color:var(--text-secondary);">+${parseInt(q.puntos) || 0} pts · ${safe(q.frecuencia || 'semanal')}</div>
                                     </div>
-                                </div>
-                            `).join('')
+                                    ${done
+                                        ? `<span style="font-size:11px; font-weight:800; color:#27AE60; flex-shrink:0;">${T('Hecho hoy', 'Done today')}</span>`
+                                        : `<span style="font-size:11px; font-weight:800; color:var(--cobalt); background:rgba(11,113,252,0.10); padding:6px 10px; border-radius:999px; flex-shrink:0;">${T('Completar', 'Complete')} →</span>`}
+                                </div>`;
+                            }).join('')
                         }
                     </div>
                 </div>
@@ -221,6 +235,16 @@ window.GoHappyMyFamily = {
                 el.onclick = () => window.GoHappyApp?.loadPage?.(el.dataset.goto);
             });
 
+            // Retos pulsables → modal de completar (solo los no hechos hoy)
+            container.querySelectorAll('.mf-reto-row[role="button"]').forEach(row => {
+                const q = customQuests.find(x => x.id === row.dataset.questId);
+                if (!q) return;
+                row.addEventListener('pointerdown', () => row.style.transform = 'scale(0.98)');
+                row.addEventListener('pointerup',   () => row.style.transform = '');
+                row.addEventListener('pointerleave',() => row.style.transform = '');
+                row.onclick = () => window.GoHappyMyFamily._completeReto(q, family, T);
+            });
+
             const leaveBtn = document.getElementById('mf-leave-family') || document.getElementById('mf-delete-family');
             if (leaveBtn) leaveBtn.onclick = async () => {
                 if (!confirm(T('¿Seguro que quieres salir? Perderás progreso compartido.', 'Sure you want to leave? Shared progress will be lost.'))) return;
@@ -239,6 +263,78 @@ window.GoHappyMyFamily = {
             document.getElementById('mf-content').innerHTML = `
                 <div class="moments-empty"><div class="moments-empty-icon">⚠️</div>
                 <div class="moments-empty-title">${T('Error al cargar', 'Could not load')}</div></div>`;
+        }
+    },
+
+    // ─── Completar un reto familiar (modal con foto opcional para bonus) ───
+    _completeReto: (quest, family, T) => {
+        const lang = window.GoHappyI18n?.lang || 'es';
+        const modal = document.createElement('div');
+        modal.className = 'modal entry-anim';
+        modal.style.cssText = 'z-index:9000;';
+        modal.innerHTML = `
+            <div class="auth-container" style="padding:20px;">
+                <div class="auth-card premium-glass" style="padding:26px 22px; border-radius:32px; max-width:400px; text-align:center;">
+                    <div style="font-size:46px;">${quest.icono || '⚔️'}</div>
+                    <h3 style="font-family:'Poppins',sans-serif; color:var(--primary-cobalt); font-weight:900; margin:8px 0 4px; font-size:1.15rem;">${T('¿Reto cumplido?', 'Quest done?')}</h3>
+                    <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">${(quest.titulo || '').slice(0,70)}</p>
+                    <div style="background:linear-gradient(135deg,rgba(11,113,252,0.06),rgba(23,200,212,0.08)); border:0.5px solid rgba(11,113,252,0.18); border-radius:14px; padding:12px; margin-bottom:14px; font-size:12px; color:var(--text-secondary); line-height:1.4;">
+                        📸 ${T('Con foto ganáis <strong>+50% bonus</strong>. Sin foto, los puntos completos del reto.', 'With a photo you get <strong>+50% bonus</strong>. Without, the full quest points.')}
+                    </div>
+                    <input type="file" id="mfr-file" accept="image/*" capture="environment" style="display:none;">
+                    <div id="mfr-preview" style="display:none; margin-bottom:12px;"><img id="mfr-img" style="width:100%; max-height:180px; object-fit:cover; border-radius:14px;"></div>
+                    <button id="mfr-photo" class="btn-primary" style="width:100%; padding:13px; border-radius:14px; border:none; font-weight:800; cursor:pointer; margin-bottom:9px;">📷 ${T('Completar con foto (+bonus)', 'Complete with photo (+bonus)')}</button>
+                    <button id="mfr-plain" style="width:100%; padding:13px; background:rgba(11,76,143,0.08); color:var(--cobalt); border:0.5px solid rgba(11,76,143,0.12); border-radius:14px; font-weight:800; cursor:pointer; margin-bottom:8px; font-size:13px;">✓ ${T('Completar', 'Complete')}</button>
+                    <button class="btn-text full-width" onclick="this.closest('.modal').remove()" style="padding:8px; color:var(--text-secondary);">${T('Cancelar', 'Cancel')}</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+
+        let proofData = null;
+        const fileInput = modal.querySelector('#mfr-file');
+        modal.querySelector('#mfr-photo').onclick = () => {
+            if (!proofData) { fileInput.click(); return; }
+            window.GoHappyMyFamily._finishReto(modal, quest, family, T, true, 1.5, proofData);
+        };
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ratio = Math.min(600 / img.width, 600 / img.height, 1);
+                    canvas.width = img.width * ratio; canvas.height = img.height * ratio;
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    proofData = canvas.toDataURL('image/jpeg', 0.7);
+                    modal.querySelector('#mfr-img').src = proofData;
+                    modal.querySelector('#mfr-preview').style.display = 'block';
+                    modal.querySelector('#mfr-photo').textContent = '✓ ' + T('Confirmar con foto', 'Confirm with photo');
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+        modal.querySelector('#mfr-plain').onclick = () =>
+            window.GoHappyMyFamily._finishReto(modal, quest, family, T, false, 1.0, null);
+    },
+
+    _finishReto: async (modal, quest, family, T, verified, bonus, proofPhoto) => {
+        modal.remove();
+        window.GoHappyToast?.info(T('Completando…', 'Completing…'), 1500);
+        const res = await window.GoHappyQuests.completarQuest(quest.id, quest, { verified, bonus, proofPhoto });
+        if (res?.ok) {
+            window.GoHappySound && window.GoHappySound.play('quest');
+            window.GoHappyToast?.points(`${T('¡Reto cumplido!', 'Quest done!')} +${res.puntos} pts 🎉`);
+            try {
+                window.GoHappyContext?.addActivity?.('quest_completed', { title: quest.titulo, category: quest.categoria || null });
+            } catch (e) {}
+            // refrescar Mi Familia para mostrar el reto como hecho
+            if (window.GoHappyMyFamily._container) window.GoHappyMyFamily.render(window.GoHappyMyFamily._container);
+        } else {
+            window.GoHappySound && window.GoHappySound.play('error');
+            window.GoHappyToast?.error(res?.error || T('No se pudo completar', 'Could not complete'));
         }
     },
 

@@ -78,6 +78,23 @@ window.GoHappyToday = {
         } catch (e) { /* ignore */ }
     },
 
+    // ─── 📌 Persistir un plan guardado → lista "Mis planes guardados" (Perfil) ───
+    _persistSavedPlan: (plan) => {
+        try {
+            const list = JSON.parse(localStorage.getItem('GoHappy_saved_plans') || '[]');
+            const entry = {
+                title: plan.title || '', location: plan.location || '', summary: plan.summary || '',
+                time: plan.time || '', price: plan.price || '',
+                lat: parseFloat(plan.lat) || null, lng: parseFloat(plan.lng) || null,
+                savedAt: Date.now()
+            };
+            // dedupe por título+lugar, lo más reciente primero, máx 30
+            const filtered = list.filter(p => !(p.title === entry.title && p.location === entry.location));
+            filtered.unshift(entry);
+            localStorage.setItem('GoHappy_saved_plans', JSON.stringify(filtered.slice(0, 30)));
+        } catch (e) { /* ignore */ }
+    },
+
     // ─── 💾 Guardar el SÚPER PLAN del día (por-usuario, para la push) ───
     _saveSuperPlan: (plan) => {
         try {
@@ -202,6 +219,7 @@ window.GoHappyToday = {
             } catch (e) { /* ignore */ }
             // 🔁 recordar este plan para preguntar "¿qué tal estuvo?" por la tarde/noche
             window.GoHappyToday._markPlanPending(best);
+            window.GoHappyToday._persistSavedPlan(best); // 📌 a "Mis planes guardados"
             saveBtn.textContent = lang === 'en' ? '✅ Saved' : '✅ Guardado';
             saveBtn.style.background = '#27AE60';
             window.GoHappyToast && window.GoHappyToast.points(
@@ -1418,6 +1436,7 @@ window.GoHappyToday = {
                 const idx = parseInt(btn.dataset.act);
                 const act = activities[idx];
                 window.GoHappyToday._markPlanPending(act); // 🔁 cerrar el bucle más tarde
+                window.GoHappyToday._persistSavedPlan(act); // 📌 a "Mis planes guardados"
                 if (window.GoHappyPoints) await window.GoHappyPoints.addPoints('QUEST');
                 const user = window.GoHappyAuth.checkAuth();
                 if (user && !user.isGuest) {
