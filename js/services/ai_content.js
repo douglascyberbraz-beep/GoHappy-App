@@ -101,7 +101,33 @@ ${g.lang === 'en' ? 'Location' : 'Ubicación'}: ${cityInfo.full} (coords ${coord
 ${g.lang === 'en' ? 'Today is' : 'Hoy es'} ${todayName} ${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()}, ${timeOfDay}.
 ${prefsContext}
 
-TAREA OBLIGATORIA:
+${g.lang === 'en'
+? `MANDATORY TASK:
+1. Look up today's REAL weather forecast in ${cityInfo.city} (do not invent it).
+2. Design EXACTLY 3 REAL plans using EXISTING places in ${cityInfo.city}:
+   - Real verifiable venue (check Google Maps, the council website, etc.)
+   - Adapt to the TIME of day (morning = breakfast/workshops, afternoon = visits, evening = shows)
+   - If they want 'Outdoor' but it rains, suggest similar creative indoor shelters
+   - Diversify the 3 plans (not 3 parks — mix types)
+   - Do NOT invent venue names. If unsure, use well-known landmark places.
+3. For each plan, strict JSON with:
+   - title: catchy creative name (max 50 chars)
+   - summary: 1 short sentence on why it fits their ages (max 90 chars)
+   - typeLabel: "🌳 Outdoor" | "🏠 Indoor" | "⛅ Mixed"
+   - location: REAL name of the place (e.g. "Natural History Museum, London")
+   - lat, lng: coords of the real place
+   - time: suggested time (e.g. "11:00 - 13:00")
+   - duration: estimate (e.g. "2 hours")
+   - price: "Free" | "${(g.currency || '£').charAt(0)}5/adult" | "From ${(g.currency || '£').charAt(0)}8"
+   - age: appropriate age range (e.g. "3-8 years")
+   - highlights: array of 2 SHORT phrases (max 40 chars each)
+   - packingList: array of 2-3 essential items
+   - tip: 1 short practical tip (max 70 chars)
+   - whyPerfect: ONLY for plan #1 — 1 short sentence (max 70 chars) explaining why it's PERFECT for this exact family (mention a real age/interest/preference). Leave "" for plans 2 and 3.
+   - link: official URL if you have it, otherwise ""
+
+Strict JSON: [ { "title":"", "summary":"", "typeLabel":"", "location":"", "lat":NUM, "lng":NUM, "time":"", "duration":"", "price":"", "age":"", "highlights":["",""], "packingList":["",""], "tip":"", "whyPerfect":"", "link":"" } ]`
+: `TAREA OBLIGATORIA:
 1. Busca el CLIMA real previsto hoy en ${cityInfo.city} (no inventes).
 2. Diseña EXACTAMENTE 3 planes REALES con sitios EXISTENTES en ${cityInfo.city}:
    - Lugar real verificable (busca en Google Maps, web del ayuntamiento, etc.)
@@ -117,7 +143,7 @@ TAREA OBLIGATORIA:
    - lat, lng: coords del lugar real
    - time: horario sugerido (ej "11:00 - 13:00")
    - duration: estimación (ej "2 horas")
-   - price: "Gratis" o "5€/adulto" o "Desde 8€" (usa € en España, £ en UK)
+   - price: "Gratis" o "${(g.currency || '€').charAt(0)}5/adulto" o "Desde ${(g.currency || '€').charAt(0)}8"
    - age: rango de edad apropiado (ej "3-8 años")
    - highlights: array de 2 frases CORTAS (max 40 chars cada una)
    - packingList: array de 2-3 items esenciales
@@ -125,7 +151,7 @@ TAREA OBLIGATORIA:
    - whyPerfect: SOLO para el plan nº1 — 1 frase corta (max 70 chars) explicando por qué es PERFECTO para esta familia concreta (menciona edad/interés/preferencia real). En los planes 2 y 3 deja "".
    - link: URL oficial si la tienes, si no ""
 
-Formato JSON estricto: [ { "title":"", "summary":"", "typeLabel":"", "location":"", "lat":NUM, "lng":NUM, "time":"", "duration":"", "price":"", "age":"", "highlights":["",""], "packingList":["",""], "tip":"", "whyPerfect":"", "link":"" } ]`;
+Formato JSON estricto: [ { "title":"", "summary":"", "typeLabel":"", "location":"", "lat":NUM, "lng":NUM, "time":"", "duration":"", "price":"", "age":"", "highlights":["",""], "packingList":["",""], "tip":"", "whyPerfect":"", "link":"" } ]`}`;
 
         // Planes IA: SIN Search Grounding (Gemini conoce lugares emblemáticos por entrenamiento)
         // Esto ahorra cuota Grounding (limitada) y resuelve el 429
@@ -183,20 +209,61 @@ Formato JSON estricto: [ { "title":"", "summary":"", "typeLabel":"", "location":
 
         // Fallback: Gemini con Search Grounding (configurado en functions/index.js)
         const cityInfo = await window.GoHappyAI.getCityFromCoords(coords);
+        const g2 = window.GoHappyAI._geoContext(cityInfo);
+        const EN = g2.lang === 'en';
+        const cur = (g2.currency || '').charAt(0) || (EN ? '£' : '€');
         const today = new Date();
-        const dayNames = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-        const monthNames = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-        const todayStr = `${dayNames[today.getDay()]} ${today.getDate()} de ${monthNames[today.getMonth()]} de ${today.getFullYear()}`;
+        const daysES = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+        const daysEN = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        const monthsES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+        const monthsEN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const todayStr = EN
+            ? `${daysEN[today.getDay()]} ${today.getDate()} ${monthsEN[today.getMonth()]} ${today.getFullYear()}`
+            : `${daysES[today.getDay()]} ${today.getDate()} de ${monthsES[today.getMonth()]} de ${today.getFullYear()}`;
 
         let rango = '';
-        if (filter === 'hoy')    rango = `HOY (${todayStr})`;
-        if (filter === 'manana') rango = `MAÑANA`;
-        if (filter === 'finde')  rango = `ESTE FIN DE SEMANA (sábado y domingo)`;
+        if (filter === 'hoy')    rango = EN ? `TODAY (${todayStr})` : `HOY (${todayStr})`;
+        if (filter === 'manana') rango = EN ? `TOMORROW` : `MAÑANA`;
+        if (filter === 'finde')  rango = EN ? `THIS WEEKEND (Saturday & Sunday)` : `ESTE FIN DE SEMANA (sábado y domingo)`;
 
-        const g2 = window.GoHappyAI._geoContext(cityInfo);
-        const prompt = `${window.GoHappyAI._geoGuard(cityInfo)}${g2.lang === 'en' ? 'You are the family cultural agenda of GoHappy.' : 'Eres la agenda cultural familiar de GoHappy.'} ${g2.lang === 'en' ? 'The family is in' : 'La familia está en'} ${cityInfo.full} (coords: ${coords}). Country: ${g2.countryName}.
+        const prompt = EN
+            ? `${window.GoHappyAI._geoGuard(cityInfo)}You are GoHappy's family cultural agenda. The family is in ${cityInfo.full} (coords: ${coords}). Country: ${g2.countryName}.
 
-${g2.lang === 'en' ? 'MANDATORY MISSION: Use Google Search to find 6 REAL and VERIFIABLE events for families with children in' : 'MISIÓN OBLIGATORIA: Usa Google Search para encontrar 6 EVENTOS REALES y VERIFICABLES para familias con niños en'} ${cityInfo.city} ${g2.lang === 'en' ? 'for' : 'para'} ${rango}. ${g2.lang === 'en' ? `Search explicitly on official UK sites (${g2.councilWord}, museums, theatres, Eventbrite UK, Ticketmaster.co.uk, local festivals).` : `Busca explícitamente en webs oficiales (${g2.councilWord}, museos, teatros, ticketmaster, atrapalo, festivales locales).`}
+MANDATORY MISSION: Use Google Search to find 6 REAL and VERIFIABLE events for families with children in ${cityInfo.city} for ${rango}. Search explicitly on official UK sites (${g2.councilWord}, museums, theatres, Eventbrite UK, Ticketmaster.co.uk, local festivals).
+
+Include a mix of:
+- Kids' workshops (museums, libraries, cultural centres)
+- Shows (theatres, puppet shows, storytelling)
+- Outdoor activities (trails, theme parks, craft markets)
+- Cinema (current kids' releases)
+- Council/town events (fairs, seasonal festivals)
+- Family guided tours
+
+CRITICAL RULES:
+1. Every event MUST really exist (do not invent names).
+2. If you can't find 6 real ones, return the ones you do find (minimum 3).
+3. linkUrl MUST be a real verifiable URL (the source where you found the event).
+4. The venue must be a recognisable place in ${cityInfo.city}.
+
+Fields per event:
+- title: EXACT name of the event
+- description: 1-2 sentences (what they'll do/learn)
+- category: workshop | theatre | museum | outdoor | cinema | fair | market | trail
+- date: EXACT date in ISO format YYYY-MM-DD (e.g. "2026-05-24"). REQUIRED.
+- time: specific time (e.g. "17:00 - 19:00")
+- location: specific place in ${cityInfo.city}
+- distanceDesc: "5 min walk" | "10 min drive"
+- price: "Free" | "${cur}5" | "From ${cur}8"
+- ages: e.g. "3-8 years" | "All ages"
+- linkText: "Official site" | "Buy tickets"
+- linkUrl: REAL URL of the page to buy/check the event
+- tip: 1 short practical tip
+
+Strict JSON, no markdown or extra text:
+[ { "title":"", "description":"", "category":"", "date":"YYYY-MM-DD", "time":"", "location":"", "distanceDesc":"", "price":"", "ages":"", "linkText":"", "linkUrl":"", "tip":"" } ]`
+            : `${window.GoHappyAI._geoGuard(cityInfo)}Eres la agenda cultural familiar de GoHappy. La familia está en ${cityInfo.full} (coords: ${coords}). País: ${g2.countryName}.
+
+MISIÓN OBLIGATORIA: Usa Google Search para encontrar 6 EVENTOS REALES y VERIFICABLES para familias con niños en ${cityInfo.city} para ${rango}. Busca explícitamente en webs oficiales (${g2.councilWord}, museos, teatros, ticketmaster, atrapalo, festivales locales).
 
 Incluye una mezcla de:
 - Talleres infantiles (museos, bibliotecas, centros culturales)
@@ -220,7 +287,7 @@ Campos por evento:
 - time: hora concreta (ej "17:00 - 19:00")
 - location: lugar específico de ${cityInfo.city}
 - distanceDesc: "A 5 min andando" | "A 10 min en coche"
-- price: "Gratis" | "5€" | "Desde 8€"
+- price: "Gratis" | "${cur}5" | "Desde ${cur}8"
 - ages: ej "3-8 años" | "Todas las edades"
 - linkText: "Web oficial" | "Comprar entradas"
 - linkUrl: URL REAL de la web donde se compra/consulta el evento
