@@ -1020,14 +1020,9 @@ window.GoHappyMap = {
         const voiceBtn = document.getElementById('gh-voice-search');
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (voiceBtn && !SR) {
-            voiceBtn.title = window.L('Voz no disponible en este navegador', 'Voice not supported on this browser');
-            voiceBtn.style.opacity = '0.4';
-            voiceBtn.style.cursor = 'not-allowed';
-            voiceBtn.addEventListener('click', () => {
-                window.GoHappyToast && window.GoHappyToast.warning(
-                    window.L('Tu navegador no soporta búsqueda por voz', 'Voice search not supported on this browser'), 3000
-                );
-            });
+            // Navegador sin Web Speech API (ej. Safari iOS) → ocultar el botón
+            // en vez de dejar un control muerto. La barra de texto sigue ahí.
+            voiceBtn.style.display = 'none';
         } else if (voiceBtn && SR) {
             // Inyectar keyframe una sola vez
             if (!document.getElementById('gh-voice-style')) {

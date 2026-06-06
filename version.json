@@ -1,5 +1,5 @@
 {
-  "version": "8.9.8",
-  "timestamp": "2026-06-04T14:30:00Z",
-  "note": "FIX busqueda mapa (lang undefined en createMarker) + FABs limpios (3 visibles + herramientas plegables), boton resena ya no se corta."
+  "version": "8.9.9",
+  "timestamp": "2026-06-04T15:00:00Z",
+  "note": "Voz: el fallo era el mismo bug de createMarker (ya corregido). Boton de voz se oculta si el navegador no soporta Web Speech."
 }
