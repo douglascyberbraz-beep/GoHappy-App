@@ -362,15 +362,7 @@ window.GoHappyToday = {
                 <!-- ⭐ PLAN DEL DÍA — el motivo de abrir la app cada día -->
                 <div id="today-plan-hero" class="today-plan-hero-wrap"></div>
 
-                <!-- TOGGLE 2 vistas — Planes IA + Eventos (Semana eliminada) -->
-                <div class="today-view-toggle">
-                    <button class="t-view-btn active" data-view="planes">
-                        <span>🪄</span> ${T('today.view.plans').replace('🪄 ','')}
-                    </button>
-                    <button class="t-view-btn" data-view="eventos">
-                        <span>🎫</span> ${T('today.view.events').replace('🎫 ','')}
-                    </button>
-                </div>
+                <!-- Eventos se movieron a su propia pestaña (Events). Today = Planes IA. -->
 
                 <!-- Contenedor dinámico de vistas -->
                 <div id="today-view-content" style="padding: 0 14px calc(var(--nav-total, 110px) + 24px); width:100%; box-sizing:border-box;">

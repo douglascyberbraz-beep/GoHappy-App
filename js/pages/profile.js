@@ -269,6 +269,10 @@ window.GoHappyProfile = {
                 <div id="profile-saved-plans" style="margin-top:10px;"></div>
 
                 <div class="account-actions-list">
+                    <button id="ranking-link" class="action-list-item">
+                        <span>🏆 ${(window.GoHappyI18n?.lang === 'en') ? 'Top / Ranking' : 'Top / Ranking'}</span>
+                        <span class="arrow">→</span>
+                    </button>
                     <button id="show-tour-btn" class="action-list-item">
                         <span>🎓 ${(window.GoHappyI18n?.lang === 'en') ? 'Show tutorial again' : 'Ver tutorial otra vez'}</span>
                         <span class="arrow">→</span>
@@ -286,6 +290,10 @@ window.GoHappyProfile = {
 
         // Interaction logic
         document.getElementById('logout-btn').onclick = () => window.GoHappyAuth.logout();
+
+        // Top / Ranking (movido desde el menú central)
+        const rankingLink = document.getElementById('ranking-link');
+        if (rankingLink) rankingLink.onclick = () => window.GoHappyApp?.loadPage?.('ranking');
 
         // Re-disparar tour bajo demanda
         const tourBtn = document.getElementById('show-tour-btn');

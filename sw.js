@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gohappy-cache-v8.9.11';
+const CACHE_NAME = 'gohappy-cache-v8.9.12';
 const TILE_CACHE = 'gohappy-tiles-v1.3.0';
 
 const ASSETS = [
@@ -41,6 +41,7 @@ const ASSETS = [
     // Pages
     'js/pages/map_v11.js',
     'js/pages/today.js',
+    'js/pages/events.js',
     'js/pages/quests.js',
     'js/pages/ranking.js',
     'js/pages/news_events.js',

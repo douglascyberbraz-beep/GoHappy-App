@@ -1,5 +1,5 @@
 {
-  "version": "8.9.11",
-  "timestamp": "2026-06-04T16:00:00Z",
-  "note": "Retos completables en Mi Familia (modal foto/bonus) + Mis planes guardados en Perfil."
+  "version": "8.9.12",
+  "timestamp": "2026-06-04T16:30:00Z",
+  "note": "Events pestana propia (reemplaza Top en el menu); Top movido a Perfil; Today solo Planes."
 }

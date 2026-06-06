@@ -63,12 +63,12 @@ window.GoHappyTour = (() => {
                 )
             },
             {
-                target: '[data-page="ranking"]',
-                emoji: '🏆',
-                title: T('Top Tribu', 'Top Tribe'),
+                target: '[data-page="events"]',
+                emoji: '🎫',
+                title: T('Eventos', 'Events'),
                 body: T(
-                    'Los mejores sitios y los miembros más activos. Compite sano con otras familias de la comunidad.',
-                    'Best places and most active members. Compete fairly with other families.'
+                    'Eventos reales para familias cerca de ti: talleres, teatro, museos, ferias… actualizados cada día.',
+                    'Real family events near you: workshops, theatre, museums, fairs… updated daily.'
                 )
             },
             {
