@@ -1,5 +1,5 @@
 {
-  "version": "8.9.21",
-  "timestamp": "2026-06-04T21:00:00Z",
-  "note": "UK 100% ingles: prompts de eventos y planes totalmente bilingues (campos, precios en libras, sin espanol). Toasts Today en ingles."
+  "version": "8.9.22",
+  "timestamp": "2026-06-04T21:30:00Z",
+  "note": "Como llegar: selector de app de navegacion (Google Maps/Apple Maps/Waze) con coords exactas + recordar navegador de confianza."
 }

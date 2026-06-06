@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gohappy-cache-v8.9.21';
+const CACHE_NAME = 'gohappy-cache-v8.9.22';
 const TILE_CACHE = 'gohappy-tiles-v1.3.0';
 
 const ASSETS = [
