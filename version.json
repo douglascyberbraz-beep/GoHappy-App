@@ -1,5 +1,5 @@
 {
-  "version": "8.9.16",
-  "timestamp": "2026-06-04T18:30:00Z",
-  "note": "Filtros del mapa: botones circulares pequenos solo icono (clean). Etiqueta de busqueda en data-label."
+  "version": "8.9.17",
+  "timestamp": "2026-06-04T19:00:00Z",
+  "note": "Filtros mapa centrados bajo la barra. Perfil: puntos bajo la foto (debajo del nivel), quitado el card de puntos."
 }

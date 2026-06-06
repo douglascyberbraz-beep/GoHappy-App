@@ -125,6 +125,10 @@ window.GoHappyProfile = {
                             ">${(user.photo && (user.photo.startsWith('data:') || user.photo.startsWith('http'))) ? '' : (user.photo || '👤')}</div>
                         </div>
                         <div class="level-badge-premium" style="margin-top:10px;">${levelInfo.icon} ${levelInfo.name}</div>
+                        <div style="margin-top:7px; text-align:center;">
+                            <span style="font-family:'Poppins',sans-serif; font-size:17px; font-weight:900; color:var(--primary-cobalt,#0B4C8F);">${user.points}</span>
+                            <span style="font-size:11px; font-weight:700; color:var(--text-secondary); margin-left:3px;">${T('profile.points')}</span>
+                        </div>
                     </div>
                     <div class="profile-meta-header">
                         ${window.GoHappyPremium ? window.GoHappyPremium.greetingHTML() : ''}
@@ -155,20 +159,8 @@ window.GoHappyProfile = {
                     </p>
                 </div>
 
-                <div class="gamification-card-premium">
-                    <div class="g-card-header">
-                        <div class="g-points-display">
-                            <span class="g-points-val">${user.points}</span>
-                            <label>${T('profile.points')}</label>
-                        </div>
-                        <div class="g-level-info">
-                            <h3>${levelInfo.icon} ${levelInfo.name}</h3>
-                            <p>${levelInfo.nextPoints ? T('profile.next.level', { n: levelInfo.nextPoints - user.points }) : T('profile.max.level')}</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Progreso + fases OCULTOS por defecto → doble clic en la foto de perfil los muestra -->
-                    <div id="g-detail" style="display:none;">
+                <!-- Progreso + fases: ocultos, se revelan con DOBLE CLIC en la foto de perfil -->
+                <div id="g-detail" class="gamification-card-premium" style="display:none;">
                         <div class="g-progress-wrapper">
                             <div class="g-progress-track">
                                 <div class="g-progress-fill" style="width: ${levelInfo.progress}%">
@@ -197,7 +189,6 @@ window.GoHappyProfile = {
                                 }).join('')}
                             </div>
                         </div>
-                    </div>
                 </div>
 
                 <!-- Flujo D: Family DNA (perfil familiar generado por IA) -->

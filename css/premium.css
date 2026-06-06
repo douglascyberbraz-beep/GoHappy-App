@@ -874,6 +874,9 @@ body {
 .q-filter-btn:active, .filter-chip:active, .rank-toggle-btn:active { transform: scale(0.92) !important; }
 
 /* ── Filtros del MAPA: botones circulares pequeños, SOLO icono (clean) ── */
+.map-filters {
+    justify-content: center !important;   /* centrados bajo la barra de búsqueda */
+}
 .map-filters .filter-chip {
     width: 46px !important;
     height: 46px !important;
